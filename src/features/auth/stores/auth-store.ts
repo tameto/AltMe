@@ -23,7 +23,7 @@ type AuthStore = {
   signOut: () => Promise<void>;
   updateProfile: (updates: Partial<UserProfile>) => Promise<void>;
   clearError: () => void;
-  devLogin: (skipOnboarding?: boolean) => void;
+  devLogin: (skipOnboarding?: boolean) => Promise<void>;
 };
 
 export const useAuthStore = create<AuthStore>((set) => ({
@@ -149,19 +149,58 @@ export const useAuthStore = create<AuthStore>((set) => ({
 
   clearError: () => set({ error: null }),
 
-  devLogin: (skipOnboarding = false) => {
+  devLogin: async (skipOnboarding = false) => {
     if (!__DEV__) return;
+
+    const devEmail = 'dev@altme.test';
+    const devPassword = 'devpassword123';
+
+    // Try sign in first, then sign up if not exists
+    let session: { user: { id: string } } | null = null;
+    const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({
+      email: devEmail,
+      password: devPassword,
+    });
+
+    if (signInError) {
+      // User doesn't exist yet, create
+      const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
+        email: devEmail,
+        password: devPassword,
+      });
+      if (signUpError) {
+        console.error('Dev sign up failed:', signUpError);
+        return;
+      }
+      session = signUpData.session;
+    } else {
+      session = signInData.session;
+    }
+
+    if (!session?.user) {
+      console.error('Dev login: no session');
+      return;
+    }
+
+    // Fetch or update profile
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('*')
+      .eq('id', session.user.id)
+      .single();
+
     const devUser: UserProfile = {
-      id: 'dev-user-001',
-      displayName: 'テストユーザー',
-      ageRange: '25-34',
-      locale: 'ja',
-      timezone: 'Asia/Tokyo',
-      onboardingCompleted: skipOnboarding,
-      twinName: skipOnboarding ? 'AltMe' : null,
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
+      id: session.user.id,
+      displayName: profile?.display_name ?? 'テストユーザー',
+      ageRange: profile?.age_range ?? '25-34',
+      locale: profile?.locale ?? 'ja',
+      timezone: profile?.timezone ?? 'Asia/Tokyo',
+      onboardingCompleted: skipOnboarding || (profile?.onboarding_completed ?? false),
+      twinName: profile?.twin_name ?? (skipOnboarding ? 'AltMe' : null),
+      createdAt: profile?.created_at ?? new Date().toISOString(),
+      updatedAt: profile?.updated_at ?? new Date().toISOString(),
     };
+
     useUser.getState().setUser(devUser);
     useSubscription.getState().setEntitlement({
       isPro: false,

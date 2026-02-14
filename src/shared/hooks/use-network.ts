@@ -13,6 +13,7 @@ export const useNetwork = (): NetworkState => {
   useEffect(() => {
     let mounted = true;
 
+    // Initial check
     const checkNetwork = async () => {
       try {
         const state = await Network.getNetworkStateAsync();
@@ -30,12 +31,16 @@ export const useNetwork = (): NetworkState => {
 
     checkNetwork();
 
-    // Poll network state every 5 seconds
-    const interval = setInterval(checkNetwork, 5000);
+    // Event-driven listener instead of polling
+    const subscription = Network.addNetworkStateListener((state) => {
+      if (mounted) {
+        setIsConnected(state.isConnected ?? true);
+      }
+    });
 
     return () => {
       mounted = false;
-      clearInterval(interval);
+      subscription.remove();
     };
   }, []);
 

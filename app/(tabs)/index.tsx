@@ -59,9 +59,15 @@ export default function ChatScreen() {
 
   // WebSocket / OpenClaw state
   const [connectionMode, setConnectionMode] = useState<ConnectionMode>('edge_function');
+  const connectionModeRef = useRef<ConnectionMode>('edge_function');
   const [wsStatus, setWsStatus] = useState<WsConnectionStatus>('disconnected');
   const wsClientRef = useRef<OpenClawWebSocketClient | null>(null);
   const streamingTextRef = useRef('');
+
+  const updateConnectionMode = useCallback((mode: ConnectionMode) => {
+    connectionModeRef.current = mode;
+    setConnectionMode(mode);
+  }, []);
 
   const isAtLimit = !isPro && todayUserCount >= FREE_DAILY_CHAT_LIMIT;
 
@@ -126,13 +132,13 @@ export default function ChatScreen() {
       if (cancelled.current) return;
 
       if (!inst || inst.status !== 'running' || !inst.ipAddress) {
-        setConnectionMode('edge_function');
+        updateConnectionMode('edge_function');
         return;
       }
 
       const token = await getGatewayToken();
       if (cancelled.current || !token) {
-        setConnectionMode('edge_function');
+        updateConnectionMode('edge_function');
         return;
       }
 
@@ -163,18 +169,18 @@ export default function ChatScreen() {
           setIsLoading(false);
         },
         onConnected: (_sessionId) => {
-          setConnectionMode('websocket');
+          updateConnectionMode('websocket');
         },
         onError: (code, message) => {
           console.error(`OpenClaw error: ${code} - ${message}`);
           if (code === 'AUTH_FAILED') {
-            setConnectionMode('edge_function');
+            updateConnectionMode('edge_function');
           }
         },
         onStatusChange: (status) => {
           setWsStatus(status);
           if (status === 'disconnected' && !cancelled.current) {
-            setConnectionMode('edge_function');
+            updateConnectionMode('edge_function');
           }
         },
       });
@@ -184,14 +190,14 @@ export default function ChatScreen() {
     } catch (error) {
       console.error('Failed to connect WebSocket:', error);
       if (!cancelled.current) {
-        setConnectionMode('edge_function');
+        updateConnectionMode('edge_function');
       }
     }
-  }, []);
+  }, [updateConnectionMode]);
 
   useEffect(() => {
     if (!isPro || !user?.id) {
-      setConnectionMode('edge_function');
+      updateConnectionMode('edge_function');
       return;
     }
 
@@ -201,13 +207,13 @@ export default function ChatScreen() {
 
     // Subscribe to instance changes so we auto-connect when provisioning completes
     const unsubscribe = subscribeToInstanceChanges(user.id, (updated) => {
-      if (updated.status === 'running' && updated.ipAddress && connectionMode !== 'websocket') {
+      if (updated.status === 'running' && updated.ipAddress && connectionModeRef.current !== 'websocket') {
         connectToWebSocket(cancelled);
       }
       if (updated.status === 'stopped' || updated.status === 'error' || updated.status === 'destroying') {
         wsClientRef.current?.disconnect();
         wsClientRef.current = null;
-        setConnectionMode('edge_function');
+        updateConnectionMode('edge_function');
       }
     });
 
@@ -217,7 +223,7 @@ export default function ChatScreen() {
       wsClientRef.current = null;
       unsubscribe();
     };
-  }, [isPro, user?.id, connectToWebSocket, connectionMode]);
+  }, [isPro, user?.id, connectToWebSocket, updateConnectionMode]);
 
   // Auto scroll to bottom
   useEffect(() => {
@@ -319,7 +325,7 @@ export default function ChatScreen() {
       }
 
       // If stream ended without isComplete event
-      if (fullResponse && !messages.find((m) => m.content === fullResponse)) {
+      if (fullResponse) {
         setMessages((prev) => {
           if (prev.find((m) => m.content === fullResponse)) return prev;
           return [...prev, {
@@ -345,7 +351,7 @@ export default function ChatScreen() {
       }]);
       setStreamingText('');
     }
-  }, [router, isPro, messages]);
+  }, [router, isPro]);
 
   const handleSend = useCallback(async () => {
     const text = inputText.trim();

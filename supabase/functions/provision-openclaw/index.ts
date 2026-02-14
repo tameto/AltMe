@@ -312,8 +312,8 @@ function generateCloudInit(params: {
   soulMd: string;
   gatewayToken: string;
 }): string {
-  // Escape single quotes and backslashes in SOUL.md for safe embedding in heredoc
-  const escapedSoulMd = params.soulMd.replace(/\\/g, '\\\\').replace(/'/g, "'\\''");
+  // Quoted heredoc ('SOULEOF') disables shell expansion, so no escaping needed
+  const escapedSoulMd = params.soulMd;
 
   return `#!/bin/bash
 set -euo pipefail
