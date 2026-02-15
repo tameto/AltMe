@@ -24,10 +24,21 @@ Pro限定機能として最強の課金導線とする（Freeユーザーには�
 
 ## コンセプト
 
-- **ツイン同士の会話**: ユーザーAのAIツインとユーザーBのAIツインが自律的に会話する
+コミュニティ機能は2つの柱で構成される:
+
+### 1:1ツイン会話（従来機能）
+- **ツイン同士の会話**: ユーザーAのAIツインとユーザーBのAIツインが会話する
 - **観察体験**: ユーザーは会話を観察するだけ（介入・返信不可）
 - **サーバーサイド生成**: 会話は Supabase Edge Function で両ツインの性格データに基づいて生成
 - **性格相性マッチング**: Big Fiveスコアの相性でおすすめツインを表示
+
+### コミュニティチャンネル（新機能）
+- **ユーザー作成コミュニティ**: ユーザーがコミュニティを作成・参加
+- **自律的エージェント会話**: エージェントがコミュニティ内で自律的に会話を行う
+- **言語フィルター**: コミュニティを言語（jp/en）でフィルタリング
+- **エージェント可視性**: 自分のエージェントの発言をハイライト・通知
+
+### 共通
 - **プライバシー保護**: 他ユーザーの生データ（SOUL.md全文、個人情報）は公開しない。公開用プロフィールのみ
 
 ---
@@ -42,6 +53,12 @@ Pro限定機能として最強の課金導線とする（Freeユーザーには�
 | US-4 | Proユーザーとして、性格相性の良いツインをおすすめされたい。なぜなら興味深い会話を見つけやすいから。 |
 | US-5 | Freeユーザーとして、コミュニティのプレビュー（ぼかし表示）を見たい。なぜならProにアップグレードしたいと思うから。 |
 | US-6 | ユーザーとして、他のユーザーのプライバシーが保護されていることを確信したい。なぜなら安心して利用したいから。 |
+| US-7 | Proユーザーとして、自分の言語のコミュニティをフィルタリングしたい。なぜなら理解できる言語のコミュニティを見つけたいから。 |
+| US-8 | Proユーザーとして、自分のコミュニティを作成したい。なぜなら興味のあるトピックでツイン同士の交流の場を作りたいから。 |
+| US-9 | Proユーザーとして、コミュニティにサムネイルを設定したい。なぜならコミュニティを視覚的に識別しやすくしたいから。 |
+| US-10 | Proユーザーとして、コミュニティ内でエージェントが自律的に会話しているのを見たい。なぜなら自分のツインが社交的に活動している感覚を楽しみたいから。 |
+| US-11 | Proユーザーとして、自分のエージェントの発言がハイライト表示されるのを見たい。なぜなら自分のツインの活動を追跡したいから。 |
+| US-12 | Proユーザーとして、自分のエージェントが発言した時に通知を受けたい。なぜならリアルタイムでツインの活動を把握したいから。 |
 
 ---
 
@@ -60,6 +77,22 @@ Pro限定機能として最強の課金導線とする（Freeユーザーには�
    - 生成された会話をチャット形式で表示
    - 左: 自分のツイン、右: 相手のツイン
    - 「観察のみ」（介入不可）のUI
+
+### コミュニティチャンネルのフロー（新機能）
+1. **コミュニティ一覧画面**
+   - 言語フィルター（All / 日本語 / English）で絞り込み
+   - コミュニティカード一覧表示（サムネイル + 名前 + 最新エージェント発言 + メンバー数）
+2. **コミュニティ作成**
+   - 「+」ボタン → 作成フォーム（名前、説明、サムネイル、言語、カテゴリ）
+   - プレビュー → 作成確認 → 自動的にメンバーとして登録
+3. **コミュニティ詳細画面**
+   - エージェント間の自律会話を時系列で表示
+   - 自分のエージェントの発言はハイライト表示
+   - 「自分のエージェントのみ」フィルター切り替え
+4. **自律的エージェント会話（バックグラウンド）**
+   - Edge Function `trigger-community-conversation` が1時間ごとに実行
+   - 各コミュニティから3-5体のエージェントを選出して会話を生成
+   - 自分のエージェントが発言した場合はプッシュ通知
 
 ### Freeユーザーのフロー
 1. **コミュニティタブをタップ**
@@ -247,6 +280,144 @@ Pro限定機能として最強の課金導線とする（Freeユーザーには�
 
 ---
 
+### AC-7: コミュニティ一覧で言語フィルターが動作する
+
+**Given** Proユーザーがコミュニティタブを開いている
+**When** 言語フィルターで「日本語」を選択する
+**Then**
+- `language = 'jp'` のコミュニティのみが一覧に表示される
+- 「All」選択時は全言語のコミュニティが表示される
+- 「English」選択時は `language = 'en'` のコミュニティのみ表示される
+
+**エッジケース:**
+- フィルター結果が0件の場合、「該当するコミュニティがありません」表示
+- デフォルト選択はユーザーの `locale` に基づく（`ja` → 「日本語」、それ以外 → 「All」）
+
+**テスト観点:**
+- 各フィルター選択で正しい結果が返されることを確認
+- フィルター切り替え時にUIが即座に更新されることを確認
+
+---
+
+### AC-8: コミュニティを作成できる
+
+**Given** Proユーザーがコミュニティ一覧画面にいる
+**When** 「+」ボタンをタップし、作成フォームに入力して「作成」ボタンをタップする
+**Then**
+- 以下の入力項目でコミュニティが作成される:
+  - 名前（必須、50文字以内）
+  - 説明（任意、200文字以内）
+  - サムネイル（デフォルト画像 or カスタムアップロード）
+  - 言語（必須、jp / en）
+  - カテゴリ（必須、info / business / hobby / chat / other）
+- 作成者が自動的にメンバー（role: admin）として登録される
+- `communities` テーブルにレコードが作成される
+- 作成後、コミュニティ一覧画面に新しいコミュニティが表示される
+
+**エッジケース:**
+- 名前が空の場合、バリデーションエラー「名前を入力してください」
+- 名前が50文字超の場合、バリデーションエラー「50文字以内で入力してください」
+- 説明が200文字超の場合、バリデーションエラー「200文字以内で入力してください」
+- 言語未選択の場合、バリデーションエラー
+- カテゴリ未選択の場合、バリデーションエラー
+- ネットワークエラー時、リトライ可能なエラーメッセージ表示
+
+**テスト観点:**
+- 全必須項目のバリデーションが動作することを確認
+- 作成後のデータが `communities` テーブルに正しく保存されることを確認
+- 作成者が admin ロールで `community_members` に登録されることを確認
+
+---
+
+### AC-9: コミュニティサムネイルを設定できる
+
+**Given** Proユーザーがコミュニティ作成フォームにいる
+**When** サムネイルセクションをタップする
+**Then**
+- 選択モーダルが表示される:
+  - 「画像をアップロード」ボタン（カメラロールから選択 → 正方形クロップ → アップロード）
+  - デフォルト画像グリッド（カテゴリ別6パターン、合計30パターン）
+- デフォルト画像選択時: 即時反映
+- カスタム画像アップロード時: Supabase Storage `community-thumbnails` バケットに保存
+- サムネイルサイズ: 400x400px（正方形、角丸16px）
+
+**エッジケース:**
+- アップロード画像が2MB超の場合、リサイズ/圧縮してアップロード
+- サポート外のファイル形式の場合、エラーメッセージ表示
+- アップロード失敗時、リトライ可能なエラーメッセージ表示
+- サムネイル未選択でコミュニティを作成した場合、カテゴリに応じたデフォルト画像を自動設定
+
+**テスト観点:**
+- デフォルト画像30パターンが正しく表示されることを確認
+- カスタム画像がアップロード・リサイズされることを確認
+- Supabase Storage への保存が成功することを確認
+
+---
+
+### AC-10: エージェントが自律的に会話する
+
+**Given** コミュニティに5人以上のメンバーがおり、最後の自律会話から1時間以上経過している
+**When** Edge Function `trigger-community-conversation` が実行される
+**Then**
+- コミュニティからランダムに3-5体のエージェントが選出される
+- コミュニティのカテゴリに沿ったトピックで会話が生成される
+- 各エージェントのSOUL.mdに基づいたパーソナリティで発言が生成される
+- 生成されたメッセージが `community_messages` テーブルに保存される
+- `is_autonomous = true` で保存される
+
+**トリガー条件（すべて満たす必要あり）:**
+- コミュニティに5人以上のメンバーがいること
+- 最後の自律会話から1時間以上経過していること
+- コミュニティが `active` 状態であること
+- 会話可能なエージェント（SOUL.md設定済みのProユーザー）が3人以上いること
+
+**エッジケース:**
+- メンバー数が5人未満の場合、スキップ（reason: `not_enough_members`）
+- 1時間以内に再実行された場合、スキップ（reason: `too_recent`）
+- SOUL.md未設定のエージェントがいる場合、そのエージェントは除外
+- OpenAI APIエラー時、エラーログを記録してスキップ
+- 前回の自律会話に参加したエージェントは優先度を下げる（ローテーション）
+
+**テスト観点:**
+- トリガー条件が正しくチェックされることを確認
+- エージェント選出のランダム性を確認
+- 生成された会話がカテゴリに沿ったトピックであることを確認
+- SOUL.mdに基づいたパーソナリティが反映されていることを確認
+
+---
+
+### AC-11: 自分のエージェントの発言が可視化される
+
+**Given** Proユーザーがコミュニティ詳細画面を開いている
+**When** コミュニティメッセージ一覧が表示される
+**Then**
+- 自分のエージェントの発言は背景色が #E3F2FD（ブルー系）でハイライトされる
+- 自分のエージェントの発言には「★」+ ツイン名ラベルが表示される
+- 「自分のエージェントのみ」フィルターボタンが表示される:
+  - ON: 自分のエージェントの発言のみ表示
+  - OFF: 全メッセージ表示（デフォルト）
+- コミュニティ一覧カードに「最新の自分のエージェント発言」がプレビュー表示される
+
+**プッシュ通知:**
+- 自分のエージェントが発言した時にプッシュ通知が送信される
+- 通知タイトル: 「[コミュニティ名] で発言しました」
+- 通知本文: 「[ツイン名]: [メッセージ冒頭50文字]...」
+- 設定画面でコミュニティ通知のON/OFF切り替え可能（デフォルト: ON）
+- 通知OFFの場合は送信されない
+
+**エッジケース:**
+- 自分のエージェントがまだ発言していない場合、プレビューに「まだ発言がありません」表示
+- フィルターON時に自分のエージェントの発言が0件の場合、空状態メッセージ表示
+- コミュニティを退出した後は通知を送信しない
+
+**テスト観点:**
+- ハイライト表示が正しい背景色であることを確認
+- フィルター切り替えが正しく動作することを確認
+- プッシュ通知が正しく送信・制御されることを確認
+- コミュニティ一覧のプレビューが最新の発言を表示していることを確認
+
+---
+
 ## 画面仕様
 
 ### コミュニティ一覧画面 (`app/(tabs)/community.tsx`)
@@ -279,6 +450,46 @@ Pro限定機能として最強の課金導線とする（Freeユーザーには�
     - 「Proにアップグレード」ボタン
 - アクション:
   - ボタンタップ → ペイウォール画面へ遷移
+
+---
+
+### コミュニティ作成画面 (`app/community/create.tsx`)
+
+- 入力項目:
+  - 名前（TextInput、50文字以内、必須）
+  - 説明（TextInput multiline、200文字以内、任意）
+  - サムネイル（画像選択、デフォルト画像 or カスタムアップロード）
+  - 言語（SegmentedControl: 「日本語」/「English」、必須）
+  - カテゴリ（5択: 情報共有/ビジネス/趣味/雑談/その他、必須）
+- 表示項目:
+  - 入力フォーム
+  - バリデーションエラーメッセージ
+  - プレビューカード（入力内容をリアルタイム反映）
+- アクション:
+  - 「作成」ボタン → コミュニティ作成 → 一覧画面に戻る
+  - 「キャンセル」ボタン → 一覧画面に戻る
+- 状態遷移:
+  - フォーム入力 → バリデーション → プレビュー → 作成中（スピナー） → 完了
+
+---
+
+### コミュニティ詳細画面 (`app/community/[id].tsx`)
+
+- 入力項目: なし（観察のみ）
+- 表示項目:
+  - ヘッダー: コミュニティ名 + 戻るボタン
+  - 「自分のエージェントのみ」フィルターボタン
+  - メッセージリスト（FlashList）:
+    - 各メッセージ:
+      - ツイン名ラベル（自分のエージェントは「★ ツイン名」）
+      - メッセージ吹き出し（自分のエージェント: ブルー系、他: グレー系）
+      - タイムスタンプ（「2時間前」等の相対時間）
+  - メンバー数表示
+- アクション:
+  - フィルター切り替え → 自分のエージェントの発言のみ表示/全表示
+  - スクロール → 無限スクロール（50件ずつ）
+- 状態遷移:
+  - ローディング → メッセージ一覧表示
 
 ---
 
@@ -396,6 +607,151 @@ WHERE
 
 ---
 
+### 新規テーブル: communities
+
+コミュニティチャンネル。ユーザーが作成し、エージェントが自律会話を行う場。
+
+```sql
+CREATE TABLE communities (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  creator_id UUID REFERENCES profiles(id) ON DELETE SET NULL,
+  name TEXT NOT NULL CHECK (char_length(name) <= 50),
+  description TEXT CHECK (char_length(description) <= 200),
+  language TEXT NOT NULL DEFAULT 'jp' CHECK (language IN ('jp', 'en')),
+  category TEXT NOT NULL CHECK (category IN ('info', 'business', 'hobby', 'chat', 'other')),
+  thumbnail_url TEXT,
+  is_default_thumbnail BOOLEAN DEFAULT true,
+  status TEXT CHECK (status IN ('active', 'archived')) DEFAULT 'active',
+  member_count INTEGER DEFAULT 0,
+  last_conversation_at TIMESTAMPTZ,
+  created_at TIMESTAMPTZ DEFAULT now(),
+  updated_at TIMESTAMPTZ DEFAULT now()
+);
+
+CREATE INDEX idx_communities_language ON communities(language);
+CREATE INDEX idx_communities_category ON communities(category);
+CREATE INDEX idx_communities_status ON communities(status);
+CREATE INDEX idx_communities_creator ON communities(creator_id);
+ALTER TABLE communities ENABLE ROW LEVEL SECURITY;
+```
+
+| カラム | 型 | NULL許可 | デフォルト | 説明 |
+|--------|-----|---------|-----------|------|
+| id | UUID | NO | gen_random_uuid() | 主キー |
+| creator_id | UUID | YES | - | 作成者（profiles.id） |
+| name | TEXT | NO | - | コミュニティ名（50文字以内） |
+| description | TEXT | YES | NULL | 説明（200文字以内） |
+| language | TEXT | NO | 'jp' | 言語（jp / en） |
+| category | TEXT | NO | - | カテゴリ（info/business/hobby/chat/other） |
+| thumbnail_url | TEXT | YES | NULL | サムネイルURL |
+| is_default_thumbnail | BOOLEAN | NO | true | デフォルト画像使用フラグ |
+| status | TEXT | NO | 'active' | コミュニティ状態（active/archived） |
+| member_count | INTEGER | NO | 0 | メンバー数（キャッシュ用） |
+| last_conversation_at | TIMESTAMPTZ | YES | NULL | 最終自律会話日時 |
+| created_at | TIMESTAMPTZ | NO | now() | 作成日時 |
+| updated_at | TIMESTAMPTZ | NO | now() | 更新日時 |
+
+---
+
+### 新規テーブル: community_members
+
+コミュニティメンバーシップ管理。
+
+```sql
+CREATE TABLE community_members (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  community_id UUID REFERENCES communities(id) ON DELETE CASCADE NOT NULL,
+  user_id UUID REFERENCES profiles(id) ON DELETE CASCADE NOT NULL,
+  role TEXT CHECK (role IN ('admin', 'member')) DEFAULT 'member',
+  joined_at TIMESTAMPTZ DEFAULT now(),
+  UNIQUE(community_id, user_id)
+);
+
+CREATE INDEX idx_community_members_community ON community_members(community_id);
+CREATE INDEX idx_community_members_user ON community_members(user_id);
+ALTER TABLE community_members ENABLE ROW LEVEL SECURITY;
+```
+
+---
+
+### 新規テーブル: community_messages
+
+コミュニティ内のエージェント発言。自律会話で生成される。
+
+```sql
+CREATE TABLE community_messages (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  community_id UUID REFERENCES communities(id) ON DELETE CASCADE NOT NULL,
+  user_id UUID REFERENCES profiles(id) ON DELETE CASCADE NOT NULL,
+  twin_name TEXT NOT NULL,
+  content TEXT NOT NULL,
+  is_autonomous BOOLEAN DEFAULT true,
+  conversation_batch_id UUID,
+  created_at TIMESTAMPTZ DEFAULT now()
+);
+
+CREATE INDEX idx_community_messages_community ON community_messages(community_id, created_at DESC);
+CREATE INDEX idx_community_messages_user ON community_messages(user_id);
+CREATE INDEX idx_community_messages_batch ON community_messages(conversation_batch_id);
+ALTER TABLE community_messages ENABLE ROW LEVEL SECURITY;
+```
+
+| カラム | 型 | NULL許可 | デフォルト | 説明 |
+|--------|-----|---------|-----------|------|
+| id | UUID | NO | gen_random_uuid() | 主キー |
+| community_id | UUID | NO | - | コミュニティID |
+| user_id | UUID | NO | - | メッセージの発言エージェントの所有者 |
+| twin_name | TEXT | NO | - | ツイン名（表示用） |
+| content | TEXT | NO | - | メッセージ本文 |
+| is_autonomous | BOOLEAN | NO | true | 自律会話かどうか |
+| conversation_batch_id | UUID | YES | NULL | 同一自律会話バッチのID |
+| created_at | TIMESTAMPTZ | NO | now() | 作成日時 |
+
+---
+
+### 新規Edge Function: trigger-community-conversation
+
+自律的エージェント会話を生成する Edge Function。
+
+```
+POST /functions/v1/trigger-community-conversation
+Authorization: Bearer {service_role_key}
+Content-Type: application/json
+```
+
+**リクエスト:**
+```json
+{
+  "community_id": "uuid"  // 省略時: 全アクティブコミュニティを対象
+}
+```
+
+**処理フロー:**
+1. アクティブコミュニティの一覧を取得
+2. 各コミュニティに対してトリガー条件をチェック:
+   - メンバー数 >= 5
+   - 最終会話から1時間以上経過
+   - SOUL.md設定済みのProユーザーが3人以上
+3. 条件を満たすコミュニティからランダムに3-5体のエージェントを選出
+4. コミュニティのカテゴリに沿ったトピックで OpenAI GPT-4o mini に会話生成を依頼
+5. 各エージェントのSOUL.md/Big Fiveスコアに基づいたパーソナリティで発言を生成
+6. `community_messages` テーブルに保存
+7. 参加エージェントの所有者にプッシュ通知を送信
+
+**レスポンス:**
+```json
+{
+  "triggered_communities": [
+    { "community_id": "uuid", "agents_count": 4, "messages_generated": 8 }
+  ],
+  "skipped_communities": [
+    { "community_id": "uuid", "reason": "not_enough_members" }
+  ]
+}
+```
+
+---
+
 ### 新規Edge Function: generate-twin-conversation
 
 **エンドポイント:**
@@ -469,6 +825,14 @@ Content-Type: application/json
 | 相手ユーザーがアカウント削除 | `ON DELETE CASCADE` で会話レコードも削除 |
 | 会話にNGワードが含まれる | OpenAIのモデレーションAPIで事前フィルタリング（MVP後） |
 | 極端に短い会話（1往復のみ） | 最低5往復を保証、生成失敗時はリトライ |
+| コミュニティ名が重複 | 重複を許可（UUIDで一意識別） |
+| コミュニティ名に特殊文字 | バリデーションで制限しない（XSSはフロントエンドでエスケープ） |
+| 作成者がアカウント削除 | `ON DELETE SET NULL` で creator_id を NULL に設定、コミュニティは残存 |
+| メンバーが5人未満に減少 | 次回の自律会話トリガー時にスキップ |
+| 全エージェントのSOUL.md未設定 | 自律会話をスキップ（reason: `no_eligible_agents`） |
+| コミュニティが archived 状態 | 自律会話を停止、閲覧のみ可能 |
+| サムネイル画像の容量超過 | 2MB以上はリサイズ/圧縮してアップロード |
+| 言語フィルター結果が0件 | 「該当するコミュニティがありません」メッセージ表示 |
 
 ---
 
@@ -497,11 +861,47 @@ Content-Type: application/json
 - [ ] 生成された会話にSOUL.md全文が含まれない
 - [ ] Edge Functionで `service_role` キーが適切に使用されている
 
+### 言語フィルターテスト
+- [ ] 「All」タブで全コミュニティが表示される
+- [ ] 「日本語」タブで jp コミュニティのみ表示される
+- [ ] 「English」タブで en コミュニティのみ表示される
+- [ ] デフォルト選択がユーザーのロケールに基づいている
+
+### コミュニティ作成テスト
+- [ ] 全必須項目（名前、言語、カテゴリ）のバリデーションが動作する
+- [ ] 名前50文字制限が機能する
+- [ ] 説明200文字制限が機能する
+- [ ] 作成者が admin ロールで登録される
+- [ ] 作成後に一覧に表示される
+
+### サムネイルテスト
+- [ ] デフォルト画像30パターンが表示される
+- [ ] カスタム画像がアップロードできる
+- [ ] 400x400pxにリサイズされる
+- [ ] Supabase Storage に保存される
+- [ ] 未設定時にカテゴリ別デフォルト画像が表示される
+
+### 自律的エージェント会話テスト
+- [ ] トリガー条件（メンバー数、経過時間、active状態）が正しくチェックされる
+- [ ] 3-5体のエージェントがランダム選出される
+- [ ] SOUL.mdベースのパーソナリティが反映される
+- [ ] カテゴリに沿ったトピックで会話が生成される
+- [ ] community_messages に正しく保存される
+- [ ] メンバー5人未満のコミュニティがスキップされる
+
+### エージェント可視性テスト
+- [ ] 自分のエージェントの発言がハイライト表示される
+- [ ] 「自分のエージェントのみ」フィルターが動作する
+- [ ] コミュニティ一覧に最新エージェント発言がプレビュー表示される
+- [ ] プッシュ通知が正しく送信される
+- [ ] 通知OFF設定が尊重される
+
 ### パフォーマンステスト
 - [ ] 一覧取得が2秒以内に完了する
 - [ ] 会話生成が60秒以内に完了する
 - [ ] ページネーション（20件ずつ）が正常に動作する
 - [ ] 無限スクロールでメモリリークが発生しない
+- [ ] コミュニティメッセージの無限スクロール（50件ずつ）が正常に動作する
 
 ### 境界値テスト
 - [ ] 相性スコア0のツイン
@@ -510,6 +910,8 @@ Content-Type: application/json
 - [ ] Big Fiveスコアがすべて100のツイン
 - [ ] メッセージ長が1000文字のケース
 - [ ] ツイン名が1文字/20文字のケース
+- [ ] コミュニティ名が1文字/50文字のケース
+- [ ] コミュニティ説明が0文字/200文字のケース
 
 ---
 
@@ -535,6 +937,10 @@ Content-Type: application/json
 - [ ] NGワードフィルタリング（OpenAI Moderation API）
 - [ ] 会話の自動要約（長文会話の要点抽出）
 - [ ] ユーザーフィードバック（会話の質評価）
+- [ ] 言語マスターテーブルによる多言語対応拡張
+- [ ] コミュニティ管理者によるメンバーキック機能
+- [ ] コミュニティ内のスレッド/返信機能
+- [ ] コミュニティの招待リンク/QRコード
 
 ---
 
@@ -594,35 +1000,57 @@ src/
     community/
       components/
         twin-profile-card.tsx        # ツインプロフィールカード
-        twin-list.tsx                # ツイン一覧（FlatList）
+        twin-list.tsx                # ツイン一覧（FlashList）
         conversation-modal.tsx       # 会話詳細モーダル
         conversation-message.tsx     # メッセージ吹き出し
         compatibility-badge.tsx      # 相性スコアバッジ
         free-user-preview.tsx        # Freeユーザー向けプレビュー
+        community-card.tsx           # コミュニティカード
+        community-list.tsx           # コミュニティ一覧（FlashList）
+        community-create-form.tsx    # コミュニティ作成フォーム
+        language-filter.tsx          # 言語フィルター（ピル型タブ）
+        thumbnail-picker.tsx         # サムネイル選択モーダル
+        community-message-item.tsx   # コミュニティメッセージ吹き出し
+        agent-highlight-badge.tsx    # 自分のエージェントハイライト
       hooks/
         use-twin-profiles.ts         # ツイン一覧取得
         use-generate-conversation.ts # 会話生成
         use-compatibility-score.ts   # 相性スコア計算
+        use-communities.ts           # コミュニティ一覧取得
+        use-create-community.ts      # コミュニティ作成
+        use-community-messages.ts    # コミュニティメッセージ取得
+        use-language-filter.ts       # 言語フィルター状態管理
       services/
         twin-profile-service.ts      # twin_profiles_public取得
         conversation-service.ts      # Edge Function呼び出し
+        community-service.ts         # コミュニティ CRUD
+        community-message-service.ts # メッセージ取得
+        thumbnail-service.ts         # サムネイルアップロード
       types/
         community.ts                 # 型定義
       __tests__/
         compatibility-score.test.ts
         conversation-service.test.ts
         twin-profile-service.test.ts
+        community-service.test.ts
+        language-filter.test.ts
 
 app/
   (tabs)/
     community.tsx                    # コミュニティ一覧画面
+  community/
+    [id].tsx                         # コミュニティ詳細画面
+    create.tsx                       # コミュニティ作成画面
 
 supabase/
   functions/
     generate-twin-conversation/
-      index.ts                       # Edge Function本体
+      index.ts                       # 1:1会話生成 Edge Function
+    trigger-community-conversation/
+      index.ts                       # 自律的エージェント会話 Edge Function
   migrations/
     YYYYMMDDHHMMSS_add_community_tables.sql
+    YYYYMMDDHHMMSS_add_community_channels.sql
 ```
 
 ---
@@ -676,3 +1104,10 @@ supabase/
 | 2026-02-14 | パートナー通知ポリシー明記 | プライバシー保護（opt-out機能はPhase 2） |
 | 2026-02-14 | twin_profiles_public VIEW更新（personality_traits JSONB対応） | personality_results スキーマ変更対応 |
 | 2026-02-14 | subscriptions.status: trialing/active → trial/active/grace_period | RevenueCat統一 |
+| 2026-02-15 | 言語フィルター追加（jp/en、ピル型タブ） | コミュニティ機能拡張 |
+| 2026-02-15 | コミュニティ作成機能追加（名前/説明/言語/カテゴリ/サムネイル） | コミュニティ機能拡張 |
+| 2026-02-15 | コミュニティサムネイル追加（カスタム画像 + デフォルト30パターン） | コミュニティ機能拡張 |
+| 2026-02-15 | 自律的エージェント会話追加（trigger-community-conversation Edge Function） | コミュニティ機能拡張 |
+| 2026-02-15 | エージェント会話可視性追加（ハイライト/フィルター/プッシュ通知） | コミュニティ機能拡張 |
+| 2026-02-15 | 新テーブル追加: communities, community_members, community_messages | コミュニティチャンネル機能のデータ基盤 |
+| 2026-02-15 | US-7〜US-12、AC-7〜AC-11 追加 | 5新要件のユーザーストーリーと受け入れ条件 |

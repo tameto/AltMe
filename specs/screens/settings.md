@@ -27,6 +27,7 @@
 │  ┃  メールアドレス（表示のみ）  ┃  │
 │  ┃                           ┃  │
 │  ┃  AIツイン名: [編集フィールド] ┃  │
+│  ┃  MBTI: [16タイプ選択]        ┃  │
 │  ┗━━━━━━━━━━━━━━━━━━━━━━━━━┛  │
 │                                 │
 │  ┏━━━━━━━━━━━━━━━━━━━━━━━━━┓  │
@@ -62,8 +63,11 @@
 │  ┏━━━━━━━━━━━━━━━━━━━━━━━━━┓  │
 │  ┃ 通知設定                   ┃  │
 │  ┃                           ┃  │
-│  ┃  朝の挨拶通知      [ON/OFF] ┃  │
-│  ┃  振り返り通知      [ON/OFF] ┃  │
+│  ┃  チャット通知      [ON/OFF] ┃  │
+│  ┃  日記リマインダー   [ON/OFF] ┃  │
+│  ┃    リマインダー時刻  [21:00] ┃  │
+│  ┃  コミュニティ通知   [ON/OFF] ┃  │
+│  ┃  マーケティング通知 [ON/OFF] ┃  │
 │  ┗━━━━━━━━━━━━━━━━━━━━━━━━━┛  │
 │                                 │
 │  ┏━━━━━━━━━━━━━━━━━━━━━━━━━┓  │
@@ -93,11 +97,13 @@
 | 2 | UserAvatar | Image | プロフィールセクション左 | 64x64pt、プロバイダから取得 |
 | 3 | DisplayNameField | TextInput | Avatar右 | 編集可、50文字制限 |
 | 4 | EmailDisplay | Text | Avatar下 | 表示のみ、Caption 14pt |
-| 5 | TwinNameField | TextInput | メール下 | 編集可、20文字制限、Proでのみ保存時SOUL.md更新 |
+| 5 | TwinNameField | TextInput | メール下 | 編集可、20文字制限、デフォルト「My Agent」、Proでのみ保存時SOUL.md更新 |
+| 5.5 | MBTISelector | Picker/Modal | ツイン名下 | 16タイプ選択（4x4グリッドまたはドロップダウン）、任意、クリア可能 |
 | 6 | SubscriptionCard | Card | プロフィール下 | Pro/Free状態に応じた表示 |
 | 7 | OpenClawStatusCard | Card | サブスクリプション下 | Pro限定、ステータスバッジ + 再起動ボタン |
 | 8 | PersonalityRetakeLink | Button | OpenClaw下 | テキストリンクスタイル |
-| 9 | NotificationToggles | Switch | 性格診断下 | 朝の挨拶、振り返り2つ |
+| 9 | NotificationToggles | Switch | 性格診断下 | チャット/日記リマインダー/コミュニティ/マーケティング 4カテゴリ |
+| 9.5 | ReminderTimePicker | TimePicker | 日記リマインダー下 | デフォルト21:00、journal_reminder_enabled=ONの場合のみ表示 |
 | 10 | SupportLinks | Button | 通知設定下 | ヘルプ/お問い合わせ/バージョン |
 | 11 | LogoutButton | Button | サポート下 | セカンダリスタイル |
 | 12 | DeleteAccountButton | Button | ログアウト下 | デストラクティブスタイル（赤） |
@@ -112,6 +118,7 @@
 | Avatar → ユーザー名 | 12pt (horizontal) |
 | ユーザー名 → メール | 4pt |
 | メール → ツイン名 | 16pt |
+| ツイン名 → MBTI選択 | 12pt |
 | ステータスバッジ → 再起動ボタン | 16pt |
 | 通知トグル間 | 12pt |
 | サポートリンク間 | 12pt |
@@ -155,7 +162,9 @@
 | Proにアップグレードタップ | ペイウォール画面へ遷移 | modal presentation (300ms) |
 | 再起動ボタンタップ | 確認ダイアログ表示 → restart-openclaw呼出 → ステータス更新 | ボタンpress → スピナー (30s〜120s) |
 | 性格診断やり直しタップ | オンボーディング (personality-quiz) へ遷移 | push transition (300ms) |
-| 通知トグル | ローカル設定保存 + Expo Notifications登録/解除 | toggle animation (150ms) |
+| MBTI選択 | profiles.mbti_type更新 + update-soul-md Edge Function呼出 (Pro時) → 成功トースト | modal/picker present (300ms) |
+| 通知トグル切替 | notification_settings テーブル更新 + 通知カテゴリ有効/無効化 | toggle animation (150ms) |
+| リマインダー時刻変更 | notification_settings.journal_reminder_time更新 | picker animation (200ms) |
 | ログアウトタップ | 確認ダイアログ → WebSocket切断 + セッション破棄 + ログイン画面遷移 | fade out (300ms) |
 | アカウント削除タップ | アカウント削除確認モーダル (M-3) 表示 | modal presentation (300ms) |
 | ヘルプ/お問い合わせタップ | WebViewまたは外部ブラウザで開く | — |
@@ -172,7 +181,9 @@
 | 再起動ボタン | "AIツインインスタンスを再起動" | button | "エラー時に再起動を試行" |
 | ステータスバッジ | "ステータス: [状態]" | text | — |
 | 性格診断リンク | "性格診断をやり直す" | button | "オンボーディングに遷移" |
-| 通知トグル | "朝の挨拶通知" / "振り返り通知" | switch | "オンまたはオフに切り替え" |
+| MBTIセレクタ | "MBTIタイプを選択" | button | "16タイプから選択できます" |
+| 通知トグル | "チャット通知" / "日記リマインダー" / "コミュニティ通知" / "マーケティング通知" | switch | "オンまたはオフに切り替え" |
+| リマインダー時刻 | "リマインダー時刻" | adjustable | "日記リマインダーの時刻を設定" |
 | ログアウトボタン | "ログアウト" | button | "アカウントからサインアウト" |
 | アカウント削除ボタン | "アカウント削除" | button | "アカウントと全データを削除" |
 
@@ -183,6 +194,7 @@
 | サブスクリプションセクション | 「Freeプラン」+ 「Proにアップグレード」CTA | 「Proプラン」+ プラン詳細 + 「サブスクリプション管理」リンク |
 | AIツインインスタンスセクション | **表示されない** | **表示される**（ステータス + 再起動ボタン） |
 | ツイン名変更時のSOUL.md更新 | DBのみ更新（OpenClawインスタンスなし） | DB更新 + update-soul-md Edge Function呼出 |
+| MBTI変更時のSOUL.md更新 | DBのみ更新 | DB更新 + update-soul-md Edge Function呼出（MBTIに基づくコミュニケーションスタイル反映） |
 
 ---
 
@@ -326,3 +338,14 @@ OpenClawインスタンス再起動:
 - 通知トグルはVoiceOverで「オン」「オフ」を読み上げ
 - アカウント削除ボタンは「危険な操作」として明確にラベル付け
 - タップターゲットは全て44pt以上を確保
+
+---
+
+## 変更履歴
+
+| 日付 | 変更内容 | 理由 | 関連タスク |
+|------|---------|------|-----------|
+| 2026-02-15 | 新規作成 | 設定画面仕様書作成 | -- |
+| 2026-02-15 | MBTI選択UI追加（プロフィールセクション内、16タイプ）| MBTI入力要件 | T23 |
+| 2026-02-15 | 通知設定を4カテゴリに拡張（チャット/日記リマインダー/コミュニティ/マーケティング）+ 時刻ピッカー | プッシュ通知設定メニュー要件 | T23 |
+| 2026-02-15 | ツイン名デフォルト「My Agent」明記、MBTIのSOUL.md連携をFree/Pro差分に追加 | AIツイン名前変更・MBTI要件 | T23 |

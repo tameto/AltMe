@@ -2,7 +2,7 @@
 
 ## ステータス: APPROVED
 - 作成日: 2026-02-14
-- 最終更新: 2026-02-15
+- 最終更新: 2026-02-15 (v2)
 - 担当: Agent B (Subscription)
 
 ---
@@ -213,9 +213,196 @@ Offering: "credit_packs"
 
 ---
 
-## 6. 実装仕様
+## 6. トークン管理
 
-### 6.1 RevenueCat SDK初期化 -- `src/services/revenuecat/client.ts`
+### 6.1 トークン消費の追跡
+
+全てのOpenAI APIコール（Edge Function経由・OpenClaw Gateway経由）のトークン消費量を記録・追跡する。
+
+#### トークン制限
+
+| プラン | 月間トークン上限 | リセット |
+|--------|----------------|---------|
+| Free | 10,000トークン | 毎月1日 00:00 UTC |
+| Pro | 500,000トークン | 毎月1日 00:00 UTC |
+
+#### token_usage テーブル
+
+| カラム | 型 | 説明 |
+|--------|---|------|
+| `id` | uuid | PK |
+| `user_id` | uuid | FK → auth.users |
+| `input_tokens` | integer | 入力トークン数 |
+| `output_tokens` | integer | 出力トークン数 |
+| `total_tokens` | integer | 合計トークン数 |
+| `model` | text | 使用モデル（例: `gpt-4o-mini`） |
+| `source` | text | `'edge_function'` / `'openclaw_gateway'` |
+| `created_at` | timestamptz | 使用日時 |
+
+#### 月間集計ビュー
+
+```sql
+CREATE VIEW monthly_token_usage AS
+SELECT
+  user_id,
+  date_trunc('month', created_at) AS month,
+  SUM(total_tokens) AS total_tokens_used
+FROM token_usage
+GROUP BY user_id, date_trunc('month', created_at);
+```
+
+### 6.2 トークン残量表示
+
+チャット画面のヘッダーまたはフッターにトークン残量をプログレスバーで表示する。
+
+```
+[========--------] 7,200 / 10,000 トークン残り
+```
+
+- 残量80%以上: 緑色
+- 残量50〜80%: 黄色
+- 残量20%未満: 赤色
+
+### 6.3 トークン制限到達時の動作
+
+| 状態 | 表示 | アクション |
+|------|------|----------|
+| 制限到達 | 「今月のトークンを使い切りました」メッセージ | チャット入力を無効化 |
+| Free制限到達 | 上記 + 「Proにアップグレードして500,000トークンに」CTA | ペイウォール表示 |
+| Pro制限到達 | 上記 + 「追加トークンを購入」CTA | Consumable IAP画面表示 |
+
+### 6.4 トークン追加購入（Consumable IAP）
+
+RevenueCat consumable IAPによる追加トークン購入。月間制限を超えた場合に利用可能。
+
+#### 購入パッケージ
+
+| パッケージID | 名称 | 価格 | トークン数 | 単価 |
+|-------------|------|------|-----------|------|
+| `tokens_50k` | トークン50K | ¥500 | 50,000 | ¥0.01/token |
+| `tokens_120k` | トークン120K | ¥1,000 | 120,000 | ¥0.0083/token |
+| `tokens_400k` | トークン400K | ¥3,000 | 400,000 | ¥0.0075/token |
+
+#### RevenueCat Offering
+
+```
+Offering: "token_packs"
+  +-- Package: "tokens_small"   --> tokens_50k (¥500)
+  +-- Package: "tokens_medium"  --> tokens_120k (¥1,000)
+  +-- Package: "tokens_large"   --> tokens_400k (¥3,000)
+```
+
+#### 購入フロー
+
+```
+トークン切れ画面 or 設定画面 → 「追加トークンを購入」
+  |
+  v
+トークン購入モーダル（3パッケージ選択）
+  |
+  v
+App Store / Google Play 決済
+  |
+  v
+RevenueCat consumable purchase 完了
+  |
+  v
+token_credits テーブルに加算 → トークン残量更新
+```
+
+#### token_credits テーブル
+
+| カラム | 型 | 説明 |
+|--------|---|------|
+| `id` | uuid | PK |
+| `user_id` | uuid | FK → auth.users |
+| `amount` | integer | 購入トークン数 |
+| `remaining` | integer | 残りトークン数 |
+| `package_id` | text | 購入パッケージID |
+| `purchased_at` | timestamptz | 購入日時 |
+| `expires_at` | timestamptz | 有効期限（購入から90日） |
+
+#### トークン消費順序
+1. 月間基本トークン（Free: 10,000 / Pro: 500,000）を先に消費
+2. 基本トークン消費後、購入トークンを古い順（FIFO）に消費
+3. 有効期限切れの購入トークンは自動失効
+
+---
+
+## 7. Web版課金（Stripe）
+
+### 7.1 概要
+
+Web版ではApp Store / Google Playが利用できないため、Stripe Checkoutで課金を処理する。
+RevenueCatのStripe Providerを使用し、モバイル・Web間でサブスクリプション状態を統合管理する。
+
+### 7.2 対象プラン
+
+| プラン | Stripe Price ID | 価格 |
+|--------|---------------|------|
+| Pro Monthly | `price_pro_monthly` | ¥4,980/月 |
+| Pro Annual | `price_pro_annual` | ¥39,800/年 |
+
+注: 初回限定年額（¥29,800）はWeb版では提供しない（モバイル限定プロモーション）。
+
+### 7.3 課金フロー
+
+```
+[Web App] → 「Proにアップグレード」ボタン
+  |
+  v
+[Supabase Edge Function: create-checkout-session]
+  → Stripe Checkout Session作成
+  → checkout URLを返却
+  |
+  v
+[ブラウザ] → Stripe Checkout画面にリダイレクト
+  → ユーザーが決済情報入力・確認
+  |
+  v
+[Stripe] → 決済完了
+  → success_url にリダイレクト
+  |
+  v
+[Stripe Webhook] → Supabase Edge Function: webhook-stripe
+  → subscriptions テーブル更新
+  → RevenueCat Stripe Provider経由で同期
+  → provision-openclaw 呼び出し（初回購入時）
+```
+
+### 7.4 Stripe Webhook
+
+エンドポイント: `POST {SUPABASE_URL}/functions/v1/webhook-stripe`
+
+| イベント | 処理 |
+|---------|------|
+| `checkout.session.completed` | サブスク作成 + provision-openclaw |
+| `invoice.paid` | current_period 更新 |
+| `invoice.payment_failed` | grace_period 設定 |
+| `customer.subscription.deleted` | expired 設定 + destroy-openclaw |
+| `customer.subscription.updated` | plan_type 更新 |
+
+### 7.5 RevenueCat統合
+
+- Stripe Providerを使用して、Stripe課金をRevenueCatのEntitlementに反映
+- モバイル（App Store / Google Play）とWeb（Stripe）のサブスクリプション状態を `pro` Entitlementで統合
+- アプリ側は `useSubscription()` hookでPro判定（課金元プラットフォームを意識しない）
+
+### 7.6 Edge Function: create-checkout-session
+
+| 項目 | 内容 |
+|------|------|
+| パス | `POST /functions/v1/create-checkout-session` |
+| 認証 | Supabase Auth JWT（Authorization header） |
+| リクエスト | `{ priceId: string }` |
+| レスポンス | `{ url: string }` （Stripe Checkout URL） |
+| 処理 | Stripe Customer作成/取得 → Checkout Session作成 → URL返却 |
+
+---
+
+## 8. 実装仕様
+
+### 8.1 RevenueCat SDK初期化 -- `src/services/revenuecat/client.ts`
 
 | 関数 | 説明 |
 |------|------|
@@ -244,7 +431,7 @@ RevenueCatの `CustomerInfo` を `EntitlementInfo` にマッピング:
    - 'monthly' を含む --> 'monthly'
 ```
 
-### 6.2 型定義 -- `src/shared/types/subscription.ts`
+### 8.2 型定義 -- `src/shared/types/subscription.ts`
 
 ```typescript
 type SubscriptionStatus =
@@ -290,7 +477,7 @@ type CreditTransaction = {
 };
 ```
 
-### 6.3 useSubscription Store -- `src/shared/hooks/use-subscription.ts`
+### 8.3 useSubscription Store -- `src/shared/hooks/use-subscription.ts`
 
 Zustand store で課金状態を管理。
 
@@ -321,7 +508,7 @@ export const useIsPro = (): boolean => {
 };
 ```
 
-### 6.4 無料チャット上限
+### 8.4 無料チャット上限
 
 | 項目 | 値 |
 |------|-----|
@@ -332,9 +519,9 @@ export const useIsPro = (): boolean => {
 
 ---
 
-## 7. 課金 --> OpenClawプロビジョニング連携
+## 9. 課金 --> OpenClawプロビジョニング連携
 
-### 7.1 購入時フロー
+### 9.1 購入時フロー
 
 ```
 [ユーザー] --> [RevenueCat SDK] --> [App Store / Google Play]
@@ -358,7 +545,7 @@ export const useIsPro = (): boolean => {
               status='running'        status='stopped'
 ```
 
-### 7.2 解約時フロー
+### 9.2 解約時フロー
 
 ```
 [ユーザー] --> App Store/Google Playで解約
@@ -374,17 +561,17 @@ export const useIsPro = (): boolean => {
 
 ---
 
-## 8. Webhook仕様
+## 10. Webhook仕様
 
-### 8.1 エンドポイント
+### 10.1 エンドポイント
 
 `POST {SUPABASE_URL}/functions/v1/webhook-revenuecat`
 
-### 8.2 認証
+### 10.2 認証
 
 Authorization headerでRevenueCat Webhook Signing Secretを検証。
 
-### 8.3 処理するイベント
+### 10.3 処理するイベント
 
 | イベント | 処理 |
 |---------|------|
@@ -395,7 +582,7 @@ Authorization headerでRevenueCat Webhook Signing Secretを検証。
 | `BILLING_ISSUE` | `subscriptions.status = 'grace_period'` |
 | `PRODUCT_CHANGE` | `plan_type` 更新（OpenClawインスタンスは維持） |
 
-### 8.4 冪等性
+### 10.4 冪等性
 
 - RevenueCatイベントの `id` をユニークキーとして使用
 - 同一イベントIDの重複処理をスキップ
@@ -403,9 +590,9 @@ Authorization headerでRevenueCat Webhook Signing Secretを検証。
 
 ---
 
-## 9. サブスクリプション状態遷移
+## 11. サブスクリプション状態遷移
 
-### 9.1 `subscriptions.status` の遷移
+### 11.1 `subscriptions.status` の遷移
 
 ```
 [free] ---(購入/トライアル開始)---> [trial / active]
@@ -423,14 +610,14 @@ Authorization headerでRevenueCat Webhook Signing Secretを検証。
 - `active` --> `cancelled`（ユーザー解約、`current_period_end` まで有効）
 - `cancelled` --> `expired`（有効期限到達時）
 
-### 9.2 cancelledステータスについて
+### 11.2 cancelledステータスについて
 
 `cancelled`: ユーザーが解約済みだが、`current_period_end` まではPro機能が利用可能。
 期間満了後に `expired` に遷移し、OpenClawインスタンスが停止される。
 
 ---
 
-## 10. 購入復元
+## 12. 購入復元
 
 | 項目 | 内容 |
 |------|------|
@@ -442,15 +629,15 @@ Authorization headerでRevenueCat Webhook Signing Secretを検証。
 
 ---
 
-## 11. テスト方法
+## 13. テスト方法
 
-### 11.1 サンドボックステスト
+### 13.1 サンドボックステスト
 
 - RevenueCatサンドボックス環境で全課金フローをテスト
 - サンドボックスでは加速されたトライアル期間を利用
 - テストアカウントでApp Store / Google Playの決済を通す
 
-### 11.2 テスト確認項目
+### 13.2 テスト確認項目
 
 - 月額プラン購入 --> `pro` Entitlement が `true`
 - 年額プラン購入 --> `pro` Entitlement が `true`
@@ -464,7 +651,7 @@ Authorization headerでRevenueCat Webhook Signing Secretを検証。
 
 ---
 
-## 12. 関連ファイル
+## 14. 関連ファイル
 
 | ファイル | 説明 |
 |---------|------|
@@ -476,10 +663,12 @@ Authorization headerでRevenueCat Webhook Signing Secretを検証。
 | `supabase/functions/webhook-revenuecat/` | Webhook Edge Function |
 | `supabase/functions/provision-openclaw/` | プロビジョニング Edge Function |
 | `supabase/functions/destroy-openclaw/` | 破棄 Edge Function |
+| `supabase/functions/create-checkout-session/` | Stripe Checkout Session作成 Edge Function |
+| `supabase/functions/webhook-stripe/` | Stripe Webhook Edge Function |
 
 ---
 
-## 13. 検証条件
+## 15. 検証条件
 
 - [ ] RevenueCat SDKが正常に初期化されること
 - [ ] Offeringから全プラン（monthly, annual, intro_annual）が取得できること
@@ -498,6 +687,18 @@ Authorization headerでRevenueCat Webhook Signing Secretを検証。
 - [ ] 解約後にOpenClawインスタンスが停止されること
 - [ ] 再課金時に新規OpenClawインスタンスが作成されること
 - [ ] Free/Pro機能の切り替えが正しく動作すること
+- [ ] Freeユーザーのトークン消費が月間10,000トークンで制限されること
+- [ ] Proユーザーのトークン消費が月間500,000トークンで制限されること
+- [ ] チャット画面にトークン残量プログレスバーが表示されること
+- [ ] トークン制限到達時にチャット入力が無効化され、適切なCTAが表示されること
+- [ ] Consumable IAPで追加トークン（¥500/¥1,000/¥3,000）が購入できること
+- [ ] 購入トークンがtoken_creditsテーブルに記録されること
+- [ ] トークン消費順序（基本→購入FIFO）が正しく動作すること
+- [ ] 購入トークンの90日有効期限が正しく適用されること
+- [ ] Stripe Checkout Sessionが正常に作成されること（Web版）
+- [ ] Stripe Webhook受信後にsubscriptionsテーブルが更新されること
+- [ ] Stripe課金がRevenueCat Entitlementに反映されること
+- [ ] モバイル・Web間でサブスクリプション状態が統合されること
 
 ---
 
@@ -507,3 +708,6 @@ Authorization headerでRevenueCat Webhook Signing Secretを検証。
 |------|---------|------|
 | 2026-02-14 | 初版作成 | ドキュメント初期作成 |
 | 2026-02-15 | 実装コードに基づき全面書き換え | Reconcile: 価格体系を実装に合わせて修正（¥980-->¥4,980、¥5,800-->¥39,800、¥3,800-->¥29,800）、型定義・Store・画面実装の実態反映、OpenClawプロビジョニング連携追加 |
+| 2026-02-15 | トークン管理セクション追加 | OpenAIトークン消費量の追跡・制限（Free: 10K / Pro: 500K） |
+| 2026-02-15 | Consumable IAPセクション追加 | トークン追加購入（¥500/¥1,000/¥3,000） |
+| 2026-02-15 | Web版課金（Stripe）セクション追加 | Stripe Checkout + Webhook + RevenueCat統合 |

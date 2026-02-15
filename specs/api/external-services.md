@@ -419,6 +419,12 @@ runcmd:
 | 11 | **restart-openclaw** | NEW | OpenClawインスタンス再起動 | クライアント呼出 |
 | 12 | **onboarding-chat** | NEW | オンボーディング中の初回チャット | クライアント呼出 |
 | 13 | **generate-twin-conversation** | NEW | 2つのAIツイン間の会話生成 | クライアント呼出 |
+| 14 | **upload-media** | NEW | メディアファイルアップロード | クライアント呼出 |
+| 15 | **fetch-ogp** | NEW | OGPメタデータ取得 | クライアント呼出 |
+| 16 | **translate-message** | NEW | メッセージ翻訳 | クライアント呼出 |
+| 17 | **send-push-notification** | NEW | プッシュ通知送信 | 内部呼出 |
+| 18 | **trigger-community-conversation** | NEW | コミュニティ自律会話トリガー | Cron（毎時） |
+| 19 | **create-community** | NEW | コミュニティ作成 | クライアント呼出 |
 
 ---
 
@@ -923,7 +929,8 @@ SOUL.mdの内容を更新する（ツイン名変更、性格診断やり直し�
 ```json
 {
   "user_id": "uuid",
-  "twin_name": "新しいツイン名"
+  "twin_name": "新しいツイン名",
+  "mbti_type": "INTJ"
 }
 ```
 
@@ -931,9 +938,10 @@ SOUL.mdの内容を更新する（ツイン名変更、性格診断やり直し�
 ```
 1. 認証チェック（auth.uid() = user_id）
 2. personality_results から最新の分析結果を取得
-3. SOUL.mdを再生成（新しいツイン名 + 性格データ）
-4. openclaw_instances.soul_md を更新
-5. インスタンスが running の場合:
+3. profiles.mbti_type を更新（指定された場合）
+4. SOUL.mdを再生成（新しいツイン名 + 性格データ + MBTI情報）
+5. openclaw_instances.soul_md を更新
+6. インスタンスが running の場合:
    a. WebSocket経由でSOUL.md更新コマンドを送信（対応していればホットリロード）
    b. 非対応の場合、Dropletにファイルを書き込み → OpenClaw再起動
 6. インスタンスが running 以外の場合:
@@ -1175,6 +1183,324 @@ USING (
 
 ---
 
+### 3-14. upload-media（NEW）
+
+メディアファイル（画像・動画・音声）をSupabase Storageにアップロードする。
+
+**エンドポイント:** `POST /functions/v1/upload-media`
+
+**認証:** Bearer Token（Supabase JWT）
+
+**リクエスト:**
+```
+Content-Type: multipart/form-data
+
+file: <binary>
+type: "image" | "video" | "audio"
+```
+
+**レスポンス:**
+```json
+{
+  "url": "https://xxx.supabase.co/storage/v1/object/public/chat-attachments/...",
+  "thumbnail_url": "https://...",
+  "file_size": 1048576,
+  "mime_type": "image/jpeg",
+  "width": 1920,
+  "height": 1080,
+  "duration_seconds": null
+}
+```
+
+**処理フロー:**
+```
+1. JWT認証チェック
+2. ファイルバリデーション
+   - サイズ制限: image 10MB, video 100MB, audio 50MB
+   - MIMEタイプ制限: image/jpeg, image/png, image/webp, video/mp4, audio/m4a, audio/mp3
+3. Supabase Storage にアップロード（chat-attachments バケット）
+4. 画像の場合: 幅・高さを取得
+5. 動画の場合: サムネイル生成、duration取得
+6. レスポンス返却
+```
+
+**エラーハンドリング:**
+| エラー | 対応 |
+|--------|------|
+| ファイルサイズ超過 | HTTP 413、サイズ制限情報返却 |
+| MIMEタイプ不正 | HTTP 400、許可MIMEタイプ一覧返却 |
+| Storage障害 | HTTP 502、リトライ案内 |
+
+---
+
+### 3-15. fetch-ogp（NEW）
+
+URLからOGPメタデータを取得する。チャット内のリンクプレビュー用。
+
+**エンドポイント:** `POST /functions/v1/fetch-ogp`
+
+**認証:** Bearer Token（Supabase JWT）
+
+**リクエスト:**
+```json
+{
+  "url": "https://example.com/article"
+}
+```
+
+**レスポンス:**
+```json
+{
+  "title": "記事タイトル",
+  "description": "記事の概要...",
+  "image": "https://example.com/og-image.jpg",
+  "site_name": "Example Site",
+  "url": "https://example.com/article"
+}
+```
+
+**処理フロー:**
+```
+1. JWT認証チェック
+2. URL形式バリデーション
+3. キャッシュチェック（24時間有効）
+4. キャッシュミスの場合: HTMLを取得してOGPタグを解析
+5. 結果をキャッシュに保存
+6. レスポンス返却
+```
+
+**制限:**
+- レート制限: 20 req/分/user
+- キャッシュ: 24時間
+
+---
+
+### 3-16. translate-message（NEW）
+
+メッセージを翻訳する。コミュニティ内の多言語対応用。
+
+**エンドポイント:** `POST /functions/v1/translate-message`
+
+**認証:** Bearer Token（Supabase JWT）
+
+**リクエスト:**
+```json
+{
+  "text": "Hello, how are you?",
+  "target_language": "ja"
+}
+```
+
+**レスポンス:**
+```json
+{
+  "translated_text": "こんにちは、お元気ですか？",
+  "source_language": "en",
+  "target_language": "ja"
+}
+```
+
+**処理フロー:**
+```
+1. JWT認証チェック
+2. テキストバリデーション（最大5,000文字）
+3. OpenAI API呼出（GPT-4o-mini, temperature: 0.3）
+4. 翻訳結果返却
+```
+
+**制限:**
+- レート制限: 10 req/分/user
+- 最大文字数: 5,000文字
+
+---
+
+### 3-17. send-push-notification（NEW）
+
+指定ユーザーにプッシュ通知を送信する。内部利用のみ。
+
+**エンドポイント:** `POST /functions/v1/send-push-notification`
+
+**認証:** service_role キー（内部呼出のみ）
+
+**リクエスト:**
+```json
+{
+  "user_id": "uuid",
+  "title": "通知タイトル",
+  "body": "通知本文",
+  "data": {
+    "type": "chat",
+    "screen": "chat"
+  }
+}
+```
+
+**処理フロー:**
+```
+1. service_role認証チェック
+2. notification_settingsで送信可否を判定
+3. push_tokensからユーザーのトークンを全件取得
+4. Expo Push APIで通知送信
+5. 無効なトークンをpush_tokensから削除
+```
+
+**レスポンス:**
+```json
+{
+  "success": true,
+  "sent": 2,
+  "failed": 0
+}
+```
+
+---
+
+### 3-18. trigger-community-conversation（NEW）
+
+アクティブコミュニティで自律的なAIエージェント間の会話をトリガーする。
+
+**トリガー:** Cron（毎時）
+
+**認証:** service_role キー
+
+**処理フロー:**
+```
+1. アクティブコミュニティ（is_active = true、member_count >= 3）を取得
+2. 各コミュニティから3-5体のエージェントをランダム選出
+3. 選出されたエージェントのSOUL.md/personality_resultsを取得
+4. OpenAI API（GPT-4o）で会話を生成（3-5往復）
+5. community_messagesに保存（is_autonomous = true）
+6. Supabase Realtimeで新規メッセージを配信
+```
+
+**レスポンス:**
+```json
+{
+  "triggered": 5,
+  "messages_generated": 23,
+  "communities": ["uuid1", "uuid2", "..."]
+}
+```
+
+---
+
+### 3-19. create-community（NEW）
+
+新しいコミュニティを作成する。
+
+**エンドポイント:** `POST /functions/v1/create-community`
+
+**認証:** Bearer Token（Supabase JWT）
+
+**リクエスト:**
+```json
+{
+  "name": "コミュニティ名",
+  "description": "コミュニティの説明",
+  "language": "jp",
+  "category": "hobby",
+  "thumbnail_url": null,
+  "is_default_thumbnail": true
+}
+```
+
+**処理フロー:**
+```
+1. JWT認証チェック
+2. バリデーション（name: 1-50文字、description: 0-200文字）
+3. communitiesテーブルにINSERT
+4. community_membersに作成者を自動追加
+5. member_countを1に設定
+6. レスポンス返却
+```
+
+**レスポンス:**
+```json
+{
+  "id": "uuid",
+  "name": "コミュニティ名",
+  "description": "コミュニティの説明",
+  "language": "jp",
+  "category": "hobby",
+  "member_count": 1,
+  "created_at": "2026-02-15T10:00:00Z"
+}
+```
+
+---
+
+## 4. 追加外部サービス連携
+
+### 4-1. Supabase Storage
+
+| 項目 | 内容 |
+|------|------|
+| 用途 | メディアファイルの保存 |
+| 認証 | Supabase JWT（バケットポリシー） |
+
+**バケット一覧:**
+
+| バケット名 | 用途 | サイズ制限 | MIMEタイプ制限 |
+|-----------|------|----------|--------------|
+| chat-attachments | チャット添付ファイル | image: 10MB, video: 100MB, audio: 50MB | image/jpeg, image/png, image/webp, video/mp4, audio/m4a, audio/mp3 |
+| community-thumbnails | コミュニティサムネイル | 5MB | image/jpeg, image/png, image/webp |
+
+**バケットポリシー:**
+```sql
+-- chat-attachments: 認証済みユーザーのみアップロード可能
+-- community-thumbnails: 認証済みユーザーのみアップロード可能、全員が閲覧可能
+```
+
+---
+
+### 4-2. Expo Push API
+
+| 項目 | 内容 |
+|------|------|
+| エンドポイント | https://exp.host/--/api/v2/push/send |
+| 認証 | `EXPO_ACCESS_TOKEN` |
+| 送信形式 | JSON配列（バッチ送信対応） |
+
+**リクエスト例:**
+```json
+[
+  {
+    "to": "ExponentPushToken[xxxxxx]",
+    "title": "ツインからメッセージ",
+    "body": "新しいメッセージがあります",
+    "data": { "type": "chat", "screen": "chat" },
+    "sound": "default"
+  }
+]
+```
+
+**エラーハンドリング:**
+- `DeviceNotRegistered`: トークンをpush_tokensから削除
+- `InvalidCredentials`: EXPO_ACCESS_TOKENを確認
+
+---
+
+### 4-3. Stripe（Web課金用）
+
+| 項目 | 内容 |
+|------|------|
+| 用途 | Web経由の課金処理 |
+| 認証 | `STRIPE_SECRET_KEY` |
+| Provider | RevenueCatのStripe Provider経由で統合 |
+
+**使用APIエンドポイント:**
+
+| エンドポイント | 用途 |
+|--------------|------|
+| POST /v1/checkout/sessions | Checkout Session作成 |
+| POST /v1/webhook | Stripe Webhook受信 |
+
+**RevenueCatとの統合:**
+- Stripe Providerを設定してRevenueCat側でサブスク状態を一元管理
+- Stripe Webhookは RevenueCat が受信し、AltMeへは RevenueCat Webhook として転送される
+
+---
+
 ## 変更履歴
 
 | 日付 | 変更内容 | 理由 |
@@ -1186,3 +1512,6 @@ USING (
 | 2026-02-14 | WebSocketプロトコル: chat.md形式に統一 | 仕様間矛盾解消 |
 | 2026-02-14 | cloud-init: wss://対応（nginx + 自己署名証明書）| セキュリティ: MVPでもTLS必須（Clarify Phase Q5決定）|
 | 2026-02-14 | cloud-init: 機密情報の自動削除 | セキュリティ強化 |
+| 2026-02-15 | 新Edge Functions 6個追加: upload-media(#14), fetch-ogp(#15), translate-message(#16), send-push-notification(#17), trigger-community-conversation(#18), create-community(#19) | 新機能対応: メディア添付、OGP、翻訳、通知、コミュニティ |
+| 2026-02-15 | update-soul-md: MBTI情報反映、twin_name変更時のnameフィールド更新を追加 | MBTI・ツイン名対応 |
+| 2026-02-15 | 追加外部サービス: Supabase Storage（chat-attachments, community-thumbnails）、Expo Push API、Stripe（Web課金）を追加 | 新機能対応 |

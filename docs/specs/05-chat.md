@@ -2,7 +2,7 @@
 
 ## ステータス: DRAFT
 - 作成日: 2026-02-14
-- 最終更新: 2026-02-15
+- 最終更新: 2026-02-15 (v3: チャットリッチ化9要件追加)
 - 承認状態: 未承認
 - 担当: Agent C (Core AI)
 
@@ -33,6 +33,11 @@ AIツインが定期的に「今日はどうだった？」と聞き、回答を
 | AIモデル | OpenAI GPT-4o mini | OpenClaw Agent + SOUL.md |
 | 日記統合 | なし | あり |
 | 文字数制限 | 1,000文字 | 1,000文字（通常）/ 3,000文字（振り返り回答） |
+| メディア送信 | 画像/動画/音声 | 画像/動画/音声 |
+| マークダウン表示 | あり | あり |
+| OGPプレビュー | あり | あり |
+| 翻訳 | あり | あり |
+| 未読/既読 | あり | あり |
 
 ---
 
@@ -86,8 +91,18 @@ AIツインが定期的に「今日はどうだった？」と聞き、回答を
 | ユーザーメッセージ | 右寄せ、Primary背景 |
 | 振り返りメッセージ | アクセント背景 + 左上に日記バッジ |
 | 日付セパレーター | メッセージ間に日付変更時に表示 |
-| 入力欄 | TextInput (multiline, 最大3行) + 送信ボタン |
+| 入力欄 | TextInput (multiline, 最大3行) + 送信ボタン + 「+」メディアボタン |
+| メディアボタン | 「+」タップでアクションシート（写真/ビデオ/音声） |
 | 文字数カウンター | 入力中のモードに応じて動的に変更（1000 or 3000） |
+| マークダウン入力 | マークダウン記法対応（入力中はプレーンテキスト、送信後レンダリング） |
+| AIマークダウン表示 | AIメッセージをマークダウンとしてレンダリング（見出し、リスト、コードブロック、太字、リンク等） |
+| コンテキストメニュー | メッセージ長押しで「コピー」「返信」「翻訳」 |
+| コードブロックコピー | コードブロック右上に「コピー」ボタン |
+| メディア表示 | 画像: サムネイル（タップで全画面）、動画: サムネイル+再生ボタン、音声: 波形+再生ボタン |
+| OGPプレビュー | URLを含むメッセージにOGPカード（タイトル、説明、サムネイル） |
+| 翻訳表示 | コンテキストメニューから翻訳 → メッセージ下に折りたたみ表示 |
+| 最新メッセージFAB | 上方向スクロール時に「↓」ボタン表示（未読バッジ付き） |
+| 未読バッジ | タブバーに未読メッセージ数をバッジ表示 |
 | 残り回数 | Freeユーザーのみ表示（「残り2/3」） |
 | Freeバナー | 上限到達時「本日の無料チャットを使い切りました」+ 「Proにアップグレード」ボタン |
 
@@ -355,6 +370,32 @@ interface ChatMessageMetadata {
   isJournalEntry?: boolean;       // ユーザーのジャーナル回答
   isJournalReflection?: boolean;  // AIの振り返りコメント
   journalEntryId?: string;        // 対応する journal_entries.id
+  attachments?: ChatAttachment[]; // メディア添付
+  ogp?: OGPData[];                // OGPプレビューデータ
+  translation?: {                 // 翻訳結果
+    text: string;
+    sourceLang: string;
+    targetLang: string;
+  };
+}
+
+interface ChatAttachment {
+  type: 'image' | 'video' | 'audio';
+  url: string;                     // Supabase Storage URL
+  thumbnailUrl?: string;           // 動画サムネイルURL
+  fileName: string;
+  fileSize: number;                // バイト
+  mimeType: string;
+  duration?: number;               // 秒（動画・音声のみ）
+  width?: number;                  // ピクセル（画像・動画のみ）
+  height?: number;                 // ピクセル（画像・動画のみ）
+}
+
+interface OGPData {
+  url: string;
+  title?: string;
+  description?: string;
+  image?: string;
 }
 ```
 
@@ -457,6 +498,8 @@ Free/Pro どちらもメッセージを保存する。
 | session_id | TEXT | チャットセッションID |
 | topic_id | TEXT | トピックID（`daily`/`work`/`reflection`/`consultation`、DEFAULT: `daily`） |
 | metadata | JSONB | 付加情報（nullable） |
+| is_read | BOOLEAN | 既読フラグ（DEFAULT: false） |
+| read_at | TIMESTAMPTZ | 既読日時（nullable） |
 | created_at | TIMESTAMPTZ | 作成日時 |
 
 **RLS**: `user_id = auth.uid()` で本人のみアクセス可能。
@@ -496,18 +539,228 @@ interface ChatState {
   dailyUsage: number;
   dailyLimit: number;
 
+  // 未読管理
+  unreadCount: number;
+
+  // スクロール
+  showScrollToBottom: boolean;
+
   // アクション
-  sendMessage: (content: string) => Promise<void>;
+  sendMessage: (content: string, attachments?: ChatAttachment[]) => Promise<void>;
   loadHistory: (limit?: number, offset?: number) => Promise<void>;
   connectWebSocket: () => Promise<void>;
   disconnectWebSocket: () => void;
   resetDailyUsage: () => void;
+  markAsRead: (messageIds: string[]) => Promise<void>;
+  translateMessage: (messageId: string) => Promise<void>;
+  fetchOGP: (url: string) => Promise<OGPData | null>;
 }
 ```
 
 ---
 
-## 12. エッジケース
+## 12. メディアアップロード仕様
+
+### 12.1 Supabase Storage
+
+| バケット名 | 用途 | アクセス |
+|-----------|------|---------|
+| `chat-media` | チャット添付メディア | RLS: 本人のみ読み書き |
+
+**ファイルパス**: `chat-media/{user_id}/{message_id}/{filename}`
+
+### 12.2 ファイルサイズ制限
+
+| 種類 | 上限 | 対応フォーマット |
+|------|------|----------------|
+| 画像 | 10MB | JPEG, PNG, GIF, WebP, HEIC |
+| 動画 | 100MB | MP4, MOV, WebM |
+| 音声 | 50MB | M4A, MP3, WAV, AAC |
+
+### 12.3 アップロードフロー
+
+```
+1. 「+」ボタンタップ → アクションシート表示
+   - 写真（カメラロール / カメラ）
+   - ビデオ（カメラロール / カメラ）
+   - 音声（録音 / ファイル選択）
+2. メディア選択 → プレビュー表示
+3. サイズチェック（超過時エラートースト）
+4. Supabase Storage にアップロード（プログレスバー表示）
+5. metadata.attachments に格納して送信
+```
+
+### 12.4 メディア表示
+
+| 種類 | 表示 | インタラクション |
+|------|------|----------------|
+| 画像 | サムネイル（最大幅70%、アスペクト比維持） | タップで全画面プレビュー（ピンチズーム） |
+| 動画 | サムネイル + 再生ボタン | タップでインラインプレビュー再生 |
+| 音声 | 波形 + 再生ボタン | タップでインライン再生 |
+
+---
+
+## 13. マークダウン仕様
+
+### 13.1 AIメッセージ（マークダウンレンダリング）
+
+対応要素:
+- 見出し（h1〜h3）
+- リスト（ol / ul）
+- コードブロック（シンタックスハイライト）
+- インラインコード
+- 太字 / イタリック
+- リンク（タップで外部ブラウザ）
+
+### 13.2 ユーザーメッセージ（マークダウン入力）
+
+- `**太字**`、`*イタリック*`、`` `コード` ``、` ```コードブロック``` `、`- リスト` が対応
+- 入力中はプレーンテキスト表示（リアルタイムプレビューなし）
+- 送信後にマークダウンとしてレンダリング
+
+### 13.3 コードブロック
+
+- コードブロック右上に「コピー」ボタン配置
+- タップでコード内容のみクリップボードにコピー
+- XSS対策: スクリプトタグ等をサニタイズ
+
+---
+
+## 14. コンテキストメニュー（メッセージ操作）
+
+### 14.1 起動方法
+
+メッセージバブルを長押し。
+
+### 14.2 メニュー項目
+
+| 項目 | アクション |
+|------|----------|
+| コピー | メッセージ全文をクリップボードにコピー |
+| 返信 | 引用返信（将来実装） |
+| 翻訳 | translate-message Edge Function で翻訳実行 |
+
+### 14.3 テキスト選択
+
+- メッセージ内のテキストを部分選択してコピー可能
+
+---
+
+## 15. OGPプレビュー仕様
+
+### 15.1 fetch-ogp Edge Function
+
+```
+POST /functions/v1/fetch-ogp
+Authorization: Bearer {supabase_jwt}
+```
+
+**リクエスト:** `{ "url": "https://example.com/article" }`
+
+**レスポンス:**
+```json
+{
+  "title": "記事タイトル",
+  "description": "記事の説明文...",
+  "image": "https://example.com/ogp.jpg",
+  "url": "https://example.com/article"
+}
+```
+
+### 15.2 表示
+
+- メッセージバブルの下にOGPカード表示（タイトル、説明文、サムネイル画像）
+- タップで外部ブラウザでURLを開く
+- OGP取得失敗時はURLリンクテキストのみ表示
+
+### 15.3 キャッシュ
+
+- OGP取得結果は `ogp_cache` テーブルにキャッシュ（TTL: 24時間）
+- 同一URLの再取得を防止
+
+---
+
+## 16. 翻訳仕様
+
+### 16.1 translate-message Edge Function
+
+```
+POST /functions/v1/translate-message
+Authorization: Bearer {supabase_jwt}
+```
+
+**リクエスト:**
+```json
+{
+  "messageId": "uuid",
+  "text": "Hello, how are you?",
+  "targetLang": "ja"
+}
+```
+
+**レスポンス:**
+```json
+{
+  "translatedText": "こんにちは、お元気ですか？",
+  "sourceLang": "en",
+  "targetLang": "ja"
+}
+```
+
+### 16.2 対応言語
+
+| 言語 | コード |
+|------|--------|
+| 日本語 | `ja` |
+| 英語 | `en` |
+
+- ソース言語は自動検出
+- 将来的に対応言語を拡張可能な設計
+
+### 16.3 UI表示
+
+- 翻訳結果はメッセージバブルの下に折りたたみセクションとして表示
+- 翻訳済みメッセージには「翻訳済み」ラベル表示
+- 翻訳結果は `chat_messages.metadata.translation` に保存（再取得不要）
+
+---
+
+## 17. 未読/既読仕様
+
+### 17.1 データモデル
+
+- `chat_messages.is_read` BOOLEAN DEFAULT false
+- `chat_messages.read_at` TIMESTAMPTZ nullable
+
+### 17.2 未読バッジ
+
+- タブバーのチャットアイコンに未読メッセージ数をバッジ表示
+- `role = 'assistant'` かつ `is_read = false` のメッセージをカウント
+
+### 17.3 自動既読
+
+- チャット画面表示時に、表示範囲内のメッセージを自動的に既読に更新
+- `is_read = true`, `read_at = NOW()` に更新
+- バッジはリアルタイムで更新
+
+---
+
+## 18. 最新メッセージに戻るボタン
+
+### 18.1 表示条件
+
+- 最新メッセージから500px以上上方向にスクロールした場合に表示
+- 最新メッセージ付近（500px以内）に戻ると非表示
+
+### 18.2 UI仕様
+
+- 画面右下に「↓」FABボタン（フェードインアニメーション）
+- 未読メッセージがある場合、FABにバッジ（未読数）表示
+- タップで最新メッセージまでスムーズスクロール
+
+---
+
+## 19. エッジケース
 
 | ケース | 期待される動作 |
 |--------|--------------|
@@ -522,10 +775,16 @@ interface ChatState {
 | 振り返りプロンプトをスキップ | AIは再度促さない（その日は振り返りなし） |
 | 振り返り回答が質問形式 | AIは会話を続け、最終的な振り返りを抽出してジャーナル化 |
 | Pro → Free ダウングレード | 過去の振り返り履歴は読み取り専用で閲覧可能、新規作成不可 |
+| 画像アップロード中にネットワーク切断 | アップロード失敗トースト表示、リトライボタン付き |
+| 動画ファイルサイズ超過（100MB超） | エラートースト「ファイルサイズが上限を超えています」、送信不可 |
+| OGP取得対象URLがタイムアウト | URLをリンクテキストのみ表示（OGPカードなし） |
+| 翻訳Edge Functionがタイムアウト | 「翻訳に失敗しました」表示、リトライボタン |
+| 未対応の音声フォーマット | エラートースト「このファイル形式は対応していません」 |
+| マークダウンのXSS攻撃パターン | サニタイズ処理でスクリプトタグ等を除去 |
 
 ---
 
-## 13. Free / Pro 差分まとめ
+## 20. Free / Pro 差分まとめ
 
 | 機能 | Free | Pro |
 |------|------|-----|
@@ -539,10 +798,16 @@ interface ChatState {
 | 文字数制限 | 1,000文字 | 1,000文字（通常）/ 3,000文字（振り返り） |
 | 過去の振り返り閲覧 | 読み取り専用（Proで作成分） | 全て閲覧・作成可能 |
 | トピックタブ | 全表示 | 全表示 |
+| メディア送信 | 画像/動画/音声 | 画像/動画/音声 |
+| マークダウン | 表示・入力対応 | 表示・入力対応 |
+| OGPプレビュー | あり | あり |
+| 翻訳 | あり | あり |
+| 未読/既読 | あり | あり |
+| 最新メッセージFAB | あり | あり |
 
 ---
 
-## 14. 非機能要件
+## 21. 非機能要件
 
 | 項目 | 要件 |
 |------|------|
@@ -554,7 +819,7 @@ interface ChatState {
 
 ---
 
-## 15. 実装ファイル構成
+## 22. 実装ファイル構成
 
 ```
 app/
@@ -568,6 +833,13 @@ src/
         chat-message-list.tsx    # メッセージ一覧
         chat-input.tsx           # 入力欄
         chat-bubble.tsx          # メッセージバブル
+        markdown-renderer.tsx    # マークダウンレンダリング
+        media-attachment.tsx     # メディア添付表示（画像/動画/音声）
+        media-picker.tsx         # メディア選択アクションシート
+        ogp-preview-card.tsx     # OGPプレビューカード
+        message-context-menu.tsx # 長押しコンテキストメニュー
+        translation-view.tsx     # 翻訳結果折りたたみ表示
+        scroll-to-bottom-fab.tsx # 最新メッセージに戻るFAB
         typing-indicator.tsx     # タイピング中表示
         connection-status.tsx    # WebSocket接続状態表示
       hooks/
@@ -581,6 +853,8 @@ src/
         websocket-client.ts      # WebSocketクライアント
         edge-function-chat.ts    # Edge Function経由チャット
         chat-message-repo.ts     # メッセージの永続化
+        media-upload.ts          # Supabase Storageへのメディアアップロード
+        ogp-fetcher.ts           # OGPデータ取得・キャッシュ
       types/
         chat.ts                  # チャット関連の型定義
 
@@ -590,11 +864,15 @@ supabase/
       index.ts                   # Freeチャット Edge Function
     journal-reflect/
       index.ts                   # 振り返りコメント生成 Edge Function
+    fetch-ogp/
+      index.ts                   # OGPメタデータ取得 Edge Function
+    translate-message/
+      index.ts                   # メッセージ翻訳 Edge Function
 ```
 
 ---
 
-## 16. 検証条件
+## 23. 検証条件
 
 ### チャット基本機能
 - [ ] メッセージを送信するとAIが応答すること
@@ -626,9 +904,53 @@ supabase/
 - [ ] 振り返りメッセージに日記バッジが表示されること
 - [ ] Pro → Free ダウングレード後も過去の振り返りが読み取り専用で閲覧可能なこと
 
+### 画像・メディア送信
+- [ ] 画像をカメラロール/カメラから選択して送信できること
+- [ ] 画像がSupabase Storageにアップロードされプログレス表示されること
+- [ ] 画像がサムネイル表示され、タップで全画面プレビュー（ピンチズーム）できること
+- [ ] 動画をカメラロール/カメラから選択して送信できること
+- [ ] 動画がサムネイル+再生ボタンで表示され、タップでインライン再生されること
+- [ ] 音声を録音/ファイル選択で添付できること
+- [ ] 音声が波形+再生ボタンで表示され、タップでインライン再生されること
+- [ ] ファイルサイズ制限（画像10MB/動画100MB/音声50MB）超過でエラー表示されること
+
+### マークダウン
+- [ ] AIメッセージの見出し、リスト、コードブロック、太字、リンク等が正しくレンダリングされること
+- [ ] ユーザーメッセージのマークダウン記法が送信後にレンダリングされること
+- [ ] コードブロックの「コピー」ボタンでコード内容がコピーされること
+- [ ] XSS攻撃パターンがサニタイズされること
+
+### コピー・コンテキストメニュー
+- [ ] メッセージ長押しでコンテキストメニュー（コピー、返信、翻訳）が表示されること
+- [ ] メッセージ全文がクリップボードにコピーされること
+- [ ] テキスト部分選択してコピーできること
+
+### 未読/既読
+- [ ] タブバーに未読メッセージ数がバッジ表示されること
+- [ ] チャット画面表示時に表示範囲のメッセージが自動既読になること
+- [ ] 既読後にバッジがリアルタイム更新されること
+
+### 最新メッセージに戻るボタン
+- [ ] 上方向500px以上スクロールで「↓」FABが表示されること
+- [ ] 最新メッセージ付近に戻るとFABが非表示になること
+- [ ] FABタップで最新メッセージまでスムーズスクロールすること
+- [ ] FABに未読数バッジが表示されること
+
+### OGPプレビュー
+- [ ] URLを含むメッセージにOGPカードが表示されること
+- [ ] OGPカードタップで外部ブラウザが開くこと
+- [ ] OGP取得失敗時はURLリンクテキストのみ表示されること
+- [ ] 同一URLのOGPがキャッシュされること
+
+### 翻訳
+- [ ] コンテキストメニューから「翻訳」で翻訳結果が表示されること
+- [ ] 翻訳結果が折りたたみセクションで表示・開閉できること
+- [ ] ソース言語が自動検出されること
+- [ ] 翻訳失敗時に「翻訳に失敗しました」+リトライボタンが表示されること
+
 ---
 
-## 17. 変更履歴
+## 24. 変更履歴
 
 | 日付 | 変更内容 | 理由 |
 |------|---------|------|
@@ -636,3 +958,4 @@ supabase/
 | 2026-02-14 | ws:// -> wss:// 全箇所変更。フォールバック復帰ポリシー追加。ページネーション仕様追加。Free上限到達UX詳細化。振り返り回答文字数制限3,000文字 | セキュリティ + UX明確化 |
 | 2026-02-15 | トピックタブ機能追加（#日常, #仕事, #振り返り, #相談）。chat_messages.topic_id カラム追記。Slackライクメッセージ構造・日付セパレーター仕様追加。日記統合仕様の詳細化 | V3 Liquid Glass: トピックタブ・メッセージ構造リデザイン |
 | 2026-02-15 | 実装コードとの差分反映（Edge Function内部処理フロー、エラーコード、システムプロンプト構造） | Reconcile: 実装との同期 |
+| 2026-02-15 | 9要件追加: 画像送信、マークダウン表示/入力、コピペ、動画・音声、未読/既読、最新メッセージFAB、OGP表示、翻訳。chat_messages に is_read/read_at カラム追加。メタデータ拡張（attachments/ogp/translation）。fetch-ogp/translate-message Edge Function追加。セクション12〜18新設、セクション番号振り直し | チャットリッチ化 |

@@ -1,7 +1,7 @@
 # AltMe 画面一覧
 
 ## 作成日: 2026-02-14
-## 最終更新: 2026-02-14（コミュニティ追加、タブ構成変更）
+## 最終更新: 2026-02-15（ゲストブラウズ、通知設定、MBTI、コミュニティ作成、画面数更新）
 
 ---
 
@@ -31,8 +31,14 @@
 | # | 画面名 | ファイル | 説明 | 課金接点 |
 |---|--------|---------|------|---------|
 | A-1 | ログイン | `app/(auth)/login.tsx` | Apple/Google Sign-In | なし |
+| A-2 | ゲスト促進 | `app/(auth)/guest-prompt.tsx` | ゲストユーザーのログイン促進画面 | なし |
 
-**画面数: 1**
+**画面数: 2**
+
+**ゲストブラウズモード:**
+- 未認証ユーザーでもアプリにアクセス可能
+- アクセス可能: コミュニティ一覧・詳細（閲覧のみ）
+- アクセス不可: チャット、日記、洞察、設定 → A-2 ゲスト促進画面を表示
 
 ---
 
@@ -43,10 +49,12 @@
 | O-1 | ウェルカム | `app/(onboarding)/welcome.tsx` | アプリ紹介・価値訴求 | なし |
 | O-2 | 性格診断 | `app/(onboarding)/personality-quiz.tsx` | Big Five 5問タップ式 | なし |
 | O-3 | 診断結果 | `app/(onboarding)/result.tsx` | AI分析結果（詳細はブラー → 課金誘導） | 詳細分析ブラー |
-| O-4 | ツイン対面 | `app/(onboarding)/meet-twin.tsx` | 名前設定 + 初回チャット3往復 | チャット制限 |
+| O-4 | AIアイコン選択 | `app/(onboarding)/choose-avatar.tsx` | AIツインのアイコンを選択 | なし |
+| O-5 | 口調パターン | `app/(onboarding)/choose-tone.tsx` | AIの話し方を選択 | なし |
+| O-6 | ツイン対面 | `app/(onboarding)/meet-twin.tsx` | 名前設定 + 初回チャット3往復 | チャット制限 |
 
-**画面数: 4**
-**課金導線: O-3 詳細ブラー → O-4 チャット3往復 → ペイウォール**
+**画面数: 6**
+**課金導線: O-3 詳細ブラー → O-4/O-5 カスタマイズ → O-6 チャット3往復 → ペイウォール**
 
 ---
 
@@ -79,10 +87,12 @@
 - チャット履歴 = 日記履歴（統合ビュー）
 
 ### T-2 コミュニティタブの内容
-- 他ユーザーのAIツインのプロフィール一覧
-- 自分のツインと他のツインの会話を開始 → 会話を観察
+- コミュニティチャンネル一覧（言語フィルター付き: All / 日本語 / English）
+- コミュニティ作成機能（名前、説明、サムネイル、言語、カテゴリ）
+- エージェント自律会話の観察（自分のエージェントはハイライト表示）
+- 他ユーザーのAIツインのプロフィール一覧（おすすめ、相性スコア順）
+- 自分のツインと他のツインの1:1会話を開始 → 会話を観察
 - Pro限定: Freeユーザーはプレビュー（ぼかし表示）→ ペイウォール誘導
-- マッチング: 性格タイプの相性でおすすめ表示
 
 ### T-3 ツイン情報タブの統合内容
 - Big Five 性格診断結果（棒グラフ）
@@ -105,19 +115,44 @@
 
 ---
 
-## 画面総数: 13画面
+## 6. 設定サブ画面
+
+| # | 画面名 | ファイル | 説明 | 課金接点 |
+|---|--------|---------|------|---------|
+| S-1 | 通知設定 | `app/settings/notifications.tsx` | 通知のOn/Off・リマインダー時刻設定 | なし |
+| S-2 | MBTI選択 | `app/settings/mbti.tsx` | MBTI 16タイプ選択（モーダル） | なし |
+| S-3 | ツイン名前編集 | `app/settings/twin-name.tsx` | AIツインの名前変更 | なし |
+
+**画面数: 3**
+
+---
+
+## 7. コミュニティサブ画面
+
+| # | 画面名 | ファイル | 説明 | 課金接点 |
+|---|--------|---------|------|---------|
+| C-1 | コミュニティ作成 | `app/community/create.tsx` | 新規コミュニティ作成 | なし |
+| C-2 | コミュニティ詳細 | `app/community/[id].tsx` | エージェント自律会話閲覧 + ハイライト表示 | Pro限定 |
+
+**画面数: 2**
+
+---
+
+## 画面総数: 20画面
 
 | グループ | 画面数 | デザインファイル |
 |---------|--------|---------------|
-| auth | 1 | `designs/auth.pen` |
-| onboarding | 4 | `designs/onboarding.pen` |
+| auth | 2 | `designs/auth.pen` |
+| onboarding | 6 | `designs/onboarding.pen` |
 | paywall | 1 | `designs/paywall.pen` |
 | tabs (chat) | 1 | `designs/chat.pen` |
 | tabs (community) | 1 | `designs/community.pen` |
 | tabs (twin) | 1 | `designs/twin.pen` |
 | tabs (settings) | 1 | `designs/settings.pen` |
 | modals | 3 | 各親画面のデザインに含む |
-| **合計** | **13** | **7 .pen ファイル** |
+| settings (sub pages) | 3 | `designs/settings.pen` に含む |
+| community (sub pages) | 2 | `designs/community.pen` に含む |
+| **合計** | **20** | **7 .pen ファイル** |
 
 ---
 
@@ -139,7 +174,13 @@
       │ ★ 詳細分析ブラー表示（課金欲求↑）
       │ 「次へ」タップ
       ▼
-[O-4 ツイン対面] ─── 3:30〜7:00
+[O-4 AIアイコン選択] ─── 3:30〜4:00
+      │ アイコン選択
+      ▼
+[O-5 口調パターン] ─── 4:00〜4:30
+      │ 口調選択
+      ▼
+[O-6 ツイン対面] ─── 4:30〜7:00
       │ 名前設定 → 3往復チャット
       │ ★ AIが「もっと話したい？」（課金欲求↑↑）
       │ 「オンボーディング完了」タップ
@@ -153,7 +194,7 @@
 ```
 
 ```
-既存ユーザーフロー（継続課金誘導 — 3つの課金導線）:
+既存ユーザーフロー（継続課金誘導 — 4つの課金導線）:
 
 [T-1 チャット]
       │ Free: 3回上限到達
@@ -183,12 +224,18 @@
 | タブ/画面 | 機能仕様書 | 画面仕様書 | ステータス |
 |----------|----------|----------|----------|
 | A-1 ログイン | `features/auth.md` | `screens/auth.md` | 作成済み |
-| O-1〜O-4 オンボーディング | `features/onboarding.md` | `screens/onboarding.md` | 要作成 |
+| A-2 ゲスト促進 | `features/auth.md` | `screens/auth.md` | 要追記 |
+| O-1〜O-6 オンボーディング | `features/onboarding.md` | `screens/onboarding.md` | 要作成 |
 | P-1 ペイウォール | `features/subscription.md` | `screens/paywall.md` | 要作成 |
 | T-1 チャット | `features/chat.md` + `features/journal.md`(統合) | `screens/chat.md` | 要作成 |
-| T-2 コミュニティ | **`features/community.md`（新規）** | `screens/community.md` | **要新規作成** |
+| T-2 コミュニティ | `features/community.md` | `screens/community.md` | 要作成 |
 | T-3 ツイン情報 | `features/insights.md`(統合) + `features/openclaw-provisioning.md` | `screens/twin.md` | 要作成 |
 | T-4 設定 | `features/settings.md` | `screens/settings.md` | 要作成 |
+| S-1 通知設定 | `features/settings.md` | `screens/settings.md` | 要作成 |
+| S-2 MBTI選択 | `features/settings.md` | `screens/settings.md` | 要作成 |
+| S-3 ツイン名前編集 | `features/settings.md` | `screens/settings.md` | 要作成 |
+| C-1 コミュニティ作成 | `features/community.md` | `screens/community.md` | 作成済み |
+| C-2 コミュニティ詳細 | `features/community.md` | `screens/community.md` | 作成済み |
 
 ---
 
@@ -203,5 +250,6 @@
 | Empty | データなし（イラスト + CTA） |
 | Error | エラー発生（メッセージ + リトライ） |
 | Offline | ネットワーク未接続（バナー表示） |
+| Guest | ゲストユーザー向け表示（閲覧のみ + ログイン促進CTA） |
 | Free | 無料ユーザー向け表示（制限 + アップグレードCTA） |
 | Pro | 有料ユーザー向け表示（フル機能） |

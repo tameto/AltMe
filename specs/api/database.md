@@ -24,6 +24,13 @@ Supabase (PostgreSQL) 上に構築するAltMeアプリのデータベースス�
 | 11 | **twin_profiles_public** | コミュニティ用公開プロフィール（VIEW） | profiles, personality_results, subscriptions |
 | 12 | **twin_conversations** | AIツイン間の会話 | profiles |
 | 13 | **webhook_events** | RevenueCat Webhook冪等性チェック（NEW） | — |
+| 14 | **chat_attachments** | チャット添付ファイル（NEW） | chat_messages |
+| 15 | **push_tokens** | プッシュ通知トークン（NEW） | profiles |
+| 16 | **notification_settings** | 通知設定（NEW） | profiles |
+| 17 | **communities** | コミュニティ（NEW） | profiles |
+| 18 | **community_members** | コミュニティメンバー（NEW） | communities, profiles |
+| 19 | **community_messages** | コミュニティメッセージ（NEW） | communities, profiles |
+| 20 | **token_usage** | トークン使用量管理（NEW） | profiles |
 
 ---
 
@@ -43,9 +50,10 @@ CREATE TABLE profiles (
   locale TEXT DEFAULT 'ja',
   timezone TEXT DEFAULT 'Asia/Tokyo',
   onboarding_completed BOOLEAN DEFAULT false,
-  twin_name TEXT,
+  twin_name TEXT DEFAULT 'My Agent',
   avatar_icon TEXT DEFAULT 'default',
   speech_tone TEXT DEFAULT 'friendly',
+  mbti_type TEXT,
   created_at TIMESTAMPTZ DEFAULT now(),
   updated_at TIMESTAMPTZ DEFAULT now()
 );
@@ -63,9 +71,10 @@ ALTER TABLE profiles ENABLE ROW LEVEL SECURITY;
 | locale | TEXT | YES | 'ja' | ロケール |
 | timezone | TEXT | YES | 'Asia/Tokyo' | タイムゾーン |
 | onboarding_completed | BOOLEAN | NO | false | オンボーディング完了フラグ |
-| twin_name | TEXT | YES | NULL | AIツインの名前 |
+| twin_name | TEXT | YES | 'My Agent' | AIツインの名前 |
 | avatar_icon | TEXT | YES | 'default' | AIアバターアイコン種別（geometric/cosmic/organic/tech/zen） |
 | speech_tone | TEXT | YES | 'friendly' | 口調パターン（polite/friendly/intellectual/mentor/tsundere） |
+| mbti_type | TEXT | YES | NULL | MBTI 16タイプ（NULL = 未設定） |
 | created_at | TIMESTAMPTZ | NO | now() | 作成日時 |
 | updated_at | TIMESTAMPTZ | NO | now() | 更新日時 |
 
@@ -146,6 +155,11 @@ CREATE TABLE chat_messages (
   topic_id TEXT DEFAULT 'daily',
   metadata JSONB DEFAULT '{}',
   tokens_used INTEGER,
+  has_attachment BOOLEAN DEFAULT false,
+  attachment_type TEXT CHECK (attachment_type IN ('image', 'video', 'audio', 'file')),
+  attachment_url TEXT,
+  is_read BOOLEAN DEFAULT false,
+  read_at TIMESTAMPTZ,
   created_at TIMESTAMPTZ DEFAULT now()
 );
 
@@ -164,6 +178,11 @@ ALTER TABLE chat_messages ENABLE ROW LEVEL SECURITY;
 | topic_id | TEXT | YES | 'daily' | トピックID（daily/work/reflection/consultation） |
 | metadata | JSONB | YES | '{}' | 追加メタデータ（トークン数、モデル名等） |
 | tokens_used | INTEGER | YES | NULL | 消費したトークン数 |
+| has_attachment | BOOLEAN | NO | false | 添付ファイルの有無 |
+| attachment_type | TEXT | YES | NULL | 添付種別（image/video/audio/file） |
+| attachment_url | TEXT | YES | NULL | 添付ファイルURL |
+| is_read | BOOLEAN | NO | false | 既読フラグ |
+| read_at | TIMESTAMPTZ | YES | NULL | 既読日時 |
 | created_at | TIMESTAMPTZ | NO | now() | 作成日時 |
 
 **RLSポリシー:**
@@ -388,8 +407,10 @@ CREATE TABLE credit_transactions (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   user_id UUID REFERENCES profiles(id) ON DELETE CASCADE NOT NULL,
   type TEXT CHECK (type IN ('consume', 'reset', 'bonus')) NOT NULL,
+  transaction_type TEXT CHECK (transaction_type IN ('subscription', 'consumable', 'bonus')),
   amount INTEGER NOT NULL,
   balance_after INTEGER NOT NULL,
+  token_amount INTEGER,
   description TEXT,
   created_at TIMESTAMPTZ DEFAULT now()
 );
@@ -403,8 +424,10 @@ ALTER TABLE credit_transactions ENABLE ROW LEVEL SECURITY;
 | id | UUID | NO | gen_random_uuid() | 主キー |
 | user_id | UUID | NO | - | profiles.id への外部キー |
 | type | TEXT | NO | - | 取引種別（consume/reset/bonus） |
+| transaction_type | TEXT | YES | NULL | 課金種別（subscription/consumable/bonus）消費IAP対応 |
 | amount | INTEGER | NO | - | 増減数（consumeは負値） |
 | balance_after | INTEGER | NO | - | 取引後の残高 |
+| token_amount | INTEGER | YES | NULL | 購入トークン数 |
 | description | TEXT | YES | NULL | 取引の説明 |
 | created_at | TIMESTAMPTZ | NO | now() | 作成日時 |
 
@@ -658,6 +681,374 @@ CREATE INDEX idx_webhook_events_event_id ON webhook_events(event_id);
 
 ---
 
+### 14. chat_attachments（NEW）
+
+チャットメッセージの添付ファイル管理。画像・動画・音声・ファイルの詳細情報を保持する。
+
+```sql
+CREATE TABLE chat_attachments (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  message_id UUID NOT NULL REFERENCES chat_messages(id) ON DELETE CASCADE,
+  type TEXT NOT NULL CHECK (type IN ('image', 'video', 'audio', 'file')),
+  url TEXT NOT NULL,
+  thumbnail_url TEXT,
+  file_size INTEGER NOT NULL,
+  mime_type TEXT NOT NULL,
+  duration_seconds INTEGER,
+  width INTEGER,
+  height INTEGER,
+  created_at TIMESTAMPTZ DEFAULT now()
+);
+
+CREATE INDEX idx_chat_attachments_message_id ON chat_attachments(message_id);
+ALTER TABLE chat_attachments ENABLE ROW LEVEL SECURITY;
+```
+
+| カラム | 型 | NULL許可 | デフォルト | 説明 |
+|--------|-----|---------|-----------|------|
+| id | UUID | NO | gen_random_uuid() | 主キー |
+| message_id | UUID | NO | - | chat_messages.id への外部キー |
+| type | TEXT | NO | - | 添付種別（image/video/audio/file） |
+| url | TEXT | NO | - | ファイルURL |
+| thumbnail_url | TEXT | YES | NULL | サムネイルURL（動画の場合） |
+| file_size | INTEGER | NO | - | ファイルサイズ（バイト） |
+| mime_type | TEXT | NO | - | MIMEタイプ |
+| duration_seconds | INTEGER | YES | NULL | 再生時間（動画/音声の場合） |
+| width | INTEGER | YES | NULL | 画像/動画の幅（px） |
+| height | INTEGER | YES | NULL | 画像/動画の高さ（px） |
+| created_at | TIMESTAMPTZ | NO | now() | 作成日時 |
+
+**RLSポリシー:**
+```sql
+-- ユーザー本人のメッセージの添付のみCRUD可能
+CREATE POLICY "Users can view own chat attachments"
+  ON chat_attachments FOR SELECT
+  USING (EXISTS (
+    SELECT 1 FROM chat_messages cm WHERE cm.id = message_id AND cm.user_id = auth.uid()
+  ));
+
+CREATE POLICY "Users can insert own chat attachments"
+  ON chat_attachments FOR INSERT
+  WITH CHECK (EXISTS (
+    SELECT 1 FROM chat_messages cm WHERE cm.id = message_id AND cm.user_id = auth.uid()
+  ));
+
+CREATE POLICY "Users can delete own chat attachments"
+  ON chat_attachments FOR DELETE
+  USING (EXISTS (
+    SELECT 1 FROM chat_messages cm WHERE cm.id = message_id AND cm.user_id = auth.uid()
+  ));
+```
+
+---
+
+### 15. push_tokens（NEW）
+
+プッシュ通知トークン管理。ユーザーのデバイスごとにExpo Push Tokenを保持する。
+
+```sql
+CREATE TABLE push_tokens (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id UUID NOT NULL REFERENCES profiles(id) ON DELETE CASCADE,
+  expo_push_token TEXT NOT NULL,
+  device_id TEXT NOT NULL,
+  platform TEXT NOT NULL CHECK (platform IN ('ios', 'android')),
+  created_at TIMESTAMPTZ DEFAULT now(),
+  updated_at TIMESTAMPTZ DEFAULT now(),
+  UNIQUE(user_id, device_id)
+);
+
+CREATE INDEX idx_push_tokens_user_id ON push_tokens(user_id);
+ALTER TABLE push_tokens ENABLE ROW LEVEL SECURITY;
+```
+
+| カラム | 型 | NULL許可 | デフォルト | 説明 |
+|--------|-----|---------|-----------|------|
+| id | UUID | NO | gen_random_uuid() | 主キー |
+| user_id | UUID | NO | - | profiles.id への外部キー |
+| expo_push_token | TEXT | NO | - | Expo Push Token |
+| device_id | TEXT | NO | - | デバイス識別子 |
+| platform | TEXT | NO | - | プラットフォーム（ios/android） |
+| created_at | TIMESTAMPTZ | NO | now() | 作成日時 |
+| updated_at | TIMESTAMPTZ | NO | now() | 更新日時 |
+
+**制約:** ユーザーごとにデバイスIDはユニーク（UNIQUE(user_id, device_id)）
+
+**RLSポリシー:**
+```sql
+CREATE POLICY "Users can view own push tokens"
+  ON push_tokens FOR SELECT
+  USING (auth.uid() = user_id);
+
+CREATE POLICY "Users can insert own push tokens"
+  ON push_tokens FOR INSERT
+  WITH CHECK (auth.uid() = user_id);
+
+CREATE POLICY "Users can update own push tokens"
+  ON push_tokens FOR UPDATE
+  USING (auth.uid() = user_id);
+
+CREATE POLICY "Users can delete own push tokens"
+  ON push_tokens FOR DELETE
+  USING (auth.uid() = user_id);
+```
+
+---
+
+### 16. notification_settings（NEW）
+
+ユーザーの通知設定。ユーザーごとに1レコード。
+
+```sql
+CREATE TABLE notification_settings (
+  user_id UUID PRIMARY KEY REFERENCES profiles(id) ON DELETE CASCADE,
+  chat_enabled BOOLEAN DEFAULT true,
+  journal_reminder_enabled BOOLEAN DEFAULT true,
+  journal_reminder_time TIME DEFAULT '21:00',
+  community_enabled BOOLEAN DEFAULT true,
+  marketing_enabled BOOLEAN DEFAULT false,
+  updated_at TIMESTAMPTZ DEFAULT now()
+);
+
+ALTER TABLE notification_settings ENABLE ROW LEVEL SECURITY;
+```
+
+| カラム | 型 | NULL許可 | デフォルト | 説明 |
+|--------|-----|---------|-----------|------|
+| user_id | UUID | NO | - | profiles.id への外部キー（PK） |
+| chat_enabled | BOOLEAN | NO | true | チャット通知のOn/Off |
+| journal_reminder_enabled | BOOLEAN | NO | true | 日記リマインダーのOn/Off |
+| journal_reminder_time | TIME | NO | '21:00' | 日記リマインダー時刻 |
+| community_enabled | BOOLEAN | NO | true | コミュニティ通知のOn/Off |
+| marketing_enabled | BOOLEAN | NO | false | マーケティング通知のOn/Off |
+| updated_at | TIMESTAMPTZ | NO | now() | 更新日時 |
+
+**RLSポリシー:**
+```sql
+CREATE POLICY "Users can view own notification settings"
+  ON notification_settings FOR SELECT
+  USING (auth.uid() = user_id);
+
+CREATE POLICY "Users can insert own notification settings"
+  ON notification_settings FOR INSERT
+  WITH CHECK (auth.uid() = user_id);
+
+CREATE POLICY "Users can update own notification settings"
+  ON notification_settings FOR UPDATE
+  USING (auth.uid() = user_id);
+```
+
+---
+
+### 17. communities（NEW）
+
+コミュニティ管理。ユーザーが作成したコミュニティの情報を保持する。
+
+```sql
+CREATE TABLE communities (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  creator_id UUID NOT NULL REFERENCES profiles(id),
+  name TEXT NOT NULL CHECK (char_length(name) <= 50),
+  description TEXT CHECK (char_length(description) <= 200),
+  language TEXT NOT NULL DEFAULT 'jp' CHECK (language IN ('jp', 'en')),
+  category TEXT NOT NULL CHECK (category IN ('info', 'business', 'hobby', 'casual', 'other')),
+  thumbnail_url TEXT,
+  is_default_thumbnail BOOLEAN DEFAULT true,
+  member_count INTEGER DEFAULT 0,
+  is_active BOOLEAN DEFAULT true,
+  created_at TIMESTAMPTZ DEFAULT now(),
+  updated_at TIMESTAMPTZ DEFAULT now()
+);
+
+CREATE INDEX idx_communities_creator_id ON communities(creator_id);
+CREATE INDEX idx_communities_category ON communities(category);
+CREATE INDEX idx_communities_is_active ON communities(is_active);
+ALTER TABLE communities ENABLE ROW LEVEL SECURITY;
+```
+
+| カラム | 型 | NULL許可 | デフォルト | 説明 |
+|--------|-----|---------|-----------|------|
+| id | UUID | NO | gen_random_uuid() | 主キー |
+| creator_id | UUID | NO | - | profiles.id への外部キー（作成者） |
+| name | TEXT | NO | - | コミュニティ名（最大50文字） |
+| description | TEXT | YES | NULL | 説明（最大200文字） |
+| language | TEXT | NO | 'jp' | 言語（jp/en） |
+| category | TEXT | NO | - | カテゴリ（info/business/hobby/casual/other） |
+| thumbnail_url | TEXT | YES | NULL | サムネイルURL |
+| is_default_thumbnail | BOOLEAN | NO | true | デフォルトサムネイル使用フラグ |
+| member_count | INTEGER | NO | 0 | メンバー数（キャッシュ） |
+| is_active | BOOLEAN | NO | true | アクティブフラグ |
+| created_at | TIMESTAMPTZ | NO | now() | 作成日時 |
+| updated_at | TIMESTAMPTZ | NO | now() | 更新日時 |
+
+**RLSポリシー:**
+```sql
+-- 全員が閲覧可能
+CREATE POLICY "Anyone can view communities"
+  ON communities FOR SELECT
+  USING (true);
+
+-- 認証済みユーザーのみ作成可能
+CREATE POLICY "Authenticated users can create communities"
+  ON communities FOR INSERT
+  WITH CHECK (auth.uid() IS NOT NULL);
+
+-- 作成者のみ更新可能
+CREATE POLICY "Creators can update own communities"
+  ON communities FOR UPDATE
+  USING (auth.uid() = creator_id);
+
+-- 作成者のみ削除可能
+CREATE POLICY "Creators can delete own communities"
+  ON communities FOR DELETE
+  USING (auth.uid() = creator_id);
+```
+
+---
+
+### 18. community_members（NEW）
+
+コミュニティのメンバーシップ管理。
+
+```sql
+CREATE TABLE community_members (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  community_id UUID NOT NULL REFERENCES communities(id) ON DELETE CASCADE,
+  user_id UUID NOT NULL REFERENCES profiles(id) ON DELETE CASCADE,
+  joined_at TIMESTAMPTZ DEFAULT now(),
+  UNIQUE(community_id, user_id)
+);
+
+CREATE INDEX idx_community_members_community_id ON community_members(community_id);
+CREATE INDEX idx_community_members_user_id ON community_members(user_id);
+ALTER TABLE community_members ENABLE ROW LEVEL SECURITY;
+```
+
+| カラム | 型 | NULL許可 | デフォルト | 説明 |
+|--------|-----|---------|-----------|------|
+| id | UUID | NO | gen_random_uuid() | 主キー |
+| community_id | UUID | NO | - | communities.id への外部キー |
+| user_id | UUID | NO | - | profiles.id への外部キー |
+| joined_at | TIMESTAMPTZ | NO | now() | 参加日時 |
+
+**制約:** 同一コミュニティに同一ユーザーは1回のみ参加可能（UNIQUE(community_id, user_id)）
+
+**RLSポリシー:**
+```sql
+-- 全員が閲覧可能
+CREATE POLICY "Anyone can view community members"
+  ON community_members FOR SELECT
+  USING (true);
+
+-- 認証済みユーザーが自分自身のみ参加可能
+CREATE POLICY "Users can join communities"
+  ON community_members FOR INSERT
+  WITH CHECK (auth.uid() = user_id);
+
+-- 自分自身のみ退出可能
+CREATE POLICY "Users can leave communities"
+  ON community_members FOR DELETE
+  USING (auth.uid() = user_id);
+```
+
+---
+
+### 19. community_messages（NEW）
+
+コミュニティ内のメッセージ。AIエージェントによる自律会話を含む。
+
+```sql
+CREATE TABLE community_messages (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  community_id UUID NOT NULL REFERENCES communities(id) ON DELETE CASCADE,
+  agent_user_id UUID NOT NULL REFERENCES profiles(id),
+  content TEXT NOT NULL,
+  is_autonomous BOOLEAN DEFAULT false,
+  created_at TIMESTAMPTZ DEFAULT now()
+);
+
+CREATE INDEX idx_community_messages_community_id ON community_messages(community_id, created_at DESC);
+CREATE INDEX idx_community_messages_agent_user_id ON community_messages(agent_user_id);
+ALTER TABLE community_messages ENABLE ROW LEVEL SECURITY;
+```
+
+| カラム | 型 | NULL許可 | デフォルト | 説明 |
+|--------|-----|---------|-----------|------|
+| id | UUID | NO | gen_random_uuid() | 主キー |
+| community_id | UUID | NO | - | communities.id への外部キー |
+| agent_user_id | UUID | NO | - | profiles.id への外部キー（エージェントの所有者） |
+| content | TEXT | NO | - | メッセージ本文 |
+| is_autonomous | BOOLEAN | NO | false | 自律会話フラグ（Cronで生成された場合true） |
+| created_at | TIMESTAMPTZ | NO | now() | 作成日時 |
+
+**RLSポリシー:**
+```sql
+-- 全員が閲覧可能
+CREATE POLICY "Anyone can view community messages"
+  ON community_messages FOR SELECT
+  USING (true);
+
+-- 認証済みユーザーが自分のエージェントとしてのみ投稿可能
+CREATE POLICY "Users can post as own agent"
+  ON community_messages FOR INSERT
+  WITH CHECK (auth.uid() = agent_user_id);
+```
+
+---
+
+### 20. token_usage（NEW）
+
+トークン使用量管理。Free/Proプランごとのトークン上限と消費量を追跡する。
+
+```sql
+CREATE TABLE token_usage (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id UUID NOT NULL REFERENCES profiles(id) ON DELETE CASCADE,
+  tokens_used INTEGER DEFAULT 0,
+  tokens_limit INTEGER NOT NULL,
+  period_start DATE NOT NULL,
+  period_end DATE NOT NULL,
+  created_at TIMESTAMPTZ DEFAULT now(),
+  updated_at TIMESTAMPTZ DEFAULT now(),
+  UNIQUE(user_id, period_start)
+);
+
+CREATE INDEX idx_token_usage_user_id ON token_usage(user_id);
+CREATE INDEX idx_token_usage_period ON token_usage(user_id, period_start);
+ALTER TABLE token_usage ENABLE ROW LEVEL SECURITY;
+```
+
+| カラム | 型 | NULL許可 | デフォルト | 説明 |
+|--------|-----|---------|-----------|------|
+| id | UUID | NO | gen_random_uuid() | 主キー |
+| user_id | UUID | NO | - | profiles.id への外部キー |
+| tokens_used | INTEGER | NO | 0 | 使用済みトークン数 |
+| tokens_limit | INTEGER | NO | - | トークン上限（Free: 10,000, Pro: 500,000） |
+| period_start | DATE | NO | - | 期間開始日 |
+| period_end | DATE | NO | - | 期間終了日 |
+| created_at | TIMESTAMPTZ | NO | now() | 作成日時 |
+| updated_at | TIMESTAMPTZ | NO | now() | 更新日時 |
+
+**制約:** ユーザーごとに同一開始日のレコードは1つのみ（UNIQUE(user_id, period_start)）
+
+**トークン上限:**
+| プラン | tokens_limit |
+|--------|-------------|
+| Free | 10,000 |
+| Pro | 500,000 |
+
+**RLSポリシー:**
+```sql
+-- ユーザー本人のみ参照可能
+CREATE POLICY "Users can view own token usage"
+  ON token_usage FOR SELECT
+  USING (auth.uid() = user_id);
+
+-- 更新はEdge Function（service_role）経由のみ
+```
+
+---
+
 ## トリガー
 
 ### profiles作成時にsubscriptions/creditsを自動作成
@@ -677,6 +1068,10 @@ BEGIN
   -- creditsにデフォルトレコード作成
   INSERT INTO credits (user_id, daily_remaining)
   VALUES (NEW.id, 3);
+
+  -- notification_settingsにデフォルトレコード作成
+  INSERT INTO notification_settings (user_id)
+  VALUES (NEW.id);
 
   RETURN NEW;
 END;
@@ -714,6 +1109,18 @@ CREATE TRIGGER set_updated_at BEFORE UPDATE ON credits
   FOR EACH ROW EXECUTE FUNCTION update_updated_at();
 
 CREATE TRIGGER set_updated_at BEFORE UPDATE ON openclaw_instances
+  FOR EACH ROW EXECUTE FUNCTION update_updated_at();
+
+CREATE TRIGGER set_updated_at BEFORE UPDATE ON push_tokens
+  FOR EACH ROW EXECUTE FUNCTION update_updated_at();
+
+CREATE TRIGGER set_updated_at BEFORE UPDATE ON notification_settings
+  FOR EACH ROW EXECUTE FUNCTION update_updated_at();
+
+CREATE TRIGGER set_updated_at BEFORE UPDATE ON communities
+  FOR EACH ROW EXECUTE FUNCTION update_updated_at();
+
+CREATE TRIGGER set_updated_at BEFORE UPDATE ON token_usage
   FOR EACH ROW EXECUTE FUNCTION update_updated_at();
 ```
 
@@ -855,14 +1262,24 @@ profiles
     |--- 1:1 --- subscriptions
     |--- 1:1 --- credits
     |--- 1:1 --- openclaw_instances
+    |--- 1:1 --- notification_settings
     |--- 1:N --- personality_results
-    |--- 1:N --- chat_messages
+    |--- 1:N --- chat_messages -------- 1:N --- chat_attachments
     |--- 1:N --- chat_topics
     |--- 1:N --- journal_entries
     |--- 1:N --- mood_records
     |--- 1:N --- credit_transactions
     |--- 1:N --- twin_conversations (as initiator)
     |--- 1:N --- twin_conversations (as partner)
+    |--- 1:N --- push_tokens
+    |--- 1:N --- token_usage
+    |--- 1:N --- communities (as creator)
+    |--- 1:N --- community_members
+    |--- 1:N --- community_messages (as agent owner)
+
+communities
+    |--- 1:N --- community_members
+    |--- 1:N --- community_messages
 
 personality_results + subscriptions
     |
@@ -894,3 +1311,4 @@ webhook_events（独立テーブル）
 | 2026-02-14 | テーブル一覧: twin_profiles_publicの説明をCHECK対象に変更、webhook_eventsテーブル（テーブル12）を追加 | Reconcile: スキーマ構成の更新を反映 | — |
 | 2026-02-14 | ER図: twin_profiles_public (VIEW)表記、webhook_events（独立テーブル）の追加 | Reconcile: データモデルの可視化更新 | — |
 | 2026-02-15 | profiles: avatar_icon, speech_tone カラム追加<br>chat_messages: topic_id カラム追加（DEFAULT: 'daily'）<br>新テーブル chat_topics 追加（user_id, name, icon, sort_order, created_at）<br>chat_topics RLSポリシー設定<br>デフォルトトピック自動作成仕様記載<br>テーブル番号更新（chat_topics #10, twin_profiles_public #11, twin_conversations #12, webhook_events #13） | V3 Liquid Glass: トピックタブ機能、avatar_icon/speech_tone追加 | — |
+| 2026-02-15 | profiles: twin_name DEFAULT 'My Agent' に変更、mbti_type カラム追加<br>chat_messages: has_attachment, attachment_type, attachment_url, is_read, read_at カラム追加<br>credit_transactions: transaction_type, token_amount カラム追加<br>新テーブル7個追加: chat_attachments(#14), push_tokens(#15), notification_settings(#16), communities(#17), community_members(#18), community_messages(#19), token_usage(#20)<br>全新規テーブルにRLSポリシー設定<br>handle_new_user()トリガーにnotification_settings自動作成を追加<br>updated_atトリガーにpush_tokens, notification_settings, communities, token_usage追加<br>ER図更新 | 新機能対応: コミュニティ、プッシュ通知、添付ファイル、トークン管理 | — |

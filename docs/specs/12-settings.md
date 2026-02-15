@@ -50,6 +50,7 @@
 | AI TWIN                       |
 | > 性格診断をやり直す          |
 | > ツインの名前を変更          |
+| > MBTI を設定                 |
 |                               |
 | SUPPORT                       |
 | > ヘルプ・FAQ                 |
@@ -117,6 +118,7 @@
 |---------|------|------|-----|
 | プロフィール | 表示名変更 | o | o |
 | AIツイン | ツイン名変更 | o（DBのみ） | o（DB + SOUL.md更新） |
+| AIツイン | MBTI入力（16タイプ） | o（DBのみ） | o（DB + SOUL.md更新） |
 | AIツイン | アイコン変更（5パターン） | o | o（SOUL.md再生成） |
 | AIツイン | 口調変更（5種類） | o | o（SOUL.md再生成） |
 | AIツイン | 性格診断やり直し | o（DBのみ） | o（SOUL.md自動更新） |
@@ -124,7 +126,10 @@
 | サブスクリプション | 管理画面 | アップグレードCTA | 管理リンク |
 | OpenClaw | インスタンス状態 | 非表示 | 表示 |
 | OpenClaw | 再起動 | -- | error時のみ |
-| 通知 | 朝の挨拶/振り返り通知 | o | o |
+| 通知 | チャット通知 | o | o |
+| 通知 | 日記リマインダー（時刻設定可能） | o | o |
+| 通知 | コミュニティ通知 | o | o |
+| 通知 | マーケティング通知 | デフォルトOFF | デフォルトOFF |
 | アカウント | ログアウト | o | o |
 | アカウント | アカウント削除 | o | o |
 | サポート | ヘルプ/FAQ | o | o |
@@ -177,6 +182,20 @@
 | UI | 会話サンプルカード表示 |
 | Pro時 | SOUL.md再生成トリガー（必須） |
 
+#### MBTI入力
+
+| 項目 | 仕様 |
+|------|------|
+| 入力方式 | 16タイプから選択（ドロップダウンまたは4x4グリッド） |
+| 選択肢 | INTJ, INTP, ENTJ, ENTP, INFJ, INFP, ENFJ, ENFP, ISTJ, ISFJ, ESTJ, ESFJ, ISTP, ISFP, ESTP, ESFP |
+| 任意入力 | 必須ではない（NULL許容） |
+| 保存先 | `profiles.mbti_type` TEXT NULL |
+| Pro時の追加処理 | Edge Function `update-soul-md` 呼出（SOUL.mdの `personality_traits` セクションにMBTI特性を追加） |
+| MBTI特性反映例 | INTJ → 「論理的思考を好み、戦略的に物事を考える。独立心が強く、効率を重視する」 |
+| インスタンス停止中 | DBのみ更新。次回起動時にSOUL.md反映 |
+| ツイン情報画面連携 | Twin InfoタブにMBTIタイプを表示 |
+| クリア | 設定済みのMBTIを削除可能（NULL に戻す） |
+
 ### 4.3 サブスクリプション管理
 
 | 状態 | 表示内容 |
@@ -218,12 +237,46 @@
 
 ### 4.5 通知設定
 
+#### 通知カテゴリ
+
+| カテゴリ | デフォルト | 設定項目 |
+|---------|----------|---------|
+| チャット通知 | ON | AIツインからの返信時（アプリがバックグラウンドの場合のみ） |
+| 日記リマインダー | ON | 毎日通知（時刻設定可能、デフォルト21:00） |
+| コミュニティ通知 | ON | 自分のエージェントが発言した時 |
+| マーケティング通知 | OFF | キャンペーン通知（管理側から送信） |
+
+#### 保存先
+
+| テーブル | カラム | 型 | デフォルト |
+|---------|--------|------|---------|
+| `notification_settings` | `user_id` | UUID PK (REFERENCES profiles(id)) | — |
+| `notification_settings` | `chat_enabled` | BOOLEAN | true |
+| `notification_settings` | `journal_reminder_enabled` | BOOLEAN | true |
+| `notification_settings` | `journal_reminder_time` | TIME | '21:00' |
+| `notification_settings` | `community_enabled` | BOOLEAN | true |
+| `notification_settings` | `marketing_enabled` | BOOLEAN | false |
+
+#### プッシュトークン管理
+
+| テーブル | カラム | 型 | 説明 |
+|---------|--------|------|------|
+| `push_tokens` | `id` | UUID PK | — |
+| `push_tokens` | `user_id` | UUID FK | auth.users 参照 |
+| `push_tokens` | `expo_push_token` | TEXT | Expo Push Token |
+| `push_tokens` | `device_id` | TEXT | デバイス識別子 |
+| `push_tokens` | `platform` | TEXT | ios / android |
+| `push_tokens` | `created_at` | TIMESTAMPTZ | 作成日時 |
+| `push_tokens` | `updated_at` | TIMESTAMPTZ | 更新日時 |
+
+#### 動作仕様
+
 | 項目 | 仕様 |
 |------|------|
-| 朝の挨拶通知 | ON/OFF トグル |
-| 振り返り通知 | ON/OFF トグル |
-| 保存先 | ローカル設定（AsyncStorage） |
-| 連携 | Expo Notifications 登録/解除 |
+| トークン登録 | アプリ起動時に Expo Push Token を取得し `push_tokens` テーブルに upsert |
+| 通知送信 | Edge Function `send-push-notification` が Expo Push API を呼び出し |
+| OS設定連携 | デバイスのシステム通知設定がOFFの場合、アプリ内でその旨を表示 |
+| 権限リクエスト | 初回起動時に通知権限をリクエスト |
 
 ### 4.6 ログアウト
 
@@ -270,18 +323,21 @@
 
 | テーブル | 操作 | 用途 |
 |---------|------|------|
-| `profiles` | SELECT / UPDATE | 表示名・ツイン名・アイコン・口調の読み書き |
+| `profiles` | SELECT / UPDATE | 表示名・ツイン名・アイコン・口調・MBTIの読み書き |
 | `openclaw_instances` | SELECT | インスタンスステータス表示 |
 | `personality_results` | INSERT | 性格診断やり直し時の新規レコード |
 | `subscriptions` | SELECT | サブスクリプション状態表示 |
+| `notification_settings` | SELECT / UPSERT | 通知カテゴリごとのON/OFF設定 |
+| `push_tokens` | SELECT / UPSERT | Expo Push Token の登録・更新 |
 
 ### Edge Function
 
 | Function | 用途 | トリガー |
 |----------|------|---------|
-| `update-soul-md` | SOUL.md再生成 | ツイン名・アイコン・口調変更時（Pro） |
+| `update-soul-md` | SOUL.md再生成 | ツイン名・アイコン・口調・MBTI変更時（Pro） |
 | `restart-openclaw` | インスタンス再起動 | 再起動ボタンタップ時 |
 | `destroy-openclaw` | インスタンス破棄 | アカウント削除時 |
+| `send-push-notification` | プッシュ通知送信 | Expo Push API 経由で通知配信 |
 
 ### 外部API
 
@@ -290,6 +346,7 @@
 | RevenueCat SDK `getCustomerInfo` | サブスクリプション情報取得 |
 | Supabase Auth `signOut` | ログアウト |
 | Supabase Realtime | `openclaw_instances` ステータス監視 |
+| Expo Push API | プッシュ通知送信（`send-push-notification` 経由） |
 
 ---
 
@@ -302,6 +359,7 @@
 | エラーメッセージ | o | 「詳細設定」リンクに誘導 |
 | IPアドレス表示 | o（デバッグモード） | x |
 | プロフィール編集 | o | x |
+| MBTI設定 | o（入力） | o（表示のみ） |
 | 性格診断やり直し | o | o（リンク） |
 
 ---
@@ -335,6 +393,12 @@
 - [ ] アカウント削除で全データが削除され、ログイン画面に遷移すること
 - [ ] 性格診断やり直しでオンボーディングに遷移できること
 - [ ] 通知設定のON/OFFが反映されること
+- [ ] MBTI を16タイプから選択して保存できること
+- [ ] MBTI設定後にSOUL.md再生成がトリガーされること（Pro）
+- [ ] MBTI設定をクリア（未設定に戻す）できること
+- [ ] 日記リマインダーの時刻を変更できること
+- [ ] プッシュトークンがアプリ起動時に登録されること
+- [ ] 通知カテゴリごとのON/OFF切り替えが反映されること
 
 ### 異常系
 - [ ] ネットワークエラー時にプロフィール保存がエラー表示されること
@@ -348,11 +412,15 @@
 - [ ] ツイン名の最大文字数（20文字）
 - [ ] 空文字でのバリデーションエラー
 - [ ] 再起動クールダウン（5分以内に3回）
+- [ ] 日記リマインダー時刻の範囲（00:00-23:59）
 
 ### 表示
 - [ ] 無料ユーザーにOpenClawセクションが表示されないこと
 - [ ] 各インスタンスステータスのバッジが正しい色で表示されること
 - [ ] アカウント削除ボタンが設定画面内で見つけやすい位置にあること（Apple審査基準）
+- [ ] MBTIが16タイプの選択グリッド/ドロップダウンで表示されること
+- [ ] 通知設定セクションに4カテゴリが表示されること
+- [ ] OS設定で通知がOFFの場合にアプリ内で警告が表示されること
 
 ### セキュリティ
 - [ ] 他ユーザーのプロフィールを編集できないこと（RLS）

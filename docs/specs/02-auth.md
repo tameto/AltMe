@@ -2,7 +2,7 @@
 
 ## ステータス: APPROVED
 - 作成日: 2026-02-14
-- 最終更新: 2026-02-15
+- 最終更新: 2026-02-15 (v2)
 - 担当: Agent A (Foundation)
 
 ---
@@ -185,12 +185,82 @@ type AuthStore = {
 ```
 判定ロジック:
 1. isLoading === true --> スプラッシュ画面維持
-2. isAuthenticated === false --> (auth)/login にリダイレクト
+2. isAuthenticated === false --> ゲストブラウズモード（閲覧のみ）
+   2a. ゲストがアクセスできる画面 --> そのまま表示
+   2b. ゲストがアクセスできない画面 --> ログイン促進UI表示
 3. profile.onboardingCompleted === false --> (onboarding)/welcome にリダイレクト
 4. それ以外 --> (tabs)/ に遷移
 ```
 
-### 3.4 RevenueCat連携
+### 3.4 ゲストブラウズモード
+
+Apple App Store審査ガイドラインに準拠するため、ログインせずにアプリの一部を閲覧できるゲストブラウズモードを提供する。
+
+#### ゲストがアクセスできる画面
+
+| 画面 | アクセス範囲 | 備考 |
+|------|------------|------|
+| コミュニティ一覧 `(tabs)/community.tsx` | 閲覧のみ | 会話リストの表示。いいね・コメント不可 |
+| コミュニティ詳細 `twin-conversation-detail.tsx` | 閲覧のみ | 会話内容の閲覧 |
+
+#### ゲストがアクセスできない画面
+
+| 画面 | 動作 |
+|------|------|
+| チャット `(tabs)/index.tsx` | ログイン促進UI表示 |
+| ツイン情報 `(tabs)/twin.tsx` | ログイン促進UI表示 |
+| 設定 `(tabs)/settings.tsx` | ゲスト専用マイページ表示（後述） |
+
+#### ゲスト時のマイページ（設定タブ）
+
+ゲストユーザーが設定タブをタップした場合、通常の設定画面の代わりにログイン促進画面を表示する。
+
+```
++-------------------------------+
+|          SafeArea Top          |
+|                                |
+|          [AltMe Logo]          |
+|                                |
+|   "ログインして始めよう"         |
+|   "AIツインがあなたを待っています" |
+|                                |
+|  +---------------------------+ |
+|  | [Apple] Appleでサインイン   | |  <-- iOS のみ
+|  +---------------------------+ |
+|                                |
+|  +---------------------------+ |
+|  | [Google] Googleでサインイン | |
+|  +---------------------------+ |
+|                                |
+|  機能プレビュー（グレーアウト）    |
+|  +---------------------------+ |
+|  | [x] AIチャット              | |
+|  | [x] 性格診断               | |
+|  | [x] 日記 + AI振り返り       | |
+|  | [x] 感情トラッキング        | |
+|  +---------------------------+ |
+|                                |
+|          SafeArea Bottom       |
++-------------------------------+
+```
+
+- 機能一覧はグレーアウト表示（タップ不可）
+- Apple/Googleログインボタンは `(auth)/login.tsx` と同じ仕様
+- ログイン成功後、通常の設定画面に切り替わる
+
+#### ゲスト状態の管理
+
+```typescript
+// auth-store.ts への追加
+type AuthStore = {
+  // 既存フィールド...
+  isGuest: boolean; // 未認証でアプリを閲覧中
+  enterGuestMode: () => void;
+  exitGuestMode: () => void; // ログイン成功時に呼ばれる
+};
+```
+
+### 3.5 RevenueCat連携
 
 認証状態変更時にRevenueCat SDKと同期する。
 
@@ -202,7 +272,45 @@ type AuthStore = {
 
 ---
 
-## 4. profile自動作成
+## 4. 外部認証ブランドガイドライン
+
+### 4.1 Google Sign-In ボタン
+
+Googleのブランドガイドラインに厳密に準拠する。
+
+| 項目 | 仕様 |
+|------|------|
+| アイコン | 正式なGoogle Gアイコン（マルチカラー版） |
+| テキスト | "Sign in with Google"（英語） または "Googleでサインイン"（日本語） |
+| ボタン背景 | ライトモード: 白 (`#FFFFFF`) + 1pt border (`#747775`) |
+| ボタン背景 | ダークモード: `#131314` + 1pt border (`#8E918F`) |
+| テキスト色 | ライトモード: `#1F1F1F` / ダークモード: `#E3E3E3` |
+| フォント | Roboto Medium, 14sp |
+| ボタン高さ | 40dp以上（AltMeでは52pt） |
+| 角丸 | 20dp（pill shape推奨）または 4dp |
+| アイコンサイズ | 18x18dp |
+| パディング | 左: 12dp（アイコン前）、アイコン-テキスト間: 12dp |
+
+#### 禁止事項
+- Googleアイコンの色やプロポーションを変更しない
+- ボタンテキストを独自のものに変更しない（例: "Continue with Google" は可）
+- アイコンなしでGoogleボタンを表示しない
+- Googleブランドカラーをボタン背景に使用しない
+
+### 4.2 Apple Sign-In ボタン
+
+AppleのHuman Interface Guidelinesに準拠（既存実装通り）。
+
+| 項目 | 仕様 |
+|------|------|
+| スタイル | 黒背景/白文字（ASAuthorizationAppleIDButton 標準） |
+| テキスト | "Appleでサインイン" |
+| 高さ | 52pt |
+| 表示条件 | `Platform.OS === 'ios'` のみ |
+
+---
+
+## 5. profile自動作成
 
 ### 4.1 Supabase Database Trigger
 
@@ -290,11 +398,32 @@ type AuthStore = {
 
 ## 9. セキュリティ要件
 
+### 9.1 認証トークン管理
 - JWTトークンはExpo SecureStoreに保存（平文でAsyncStorageに保存しない）
 - リフレッシュトークンの自動更新はSupabase SDKが処理
 - ログアウト時にローカルデータを完全消去（SecureStore + Zustand Store）
-- 認証なしでアクセスできる画面は `(auth)/login.tsx` のみ
+- 認証なしでアクセスできる画面はゲストブラウズ対象画面のみ（セクション3.4参照）
 - `devLogin` は `__DEV__` ガードで本番ビルドでは絶対に実行されない
+
+### 9.2 API Key保護
+
+全てのAPIキーはクライアントに露出させない。Edge Function経由でのみ外部APIを呼び出す。
+
+| キー | 保管場所 | クライアントからの露出 |
+|------|---------|-------------------|
+| OpenAI API Key | Supabase Edge Function環境変数 | 不可（Edge Function経由のみ） |
+| Supabase Service Role Key | Supabase Edge Function環境変数 | 不可（Edge Function経由のみ） |
+| Supabase Anon Key | クライアントアプリ（`src/config/env.ts`） | 許可（RLSで保護） |
+| DigitalOcean API Token | Supabase Edge Function環境変数 | 不可（Edge Function経由のみ） |
+| RevenueCat API Key | クライアントアプリ（SDK初期化用） | 許可（SDK仕様上必須） |
+| RevenueCat Webhook Secret | Supabase Edge Function環境変数 | 不可 |
+| Stripe Secret Key | Supabase Edge Function環境変数 | 不可（Edge Function経由のみ） |
+
+#### 設計原則
+- クライアントアプリにはSupabase Anon KeyとRevenueCat API Keyのみ配置
+- 外部API（OpenAI、DigitalOcean、Stripe）へのリクエストは全てEdge Functionを経由
+- Edge Functionの環境変数はSupabase Dashboardまたは `supabase secrets set` で設定
+- `.env` ファイルはgitignoreに含め、コードリポジトリにコミットしない
 
 ---
 
@@ -321,7 +450,10 @@ type AuthStore = {
 - [ ] ログアウト後、RevenueCatがlogOutされること
 - [ ] トークン期限切れ時にSupabase SDKが自動リフレッシュすること
 - [ ] リフレッシュトークン期限切れ時にログイン画面にリダイレクトされること
-- [ ] 未認証状態で(tabs)/にアクセスできないこと（ルーティングガード）
+- [ ] ゲストブラウズモードでコミュニティ一覧・詳細が閲覧できること
+- [ ] ゲストブラウズモードでチャット・ツイン情報タブにログイン促進UIが表示されること
+- [ ] ゲスト時マイページ（設定タブ）にログインボタンとグレーアウト機能一覧が表示されること
+- [ ] ゲスト状態でログイン後、通常の画面に切り替わること
 - [ ] 認証成功時にRevenueCatの `identifyUser()` が呼ばれること
 - [ ] Apple認証キャンセル時にエラーが表示されないこと
 - [ ] Google認証キャンセル時にエラーが表示されないこと
@@ -329,6 +461,10 @@ type AuthStore = {
 - [ ] 本番ビルドでdevLoginボタンが表示されないこと
 - [ ] バックグラウンド復帰時にトークン状態がチェックされること
 - [ ] 同一メールで異なるプロバイダのアカウントがリンクされること
+- [ ] GoogleログインボタンがGoogleブランドガイドラインに準拠していること（アイコン・色・テキスト）
+- [ ] ダークモードでGoogleボタンのダークバリアントが表示されること
+- [ ] クライアントアプリにOpenAI API Key、Supabase Service Role Key、DigitalOcean API Tokenが含まれていないこと
+- [ ] 外部APIコールが全てEdge Function経由で行われること
 
 ---
 
@@ -338,3 +474,7 @@ type AuthStore = {
 |------|---------|------|
 | 2026-02-14 | 初版作成 | ドキュメント初期作成 |
 | 2026-02-15 | 実装コードに基づき全面書き換え | Reconcile: auth-store.ts, auth.ts, login.tsx の実態反映 |
+| 2026-02-15 | ゲストブラウズモード追加 | Apple審査準拠: ログイン不要で一部閲覧可能 |
+| 2026-02-15 | ゲスト時マイページ追加 | ゲストユーザー向けログイン促進UI |
+| 2026-02-15 | 外部認証ブランドガイドライン追加 | Googleロゴ規約準拠 |
+| 2026-02-15 | API Key保護セクション追加 | セキュリティ設計原則の明文化 |

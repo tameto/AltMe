@@ -21,7 +21,7 @@ OpenAI APIキーやDigitalOcean APIトークンをクライアントに露出さ
 
 ---
 
-## 2. Edge Function一覧（13個）
+## 2. Edge Function一覧（19個）
 
 | # | Function名 | メソッド | 認証 | 担当Agent | 状態 | 説明 |
 |---|-----------|---------|------|----------|------|------|
@@ -38,6 +38,12 @@ OpenAI APIキーやDigitalOcean APIトークンをクライアントに露出さ
 | 11 | `restart-openclaw` | POST | JWT | C | NEW | OpenClawインスタンス再起動 |
 | 12 | `onboarding-chat` | POST | JWT | C | NEW | オンボーディング初回チャット |
 | 13 | `generate-twin-conversation` | POST | JWT + Pro | C | NEW | AIツイン間会話生成 |
+| 14 | `upload-media` | POST | JWT | C | NEW | メディアファイルアップロード |
+| 15 | `fetch-ogp` | POST | JWT | C | NEW | OGPメタデータ取得 |
+| 16 | `translate-message` | POST | JWT | C | NEW | メッセージ翻訳 |
+| 17 | `send-push-notification` | POST | service_role | D | NEW | プッシュ通知送信 |
+| 18 | `trigger-community-conversation` | POST | service_role | C | NEW | コミュニティ自律会話（Cron毎時） |
+| 19 | `create-community` | POST | JWT | D | NEW | コミュニティ作成 |
 
 ---
 
@@ -49,8 +55,8 @@ OpenAI APIキーやDigitalOcean APIトークンをクライアントに露出さ
 
 | パターン | 対象Function | ヘッダー |
 |---------|-------------|---------|
-| JWT認証 | chat, personality-analyze, journal-reflect, generate-insight, update-soul-md, restart-openclaw, onboarding-chat, generate-twin-conversation | `Authorization: Bearer {supabase_jwt}` |
-| service_role認証 | provision-openclaw, destroy-openclaw, health-check-openclaw, daily-notification | `Authorization: Bearer {SUPABASE_SERVICE_ROLE_KEY}` |
+| JWT認証 | chat, personality-analyze, journal-reflect, generate-insight, update-soul-md, restart-openclaw, onboarding-chat, generate-twin-conversation, upload-media, fetch-ogp, translate-message, create-community | `Authorization: Bearer {supabase_jwt}` |
+| service_role認証 | provision-openclaw, destroy-openclaw, health-check-openclaw, daily-notification, send-push-notification, trigger-community-conversation | `Authorization: Bearer {SUPABASE_SERVICE_ROLE_KEY}` |
 | Webhook認証 | webhook-revenuecat | `Authorization: Bearer {REVENUECAT_WEBHOOK_SECRET}` |
 
 ```typescript
@@ -112,6 +118,10 @@ if (req.method === 'OPTIONS') {
 | restart-openclaw | 3 req/5分/user |
 | onboarding-chat | 10 req/分/user |
 | generate-twin-conversation | 5 req/時/user |
+| upload-media | 10 req/分/user |
+| fetch-ogp | 20 req/分/user |
+| translate-message | 10 req/分/user |
+| create-community | 3 req/時/user |
 
 ---
 
@@ -519,6 +529,135 @@ Proチェック: 必須（Freeは403）
 
 **制限:** 同じペアは24時間に1回のみ生成可能、最大10ターン
 
+### 4.14 upload-media --- メディアアップロード（NEW）
+
+```
+POST /functions/v1/upload-media
+Authorization: Bearer {jwt}
+Content-Type: multipart/form-data
+```
+
+**リクエスト:** multipart/form-data (file + type: image|video|audio)
+
+**レスポンス:**
+```json
+{
+  "url": "https://xxx.supabase.co/storage/v1/object/public/chat-attachments/...",
+  "thumbnail_url": "https://...",
+  "file_size": 1048576,
+  "mime_type": "image/jpeg",
+  "width": 1920,
+  "height": 1080,
+  "duration_seconds": null
+}
+```
+
+**サイズ制限:** image: 10MB, video: 100MB, audio: 50MB
+
+### 4.15 fetch-ogp --- OGPメタデータ取得（NEW）
+
+```
+POST /functions/v1/fetch-ogp
+Authorization: Bearer {jwt}
+```
+
+**リクエスト:**
+```json
+{ "url": "https://example.com/article" }
+```
+
+**レスポンス:**
+```json
+{
+  "title": "記事タイトル",
+  "description": "概要...",
+  "image": "https://example.com/og-image.jpg",
+  "site_name": "Example Site",
+  "url": "https://example.com/article"
+}
+```
+
+**キャッシュ:** 24時間
+
+### 4.16 translate-message --- メッセージ翻訳（NEW）
+
+```
+POST /functions/v1/translate-message
+Authorization: Bearer {jwt}
+```
+
+**リクエスト:**
+```json
+{
+  "text": "Hello, how are you?",
+  "target_language": "ja"
+}
+```
+
+**レスポンス:**
+```json
+{
+  "translated_text": "こんにちは、お元気ですか？",
+  "source_language": "en",
+  "target_language": "ja"
+}
+```
+
+### 4.17 send-push-notification --- プッシュ通知送信（NEW）
+
+```
+POST /functions/v1/send-push-notification
+Authorization: Bearer {SUPABASE_SERVICE_ROLE_KEY}
+```
+
+**リクエスト:**
+```json
+{
+  "user_id": "uuid",
+  "title": "通知タイトル",
+  "body": "通知本文",
+  "data": { "type": "chat", "screen": "chat" }
+}
+```
+
+**処理:** notification_settings をチェックしてから Expo Push API で送信。
+
+### 4.18 trigger-community-conversation --- コミュニティ自律会話（NEW）
+
+```
+POST /functions/v1/trigger-community-conversation
+トリガー: Cron（毎時）
+```
+
+**処理:**
+```
+1. アクティブコミュニティ（member_count >= 3）を取得
+2. 各コミュニティから3-5体のエージェントを選出
+3. SOUL.md に基づいて会話生成（3-5往復）
+4. community_messages に保存（is_autonomous = true）
+```
+
+### 4.19 create-community --- コミュニティ作成（NEW）
+
+```
+POST /functions/v1/create-community
+Authorization: Bearer {jwt}
+```
+
+**リクエスト:**
+```json
+{
+  "name": "コミュニティ名",
+  "description": "説明",
+  "language": "jp",
+  "category": "hobby",
+  "thumbnail_url": null,
+  "is_default_thumbnail": true
+}
+```
+
+**レスポンス:** community object（id, name, member_count等）
+
 ---
 
 ## 5. 外部サービス連携
@@ -620,6 +759,36 @@ export const MAX_TOKENS_INSIGHT = 800;
 | Entitlement名 | `pro` |
 | 対応イベント | INITIAL_PURCHASE, TRIAL_STARTED, TRIAL_CONVERTED, RENEWAL, CANCELLATION, EXPIRATION, BILLING_ISSUE, NON_RENEWING_PURCHASE |
 
+### 5.5 Supabase Storage
+
+| 項目 | 内容 |
+|------|------|
+| 用途 | メディアファイル保存 |
+| 認証 | Supabase JWT（バケットポリシー） |
+
+**バケット一覧:**
+
+| バケット名 | 用途 | サイズ制限 | MIMEタイプ |
+|-----------|------|----------|----------|
+| chat-attachments | チャット添付 | image: 10MB, video: 100MB, audio: 50MB | jpeg, png, webp, mp4, m4a, mp3 |
+| community-thumbnails | コミュニティサムネイル | 5MB | jpeg, png, webp |
+
+### 5.6 Expo Push API
+
+| 項目 | 内容 |
+|------|------|
+| エンドポイント | https://exp.host/--/api/v2/push/send |
+| 認証 | `EXPO_ACCESS_TOKEN` |
+| 送信形式 | JSON配列（バッチ対応） |
+
+### 5.7 Stripe（Web課金用）
+
+| 項目 | 内容 |
+|------|------|
+| 用途 | Web経由の課金処理 |
+| 認証 | `STRIPE_SECRET_KEY` |
+| Provider | RevenueCat Stripe Provider 経由で統合 |
+
 ---
 
 ## 6. 環境変数一覧
@@ -635,6 +804,8 @@ export const MAX_TOKENS_INSIGHT = 800;
 | `REVENUECAT_WEBHOOK_SECRET` | Webhook認証シークレット | Supabase Secrets |
 | `REVENUECAT_API_KEY` | RevenueCat APIキー | アプリ環境変数 |
 | `EXPO_ACCESS_TOKEN` | Expo Push通知用トークン | Supabase Secrets |
+| `STRIPE_SECRET_KEY` | Stripe シークレットキー | Supabase Secrets |
+| `STRIPE_WEBHOOK_SECRET` | Stripe Webhook検証用 | Supabase Secrets |
 
 ---
 
@@ -679,3 +850,12 @@ export const MAX_TOKENS_INSIGHT = 800;
 - [ ] 全Edge Functionのレートリミットが正しく動作すること
 - [ ] OpenAI APIエラー時にグレースフルなエラーレスポンスが返ること
 - [ ] DigitalOcean APIエラー時に適切なステータスコードが返ること
+- [ ] upload-media がサイズ制限を正しく適用すること（image: 10MB, video: 100MB, audio: 50MB）
+- [ ] upload-media が不正なMIMEタイプを拒否すること
+- [ ] fetch-ogp がOGPメタデータを正しく取得すること
+- [ ] fetch-ogp のキャッシュが24時間で動作すること
+- [ ] translate-message が翻訳結果を返すこと
+- [ ] send-push-notification がnotification_settingsを尊重すること
+- [ ] trigger-community-conversation がアクティブコミュニティのみ処理すること
+- [ ] create-community がバリデーション（name: 50文字、description: 200文字）を適用すること
+- [ ] create-community で作成者がcommunity_membersに自動追加されること

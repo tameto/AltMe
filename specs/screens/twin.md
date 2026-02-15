@@ -59,6 +59,9 @@
 │  │  サマリー: 創造的で協調的、│   │
 │  │  安定した性格特性です     │   │
 │  │                         │   │
+│  │  MBTI: INTJ (設定済みの場合)│  │
+│  │  [MBTIを設定する] (未設定) │   │
+│  │                         │   │
 │  │  [性格診断をやり直す]    │   │
 │  └─────────────────────────┘   │
 │                                 │
@@ -110,6 +113,7 @@
 | 5 | TraitLabel | Text | バー左 | Body 16pt |
 | 6 | TraitScore | Text | バー右 | Body 16pt Bold |
 | 7 | PersonalitySummary | Text | セクション2下部 | Body 16pt、複数行 |
+| 7.5 | MBTIDisplay | Text/TextButton | セクション2内サマリー下 | 設定済み: タイプ名表示（Body 16pt Bold）、未設定: 「MBTIを設定する」リンク（設定画面遷移） |
 | 8 | RetakeQuizLink | TextButton | セクション2最下部 | Caption 14pt、下線、Primary色 |
 | 9 | MoodSection | Card | セクション3 | 今日の気分記録 |
 | 10 | MoodEmoji | Pressable | セクション3内 | 5絵文字、各44x44pt |
@@ -209,6 +213,12 @@
 - `personality_results.summary` を表示
 - Body 16pt、複数行、最大5行（それ以上は「さらに読む」で展開）
 - 例: 「創造的で協調的、安定した性格特性です。新しいアイデアに開かれており、他者との調和を重視します。」
+
+#### MBTI表示
+- データソース: `profiles.mbti_type`（TEXT NULL）
+- 設定済み: MBTIタイプ名を表示（例: 「MBTI: INTJ」Body 16pt Bold）
+- 未設定: 「MBTIを設定する」テキストリンク → `app/(tabs)/settings.tsx` のMBTI選択セクションに遷移
+- MBTIタイプ一覧: INTJ, INTP, ENTJ, ENTP, INFJ, INFP, ENFJ, ENFP, ISTJ, ISFJ, ESTJ, ESFJ, ISTP, ISFP, ESTP, ESFP
 
 #### 「性格診断をやり直す」リンク
 - タップ → 確認ダイアログ表示
@@ -342,6 +352,7 @@
 | アクション | 動作 | アニメーション |
 |-----------|------|------------|
 | 気分絵文字タップ | 当日の気分を記録/上書き | scale(1.1) + 背景フェードイン (200ms) |
+| MBTI設定リンクタップ | 設定画面のMBTI選択セクションに遷移 | push transition (300ms) |
 | 性格診断やり直しタップ | 確認ダイアログ表示 | ダイアログスライドアップ (300ms) |
 | 詳細設定リンクタップ | 設定画面に遷移 | fade out → fade in (300ms) |
 | プルダウンリフレッシュ | 全データ再取得 | 標準RefreshControl |
@@ -356,6 +367,7 @@
 |------|-------------------|-------------------|-------------------|
 | 気分絵文字 | "とても良い" / "良い" / "普通" / "悪い" / "とても悪い" | button | "タップして今日の気分を記録します" |
 | Big Fiveバー | "開放性、スコア80" | progressbar | — |
+| MBTI表示 | "MBTI: INTJ" / "MBTIを設定する" | text / button | 未設定時: "タップして設定画面でMBTIを選択" |
 | 性格診断やり直し | "性格診断をやり直す" | button | "タップして性格診断画面に移動します" |
 | 詳細設定リンク | "詳細設定" | button | "タップして設定画面に移動します" |
 | ステータスバッジ | "インスタンス稼働中" | text | — |
@@ -514,7 +526,7 @@ const useInstanceStatusPolling = (isPro: boolean, isTabActive: boolean) => {
 初回表示:
   ┌─→ personality_results (Big Five)
   ├─→ mood_records (当日 + 直近7日)
-  ├─→ profiles (twin_name)
+  ├─→ profiles (twin_name, mbti_type)
   └─→ openclaw_instances (status) ※Pro
 
 気分記録:
@@ -535,3 +547,12 @@ const useInstanceStatusPolling = (isPro: boolean, isTabActive: boolean) => {
   → Edge Function health-check-openclaw
   → ステータスバッジ更新
 ```
+
+---
+
+## 変更履歴
+
+| 日付 | 変更内容 | 理由 | 関連タスク |
+|------|---------|------|-----------|
+| 2026-02-15 | 新規作成 | ツイン情報画面仕様書作成 | -- |
+| 2026-02-15 | セクション2にMBTI表示追加（設定済み: タイプ名表示、未設定: 設定画面リンク）| MBTI入力要件 | T23 |

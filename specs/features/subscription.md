@@ -8,7 +8,7 @@
 | 依存する機能 | 認証（Supabase Auth） |
 | 依存される機能 | OpenClawプロビジョニング、チャット（Pro/Free判定） |
 | 課金基盤 | RevenueCat |
-| 対象プラットフォーム | iOS / Android |
+| 対象プラットフォーム | iOS / Android / Web（課金のみ） |
 
 ---
 
@@ -26,6 +26,19 @@
 - 対象: Pro Monthly / Pro Annual
 - トライアル終了後に自動課金
 - トライアル中も専用OpenClawインスタンスがプロビジョニングされる
+
+### トークン追加購入（Consumable IAP）
+
+| パッケージID | 名称 | 価格 | トークン数 | 単価 |
+|-------------|------|------|-----------|------|
+| `tokens_50k` | トークン50K | ¥500 | 50,000 | ¥0.01/token |
+| `tokens_120k` | トークン120K | ¥1,000 | 120,000 | ¥0.0083/token |
+| `tokens_400k` | トークン400K | ¥3,000 | 400,000 | ¥0.0075/token |
+
+RevenueCat Offering: `token_packs`
+- Package: `tokens_small` → `tokens_50k`
+- Package: `tokens_medium` → `tokens_120k`
+- Package: `tokens_large` → `tokens_400k`
 
 ---
 
@@ -306,6 +319,218 @@
 
 ---
 
+## トークン管理
+
+### トークン消費の追跡
+
+全てのOpenAI APIコール（Edge Function経由・OpenClaw Gateway経由）のトークン消費量を記録・追跡する。
+
+| プラン | 月間トークン上限 | リセット |
+|--------|----------------|---------|
+| Free | 10,000トークン | 毎月1日 00:00 UTC |
+| Pro | 500,000トークン | 毎月1日 00:00 UTC |
+
+### token_usage テーブル
+
+| カラム | 型 | 説明 |
+|--------|---|------|
+| `id` | uuid | PK |
+| `user_id` | uuid | FK → auth.users |
+| `input_tokens` | integer | 入力トークン数 |
+| `output_tokens` | integer | 出力トークン数 |
+| `total_tokens` | integer | 合計トークン数 |
+| `model` | text | 使用モデル（例: `gpt-4o-mini`） |
+| `source` | text | `'edge_function'` / `'openclaw_gateway'` |
+| `created_at` | timestamptz | 使用日時 |
+
+### 月間集計ビュー
+
+```sql
+CREATE VIEW monthly_token_usage AS
+SELECT
+  user_id,
+  date_trunc('month', created_at) AS month,
+  SUM(total_tokens) AS total_tokens_used
+FROM token_usage
+GROUP BY user_id, date_trunc('month', created_at);
+```
+
+### トークン残量表示
+
+チャット画面にプログレスバーでトークン残量を表示。
+
+- 残量80%以上: 緑色
+- 残量50〜80%: 黄色
+- 残量20%未満: 赤色
+
+### トークン制限到達時
+
+| 状態 | 表示 | アクション |
+|------|------|----------|
+| Free制限到達 | 「今月のトークンを使い切りました」 + 「Proにアップグレード」CTA | ペイウォール表示 |
+| Pro制限到達 | 「今月のトークンを使い切りました」 + 「追加トークンを購入」CTA | Consumable IAP画面表示 |
+
+### トークン消費順序
+1. 月間基本トークン（Free: 10,000 / Pro: 500,000）を先に消費
+2. 基本トークン消費後、購入トークンを古い順（FIFO）に消費
+3. 有効期限切れの購入トークン（90日）は自動失効
+
+### token_credits テーブル
+
+| カラム | 型 | 説明 |
+|--------|---|------|
+| `id` | uuid | PK |
+| `user_id` | uuid | FK → auth.users |
+| `amount` | integer | 購入トークン数 |
+| `remaining` | integer | 残りトークン数 |
+| `package_id` | text | 購入パッケージID |
+| `purchased_at` | timestamptz | 購入日時 |
+| `expires_at` | timestamptz | 有効期限（購入から90日） |
+
+---
+
+## Web版課金（Stripe）
+
+### 概要
+
+Web版ではApp Store / Google Playが利用できないため、Stripe Checkoutで課金を処理する。
+RevenueCatのStripe Providerを使用し、モバイル・Web間でサブスクリプション状態を統合管理する。
+
+### 対象プラン
+
+| プラン | Stripe Price ID | 価格 |
+|--------|---------------|------|
+| Pro Monthly | `price_pro_monthly` | ¥4,980/月 |
+| Pro Annual | `price_pro_annual` | ¥39,800/年 |
+
+注: 初回限定年額（¥29,800）はWeb版では提供しない（モバイル限定プロモーション）。
+
+### フロー
+
+```
+Web App → Edge Function (create-checkout-session) → Stripe Checkout
+  → Webhook (webhook-stripe) → subscriptions更新 + RevenueCat同期
+  → provision-openclaw（初回購入時）
+```
+
+### Edge Function: create-checkout-session
+
+| 項目 | 内容 |
+|------|------|
+| パス | `POST /functions/v1/create-checkout-session` |
+| 認証 | Supabase Auth JWT（Authorization header） |
+| リクエスト | `{ priceId: string }` |
+| レスポンス | `{ url: string }` （Stripe Checkout URL） |
+| 処理 | Stripe Customer作成/取得 → Checkout Session作成 → URL返却 |
+
+### Stripe Webhook処理
+
+エンドポイント: `POST {SUPABASE_URL}/functions/v1/webhook-stripe`
+
+| イベント | 処理 |
+|---------|------|
+| `checkout.session.completed` | サブスク作成 + provision-openclaw |
+| `invoice.paid` | current_period更新 |
+| `invoice.payment_failed` | grace_period設定 |
+| `customer.subscription.deleted` | expired設定 + destroy-openclaw |
+| `customer.subscription.updated` | plan_type更新 |
+
+### RevenueCat統合
+
+- Stripe Providerを使用して、Stripe課金をRevenueCatのEntitlementに反映
+- モバイル（App Store / Google Play）とWeb（Stripe）のサブスクリプション状態を `pro` Entitlementで統合
+- アプリ側は `useSubscription()` hookでPro判定（課金元プラットフォームを意識しない）
+
+---
+
+## API Key保護
+
+全てのAPIキー（OpenAI、Supabase Service Role、DigitalOcean、Stripe Secret）はクライアントに露出させない。
+
+| キー | 保管場所 | クライアント露出 |
+|------|---------|---------------|
+| OpenAI API Key | Edge Function環境変数 | 不可 |
+| Supabase Service Role Key | Edge Function環境変数 | 不可 |
+| Supabase Anon Key | クライアントアプリ | 許可（RLS保護） |
+| DigitalOcean API Token | Edge Function環境変数 | 不可 |
+| RevenueCat API Key | クライアントアプリ | 許可（SDK仕様） |
+| Stripe Secret Key | Edge Function環境変数 | 不可 |
+
+---
+
+### AC-9: トークン消費が正しく追跡される
+
+**Given** ユーザーがチャットでメッセージを送信する
+**When** OpenAI APIまたはOpenClaw Gatewayがレスポンスを返す
+**Then**
+- `token_usage` テーブルに入力/出力/合計トークン数が記録される
+- チャット画面のトークン残量プログレスバーが更新される
+
+**エッジケース:**
+- トークン記録に失敗してもチャットは正常に動作すること（非同期記録）
+- 月間リセット時に正しくカウントがリセットされること
+
+---
+
+### AC-10: トークン制限到達時にチャットが制限される
+
+**Given** ユーザーの月間トークン消費量が上限に達している（Free: 10,000 / Pro: 500,000）
+**When** チャット画面を表示する
+**Then**
+- チャット入力が無効化される
+- 「今月のトークンを使い切りました」メッセージが表示される
+- Free: 「Proにアップグレード」CTA表示
+- Pro: 「追加トークンを購入」CTA表示
+
+---
+
+### AC-11: 追加トークンを購入できる
+
+**Given** ユーザーのトークンが不足している
+**When** トークン購入画面で¥500/¥1,000/¥3,000パッケージを選択し、決済を完了する
+**Then**
+- RevenueCat consumable purchaseが完了する
+- `token_credits` テーブルに購入記録が追加される
+- トークン残量が購入分だけ増加する
+- 有効期限が購入から90日後に設定される
+
+**テスト観点:**
+- サンドボックスで3パッケージそれぞれの購入を検証
+- 購入トークンの消費順序（FIFO）が正しいことを確認
+
+---
+
+### AC-12: Stripe Checkoutで課金できる（Web版）
+
+**Given** Web版ユーザーがFreeプランでログインしている
+**When** 「Proにアップグレード」ボタンをクリックし、Stripe Checkout画面で決済を完了する
+**Then**
+- Stripe Webhookが `subscriptions` テーブルを更新する
+- RevenueCat Stripe Provider経由で `pro` Entitlementが有効になる
+- OpenClawインスタンスがプロビジョニングされる
+- モバイルアプリでも即座にPro機能が利用可能になる
+
+**エッジケース:**
+- Checkout画面で離脱した場合、状態が変わらないこと
+- モバイルで既にPro契約中のユーザーがWebで再購入しようとした場合
+
+**テスト観点:**
+- Stripeテストモードで決済フローを検証
+- Webhook受信後のDB更新とRevenueCat同期を確認
+
+---
+
+### AC-13: クライアントにAPIキーが露出していない
+
+**Given** アプリのビルドが完了している
+**When** ビルドアーティファクトを検査する
+**Then**
+- OpenAI API Key、Supabase Service Role Key、DigitalOcean API Token、Stripe Secret Keyがクライアントコードに含まれていないこと
+- 外部APIコールは全てEdge Function経由で行われること
+- クライアントに含まれるキーはSupabase Anon KeyとRevenueCat API Keyのみ
+
+---
+
 ## 状態遷移図
 
 ```
@@ -337,3 +562,11 @@
 | 2026-02-14 | AC-1, AC-2の内容更新（コミュニティ、ツイン情報の詳細分析を追記） | Pro機能の明確化 | - |
 | 2026-02-14 | trialing → trial（全箇所） | RevenueCat用語統一（Clarify Phase） | - |
 | 2026-02-14 | cancelled ステータス追加 | 解約済み期間内ユーザーの状態管理 | - |
+| 2026-02-15 | トークン管理セクション追加 | OpenAIトークン消費量の追跡・制限（Free: 10K / Pro: 500K） | - |
+| 2026-02-15 | Web版課金（Stripe）セクション追加 | Stripe Checkout + Webhook + RevenueCat統合 | - |
+| 2026-02-15 | API Key保護セクション追加 | セキュリティ設計原則の明文化 | - |
+| 2026-02-15 | AC-9〜AC-13追加 | トークン管理、Consumable IAP、Web課金、API Key保護の受け入れ条件 | - |
+| 2026-02-15 | 対象プラットフォームにWeb追加 | Stripe Checkout対応 | - |
+| 2026-02-15 | token_usage/token_creditsテーブルスキーマ追加 | データ仕様の充実化 | T12 |
+| 2026-02-15 | create-checkout-session Edge Function詳細追加 | Web課金の実装仕様明確化 | T12 |
+| 2026-02-15 | RevenueCat Stripe Provider統合仕様追加 | クロスプラットフォーム同期の明文化 | T12 |

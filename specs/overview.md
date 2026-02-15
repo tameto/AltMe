@@ -10,7 +10,7 @@
   - 自己理解を深めたいが方法がわからない
   - 日記・振り返りが続かない
   - セルフケアにAIを活用したいが汎用チャットボットでは物足りない
-- マネタイズモデル: サブスクリプション（RevenueCat）+ 無料トライアル
+- マネタイズモデル: サブスクリプション（RevenueCat / Stripe）+ 無料トライアル + トークン追加購入（Consumable IAP）
   - 6ヶ月後 MRR目標: ¥200,000〜500,000
   - 12ヶ月後 MRR目標: ¥500,000〜1,500,000
 
@@ -26,7 +26,8 @@
 | 認証 | Supabase Auth | - | Apple / Google Sign-In |
 | AI基盤 | OpenClaw | - | ユーザーごとにDigitalOcean Dropletへデプロイ |
 | インフラ | DigitalOcean | - | Droplet自動プロビジョニング |
-| 課金 | RevenueCat | SDK 8.x | Paywalls SDK含む |
+| 課金（モバイル） | RevenueCat | SDK 8.x | Paywalls SDK含む |
+| 課金（Web） | Stripe | Checkout + Webhook | RevenueCat Stripe Provider統合 |
 | 通知 | Expo Notifications | - | ローカル + プッシュ |
 
 ---
@@ -91,6 +92,14 @@
 
 6. 通知フロー:
    Supabase Edge Function (cron) → Expo Push API → Device
+
+7. Web課金フロー:
+   Web App → Edge Function (create-checkout-session) → Stripe Checkout
+     → Webhook (webhook-stripe) → Supabase DB + RevenueCat同期
+
+8. ゲストブラウズフロー:
+   未認証ユーザー → コミュニティ一覧/詳細（閲覧のみ）
+     → チャット/ツイン情報/設定はログイン促進UI表示
 ```
 
 ### OpenClaw Gateway通信仕様
@@ -118,13 +127,25 @@
 
 ---
 
+## スコープ内（追加機能）
+
+| 機能 | 概要 | 追加日 |
+|------|------|--------|
+| ゲストブラウズモード | ログインなしでコミュニティ一覧・詳細を閲覧可能（Apple審査準拠） | 2026-02-15 |
+| Web版課金（Stripe） | Stripe Checkout + Webhook + RevenueCat Stripe Provider統合 | 2026-02-15 |
+| トークン管理 | OpenAIトークン消費量の追跡・制限（Free: 10K / Pro: 500K / 追加購入対応） | 2026-02-15 |
+| API Key保護 | 全外部APIキーをEdge Function経由でのみ使用、クライアント非露出 | 2026-02-15 |
+| Googleロゴ規約準拠 | Googleブランドガイドラインに準拠したログインボタン | 2026-02-15 |
+
+---
+
 ## やらないこと（スコープ外）
 
 - 画像生成（コスト高）
 - 音声チャット（Phase 2以降）
 - ユーザー同士のDM・フォロー（コミュニティはツイン交流のみ）
 - マルチエージェント（1ユーザー1インスタンス）
-- Web版（モバイルアプリのみ）
+- Web版フルアプリ（課金のみWeb対応、アプリ本体はモバイルのみ）
 - 多言語対応（Phase 2以降、MVP時点では日本語+英語）
 
 ---
@@ -167,6 +188,7 @@
 #### 認証前
 1. スプラッシュ画面
 2. ログイン / サインアップ (`app/(auth)/`)
+3. ゲストブラウズ（ログインせずにコミュニティ一覧・詳細を閲覧可能、他タブはログイン促進UI）
 
 #### オンボーディング
 1. ウェルカム (`app/(onboarding)/welcome.tsx`)
@@ -206,7 +228,8 @@
 
 ### セキュリティ
 - APIキーは環境変数管理、クライアントに露出させない
-- OpenClaw通信はトークン認証付きWebSocket
+- **API Key保護原則**: OpenAI / DigitalOcean / Stripe Secret Key は Edge Function 環境変数のみ。クライアントには Supabase Anon Key と RevenueCat API Key のみ許可
+- OpenClaw通信はトークン認証付きWebSocket（wss://）
 - チャット履歴はSupabase RLS（Row Level Security）で保護
 - 個人情報の暗号化保存
 - SOUL.mdはユーザー専用Droplet内に保持
@@ -311,7 +334,9 @@ altme/
 │       ├── chat/                 # 無料ユーザー用AIチャット
 │       ├── provision-openclaw/   # OpenClawプロビジョニング
 │       ├── personality-analyze/  # パーソナリティ分析
-│       └── webhook-revenuecat/   # RevenueCat Webhook
+│       ├── webhook-revenuecat/   # RevenueCat Webhook
+│       ├── create-checkout-session/  # Stripe Checkout Session作成
+│       └── webhook-stripe/       # Stripe Webhook
 ├── specs/                        # 仕様書（本ドキュメント）
 │   └── overview.md
 ├── docs/                         # その他ドキュメント
@@ -385,3 +410,4 @@ altme/
 |------|---------|------|-----------|
 | 2026-02-14 | タブ構成を3タブから4タブに変更（Chat/Community/Twin Info/Settings）<br>日記機能をチャットに統合<br>洞察機能をツイン情報に統合<br>コミュニティ機能追加（Pro限定、AIツイン同士の会話観察）<br>アカウント削除機能追加<br>ソーシャル機能方針変更（ユーザー同士のDM・フォローなし） | Reconcile: 製品方針の変更に伴う仕様更新 | — |
 | 2026-02-15 | オンボーディング: 4画面→6画面に変更<br>新画面追加: choose-avatar.tsx (4), choose-tone.tsx (5)<br>画面一覧更新<br>ディレクトリ構成にchoose-avatar.tsx, choose-tone.tsx追記 | V3 Liquid Glass: AIアイコン・口調カスタマイズ機能追加 | — |
+| 2026-02-15 | ゲストブラウズモード追加<br>Web版課金（Stripe）追加<br>トークン管理追加<br>API Key保護原則追加<br>Googleロゴ規約準拠追加<br>「やらないこと」からWeb版を変更（課金のみWeb対応） | 7新要件の反映 | — |
