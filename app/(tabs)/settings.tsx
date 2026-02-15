@@ -151,11 +151,7 @@ export default function SettingsScreen() {
 
   const appVersion = Constants.expoConfig?.version ?? '1.0.0';
 
-  if (!isAuthenticated) {
-    return <GuestSettingsScreen />;
-  }
-
-  // OpenClaw instance state
+  // OpenClaw instance state (must be before any conditional returns)
   const [instance, setInstance] = useState<OpenClawInstance | null>(null);
   const [isLoadingInstance, setIsLoadingInstance] = useState(false);
   const [isRestarting, setIsRestarting] = useState(false);
@@ -189,6 +185,38 @@ export default function SettingsScreen() {
       unsubscribe?.();
     };
   }, [isPro, user?.id]);
+
+  const handleRestartInstance = useCallback(async () => {
+    Alert.alert(
+      t('settings.instance.restartTitle'),
+      t('settings.instance.restartMessage'),
+      [
+        { text: t('common.cancel'), style: 'cancel' },
+        {
+          text: t('settings.instance.restart'),
+          onPress: async () => {
+            setIsRestarting(true);
+            try {
+              const result = await restartInstance();
+              if (result.success) {
+                Alert.alert(t('settings.instance.restartStarted'), t('settings.instance.restartStartedMessage'));
+              } else {
+                Alert.alert(t('common.error'), result.error || t('settings.instance.restartError'));
+              }
+            } catch {
+              Alert.alert(t('common.error'), t('settings.instance.restartError'));
+            } finally {
+              setIsRestarting(false);
+            }
+          },
+        },
+      ],
+    );
+  }, [t]);
+
+  if (!isAuthenticated) {
+    return <GuestSettingsScreen />;
+  }
 
   const handleEditProfile = () => {
     Alert.prompt(
@@ -276,34 +304,6 @@ export default function SettingsScreen() {
   const handleNotificationSettings = () => {
     Alert.alert(t('settings.notifications.title'), t('settings.notifications.comingSoon'));
   };
-
-  const handleRestartInstance = useCallback(async () => {
-    Alert.alert(
-      t('settings.instance.restartTitle'),
-      t('settings.instance.restartMessage'),
-      [
-        { text: t('common.cancel'), style: 'cancel' },
-        {
-          text: t('settings.instance.restart'),
-          onPress: async () => {
-            setIsRestarting(true);
-            try {
-              const result = await restartInstance();
-              if (result.success) {
-                Alert.alert(t('settings.instance.restartStarted'), t('settings.instance.restartStartedMessage'));
-              } else {
-                Alert.alert(t('common.error'), result.error || t('settings.instance.restartError'));
-              }
-            } catch {
-              Alert.alert(t('common.error'), t('settings.instance.restartError'));
-            } finally {
-              setIsRestarting(false);
-            }
-          },
-        },
-      ],
-    );
-  }, [t]);
 
   const handleSignOut = () => {
     Alert.alert(t('settings.account.logout'), t('settings.account.logoutConfirm'), [

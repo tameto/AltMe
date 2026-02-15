@@ -58,16 +58,6 @@ export default function ChatScreen() {
   const flatListRef = useRef<FlatList>(null);
   const { isConnected: isOnline } = useNetwork();
 
-  if (!isAuthenticated) {
-    return (
-      <CosmicBackground>
-        <SafeAreaView style={styles.container} edges={['top']}>
-          <GuestPromptOverlay />
-        </SafeAreaView>
-      </CosmicBackground>
-    );
-  }
-
   const [messages, setMessages] = useState<DisplayMessage[]>([]);
   const [inputText, setInputText] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -449,6 +439,16 @@ export default function ChatScreen() {
   const statusDotColor = connectionMode === 'websocket'
     ? (wsStatus === 'connected' ? colors.success : wsStatus === 'reconnecting' ? colors.warning : colors.textTertiary)
     : colors.success;
+
+  if (!isAuthenticated) {
+    return (
+      <CosmicBackground>
+        <SafeAreaView style={styles.container} edges={['top']}>
+          <GuestPromptOverlay />
+        </SafeAreaView>
+      </CosmicBackground>
+    );
+  }
 
   if (isLoadingHistory) {
     return (
