@@ -16,10 +16,12 @@ import { useRouter } from 'expo-router';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 import { colors, spacing, borderRadius, fontSize } from '@/src/config/theme';
-import { FREE_DAILY_CHAT_LIMIT, CHAT, APP_NAME } from '@/src/config/constants';
+import { FREE_DAILY_LIMIT, CHAT, APP_NAME } from '@/src/config/constants';
 import { useIsPro } from '@/src/shared/hooks/use-subscription';
 import { useUser } from '@/src/shared/hooks/use-user';
 import { useNetwork } from '@/src/shared/hooks/use-network';
+import { useAuthStore } from '@/src/features/auth/stores/auth-store';
+import { GuestPromptOverlay } from '@/src/shared/components/guest-prompt-overlay';
 import { supabase } from '@/src/services/supabase/client';
 import { env } from '@/src/config/env';
 import { getMyInstance, getGatewayToken, subscribeToInstanceChanges } from '@/src/services/openclaw/client';
@@ -47,8 +49,17 @@ export default function ChatScreen() {
   const router = useRouter();
   const isPro = useIsPro();
   const user = useUser((s) => s.user);
+  const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
   const flatListRef = useRef<FlatList>(null);
   const { isConnected: isOnline } = useNetwork();
+
+  if (!isAuthenticated) {
+    return (
+      <SafeAreaView style={styles.container} edges={['top']}>
+        <GuestPromptOverlay />
+      </SafeAreaView>
+    );
+  }
 
   const [messages, setMessages] = useState<DisplayMessage[]>([]);
   const [inputText, setInputText] = useState('');
@@ -69,7 +80,7 @@ export default function ChatScreen() {
     setConnectionMode(mode);
   }, []);
 
-  const isAtLimit = !isPro && todayUserCount >= FREE_DAILY_CHAT_LIMIT;
+  const isAtLimit = !isPro && todayUserCount >= FREE_DAILY_LIMIT;
 
   // Load chat history on mount
   useEffect(() => {
@@ -461,7 +472,7 @@ export default function ChatScreen() {
           <Text style={styles.limitText}>
             {isAtLimit
               ? 'Proにアップグレードして無制限に会話しよう'
-              : `残り${Math.max(0, FREE_DAILY_CHAT_LIMIT - todayUserCount)}回`}
+              : `残り${Math.max(0, FREE_DAILY_LIMIT - todayUserCount)}回`}
           </Text>
         </View>
       )}

@@ -78,9 +78,9 @@ describe('useOnboardingStore', () => {
     const mockResult: PersonalityResult = {
       id: 'result-1',
       userId: 'user-1',
-      answers: [{ questionId: 'q1', answer: 'agree' }],
+      rawAnswers: [{ questionId: 'q1', answer: 'agree' }],
       summary: 'テストサマリー',
-      detailedAnalysis: null,
+      communicationStyle: null,
       personalityTraits: {
         openness: 80,
         conscientiousness: 60,

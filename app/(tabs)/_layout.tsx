@@ -28,19 +28,19 @@ export default function TabLayout() {
         }}
       />
       <Tabs.Screen
-        name="journal"
+        name="community"
         options={{
-          title: '日記',
+          title: 'コミュニティ',
           headerShown: false,
-          tabBarIcon: ({ color }) => <TabBarIcon name="book" color={color} />,
+          tabBarIcon: ({ color }) => <TabBarIcon name="users" color={color} />,
         }}
       />
       <Tabs.Screen
-        name="insights"
+        name="twin"
         options={{
-          title: '洞察',
+          title: 'ツイン',
           headerShown: false,
-          tabBarIcon: ({ color }) => <TabBarIcon name="line-chart" color={color} />,
+          tabBarIcon: ({ color }) => <TabBarIcon name="user" color={color} />,
         }}
       />
       <Tabs.Screen

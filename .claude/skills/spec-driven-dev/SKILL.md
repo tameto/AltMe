@@ -610,20 +610,24 @@ Agent B: Subscription — X tasks (S:x M:x L:x)
 
 ## Step 8: Review（多層品質検証）
 
-> 3つのレビュー Agent が並列で品質検証する。
+> 4つのレビュー Agent が並列で品質検証する。Claude 3モデル + OpenAI Codex のクロスモデルレビュー。
 
 ### Entry Gate
 - Step 7 完了（全タスク completed）
 
 ### DO: 自動実行アクション
 
-3 つのレビュー Agent を**並列起動**:
+4 つのレビュー Agent を**並列起動**:
 
-| Agent | 観点 | チェック内容 |
-|-------|------|------------|
-| **code-reviewer** | コード品質 | 可読性、命名、重複、パフォーマンス、ベストプラクティス |
-| **security-auditor** | セキュリティ | OWASP Mobile Top 10、RLS、シークレット検出、API 保護 |
-| **qa-debugger** | QA | バグ検出、クロスバウンダリテスト、E2E 検証、状態管理 |
+| Agent | モデル | 観点 | チェック内容 |
+|-------|--------|------|------------|
+| **code-reviewer** | Claude Sonnet | コード品質 | 可読性、命名、重複、パフォーマンス、ベストプラクティス |
+| **security-auditor** | Claude Sonnet | セキュリティ | OWASP Mobile Top 10、RLS、シークレット検出、API 保護 |
+| **qa-debugger** | Claude Sonnet | QA | バグ検出、クロスバウンダリテスト、E2E 検証、状態管理 |
+| **codex-reviewer** | GPT-5.3-Codex | クロスモデル | Claude の盲点補完、異なる視点でのバグ・設計ミス検出 |
+
+**クロスモデルレビューの利点**: 単一モデルでは見逃しやすいパターンを異なるモデルが検出する。
+両モデルが一致して検出した問題は信頼度が特に高い。
 
 追加チェック:
 - [ ] 型安全性（`npx tsc --noEmit` パス）
@@ -743,7 +747,8 @@ Step 7: Implement（並列）
 Step 8: Review（並列）
   ├─ code-reviewer (Sonnet)
   ├─ security-auditor (Sonnet)
-  └─ qa-debugger (Sonnet)
+  ├─ qa-debugger (Sonnet)
+  └─ codex-reviewer (GPT-5.3-Codex) ★NEW
 
 Step 9: Reconcile
   └─ doc-updater (Haiku)
@@ -755,6 +760,7 @@ Step 9: Reconcile
 | Opus | 2 | 1, 4 | 高度な計画・設計 |
 | Sonnet | 10 | 2, 5, 7, 8 | 実装・デザイン・レビュー |
 | Haiku | 2 | 6, 9 | 軽量タスク |
+| GPT-5.3-Codex | 1 | 8 | クロスモデルレビュー |
 
 ### Agent-Skill 対応表
 | Agent | Skill | 役割 |
@@ -773,6 +779,7 @@ Step 9: Reconcile
 | planner | — | 汎用計画（Opus） |
 | architect | — | 汎用設計（Opus） |
 | code-reviewer | rn-mobile-dev | RN ベストプラクティス |
+| codex-reviewer | codex-review | クロスモデルレビュー（GPT-5.3-Codex） |
 
 ---
 

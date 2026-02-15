@@ -29,7 +29,7 @@ Deno.serve(async (req: Request) => {
 
     if (fetchError || !instance) {
       // No record found: return success (idempotent no-op)
-      console.log(`No openclaw instance found for user ${user_id}, treating as success`);
+      // No instance found: idempotent no-op
       return new Response(
         JSON.stringify({ success: true, message: 'no instance found' }),
         { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
@@ -38,7 +38,7 @@ Deno.serve(async (req: Request) => {
 
     // If status is already destroying or stopped: return success (idempotent)
     if (instance.status === 'destroying' || instance.status === 'stopped') {
-      console.log(`Instance for user ${user_id} is already ${instance.status}, skipping`);
+      // Already destroying/stopped: idempotent
       return new Response(
         JSON.stringify({ success: true, message: `already ${instance.status}` }),
         { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
@@ -51,7 +51,7 @@ Deno.serve(async (req: Request) => {
       .update({ status: 'destroying' })
       .eq('user_id', user_id);
 
-    console.log(`Destroying OpenClaw instance for user ${user_id}, droplet_id: ${instance.droplet_id}`);
+    // Proceed with Droplet deletion
 
     // Call DigitalOcean API to delete the Droplet
     const doResponse = await fetch(
@@ -68,7 +68,7 @@ Deno.serve(async (req: Request) => {
     if (doResponse.ok || doResponse.status === 204 || doResponse.status === 404) {
       // Success or already deleted — mark as stopped and clear fields
       if (doResponse.status === 404) {
-        console.log(`Droplet ${instance.droplet_id} already deleted on DigitalOcean`);
+        // Droplet already deleted on DigitalOcean
       }
 
       await supabase
@@ -80,7 +80,7 @@ Deno.serve(async (req: Request) => {
         })
         .eq('user_id', user_id);
 
-      console.log(`OpenClaw instance for user ${user_id} successfully stopped`);
+      // Instance successfully stopped
 
       return new Response(
         JSON.stringify({ success: true }),

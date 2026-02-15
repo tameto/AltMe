@@ -27,10 +27,11 @@ type SubscriptionStore = {
 
 const initialEntitlement: EntitlementInfo = {
   isPro: false,
+  isTrialing: false,
   status: 'free' as SubscriptionStatus,
-  planType: null,
+  planType: 'free',
+  expiresAt: null,
   trialDaysRemaining: null,
-  credits: 0,
 };
 
 export const useSubscription = create<SubscriptionStore>((set, get) => ({

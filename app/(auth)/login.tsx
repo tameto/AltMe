@@ -1,10 +1,18 @@
 import { useState } from 'react';
-import { StyleSheet, View, Text, Pressable, ActivityIndicator, Alert, Platform } from 'react-native';
+import { StyleSheet, View, Text, Pressable, ActivityIndicator, Alert, Platform, Image } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import FontAwesome from '@expo/vector-icons/FontAwesome';
 import { colors, spacing, fontSize, borderRadius } from '@/src/config/theme';
 import { APP_NAME, APP_SUBTITLE } from '@/src/config/constants';
 import { useAuthStore } from '@/src/features/auth/stores/auth-store';
+
+/** Google brand colors per guidelines */
+const GOOGLE_BUTTON = {
+  background: '#FFFFFF',
+  border: '#747775',
+  text: '#1F1F1F',
+  height: 50,
+} as const;
 
 export default function LoginScreen() {
   const { signInWithApple, signInWithGoogle, devLogin } = useAuthStore();
@@ -62,12 +70,15 @@ export default function LoginScreen() {
             onPress={handleGoogleSignIn}
             disabled={isSigningIn !== null}>
             {isSigningIn === 'google' ? (
-              <ActivityIndicator color={colors.text} />
+              <ActivityIndicator color={GOOGLE_BUTTON.text} />
             ) : (
-              <Text style={styles.googleButtonText}>
-                <FontAwesome name="google" size={16} color={colors.text} />
-                {'  Googleでサインイン'}
-              </Text>
+              <View style={styles.googleButtonContent}>
+                <Image
+                  source={require('@/assets/images/google-g-icon.png')}
+                  style={styles.googleIcon}
+                />
+                <Text style={styles.googleButtonText}>Googleでサインイン</Text>
+              </View>
             )}
           </Pressable>
         </View>
@@ -136,19 +147,29 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   googleButton: {
-    backgroundColor: colors.background,
+    backgroundColor: GOOGLE_BUTTON.background,
     borderRadius: borderRadius.md,
     paddingVertical: spacing.md,
     alignItems: 'center',
     borderWidth: 1,
-    borderColor: colors.border,
-    height: 52,
+    borderColor: GOOGLE_BUTTON.border,
+    height: GOOGLE_BUTTON.height,
     justifyContent: 'center',
   },
+  googleButtonContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+  },
+  googleIcon: {
+    width: 18,
+    height: 18,
+  },
   googleButtonText: {
-    color: colors.text,
-    fontSize: fontSize.md,
-    fontWeight: '600',
+    color: GOOGLE_BUTTON.text,
+    fontSize: 14,
+    fontWeight: '500',
+    fontFamily: Platform.select({ ios: undefined, default: 'Roboto' }),
   },
   legal: {
     fontSize: fontSize.xs,

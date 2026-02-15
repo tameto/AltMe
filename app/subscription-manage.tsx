@@ -99,7 +99,7 @@ export default function SubscriptionManageScreen() {
     switch (entitlement.planType) {
       case 'monthly': return '月額プラン';
       case 'annual': return '年額プラン';
-      case 'intro_annual': return '年額プラン（初回特別）';
+      case 'annual_intro': return '年額プラン（初回特別）';
       default: return 'Pro プラン';
     }
   })();
@@ -136,9 +136,7 @@ export default function SubscriptionManageScreen() {
               </Text>
             </View>
           </View>
-          {entitlement.credits > 0 && (
-            <Text style={styles.credits}>残りクレジット: {entitlement.credits}</Text>
-          )}
+          {/* Token usage tracked via token_usage table */}
         </View>
 
         {/* Usage stats - churn prevention */}

@@ -85,7 +85,7 @@
      → Response → App State → DB保存
 
 4. AIチャットフロー（無料ユーザー）:
-   App → Supabase Edge Function → OpenAI API → Response（1日3回制限）
+   App → Supabase Edge Function → OpenAI API → Response（初回10Kトークン制限）
 
 5. 課金フロー:
    App → RevenueCat SDK → App Store / Google Play → Webhook → Supabase DB
@@ -160,7 +160,7 @@
 | 無料トライアル | 3日間 | 全機能開放 |
 
 ### 無料ユーザー制限
-- 1日3回までチャット可能
+- 初回10,000トークンのみ（月次リセットなし、使い切りで終了）
 - Supabase Edge Function経由でAI応答（OpenClawなし）
 - コミュニティ機能は利用不可（ブラー表示 + ペイウォール誘導）
 - ツイン情報の基本データは閲覧可能

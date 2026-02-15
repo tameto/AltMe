@@ -6,40 +6,46 @@ export type SubscriptionStatus =
   | 'cancelled'
   | 'grace_period';
 
-export type PlanType = 'monthly' | 'annual' | 'intro_annual';
+export type PlanType = 'free' | 'monthly' | 'annual' | 'annual_intro';
 
 export type Subscription = {
   id: string;
   userId: string;
-  revenuecatId: string | null;
+  revenuecatCustomerId: string | null;
   status: SubscriptionStatus;
-  planType: PlanType | null;
-  trialStart: string | null;
-  trialEnd: string | null;
+  plan: PlanType;
   currentPeriodStart: string | null;
   currentPeriodEnd: string | null;
+  trialEnd: string | null;
+  cancelledAt: string | null;
   createdAt: string;
   updatedAt: string;
 };
 
 export type CreditBalance = {
+  id: string;
   userId: string;
-  balance: number;
+  dailyRemaining: number;
+  lastResetAt: string;
+  createdAt: string;
+  updatedAt: string;
 };
 
 export type CreditTransaction = {
   id: string;
   userId: string;
+  type: 'consume' | 'reset' | 'bonus';
   amount: number;
-  type: 'purchase' | 'consume' | 'bonus';
+  balanceAfter: number;
   description: string | null;
   createdAt: string;
 };
 
 export type EntitlementInfo = {
   isPro: boolean;
+  isTrialing: boolean;
   status: SubscriptionStatus;
-  planType: PlanType | null;
+  planType: PlanType;
+  expiresAt: string | null;
   trialDaysRemaining: number | null;
-  credits: number;
 };

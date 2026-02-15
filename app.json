@@ -2,6 +2,7 @@
   "expo": {
     "name": "AltMe",
     "slug": "AltMe",
+    "description": "もう一人の自分 — AIツインと対話しながら自己理解を深めるパーソナルAIアプリ",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
@@ -49,7 +50,8 @@
       "expo-router",
       "expo-notifications",
       "expo-apple-authentication",
-      "expo-secure-store"
+      "expo-secure-store",
+      "@react-native-google-signin/google-signin"
     ],
     "experiments": {
       "typedRoutes": true

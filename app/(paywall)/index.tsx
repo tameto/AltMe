@@ -2,13 +2,13 @@ import { StyleSheet, View, Text, Pressable, ScrollView, Alert } from 'react-nati
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import type { PurchasesPackage } from 'react-native-purchases';
 import { colors, spacing, fontSize, borderRadius } from '@/src/config/theme';
 import { PRICING } from '@/src/config/constants';
 import { useSubscription } from '@/src/shared/hooks/use-subscription';
+import { useUser } from '@/src/shared/hooks/use-user';
+import { hasNeverPurchased } from '@/src/services/revenuecat/client';
 
-const INSTALL_TIME_KEY = 'install_time';
 const INTRO_OFFER_DURATION_MS = PRICING.INTRO_OFFER_HOURS * 60 * 60 * 1000;
 
 type PlanId = 'intro_annual' | 'annual' | 'monthly';
@@ -33,61 +33,65 @@ const formatCountdown = (ms: number): string => {
 export default function PaywallScreen() {
   const router = useRouter();
   const { purchase, restore, loadOfferings, offerings, isLoading } = useSubscription();
+  const createdAt = useUser((s) => s.user?.createdAt);
 
-  const [selectedPlan, setSelectedPlan] = useState<PlanId>('intro_annual');
-  const [showIntroOffer, setShowIntroOffer] = useState(true);
-  const [remainingMs, setRemainingMs] = useState(INTRO_OFFER_DURATION_MS);
+  const [selectedPlan, setSelectedPlan] = useState<PlanId>('annual');
+  const [showIntroOffer, setShowIntroOffer] = useState(false);
+  const [remainingMs, setRemainingMs] = useState(0);
   const [isPurchasing, setIsPurchasing] = useState(false);
   const [isRestoring, setIsRestoring] = useState(false);
-  const installTimeRef = useRef<number | null>(null);
+  const signupTimeRef = useRef<number | null>(null);
 
   // Load offerings on mount
   useEffect(() => {
     loadOfferings();
   }, [loadOfferings]);
 
-  // Initialize install time and intro offer state
+  // Check intro offer eligibility (AC-3: profiles.created_at < 24h AND never purchased)
   useEffect(() => {
-    const initInstallTime = async () => {
+    const checkIntroEligibility = async () => {
       try {
-        const stored = await AsyncStorage.getItem(INSTALL_TIME_KEY);
-        let installTime: number;
-
-        if (stored) {
-          installTime = parseInt(stored, 10);
-        } else {
-          installTime = Date.now();
-          await AsyncStorage.setItem(INSTALL_TIME_KEY, installTime.toString());
+        if (!createdAt) {
+          setShowIntroOffer(false);
+          return;
         }
 
-        installTimeRef.current = installTime;
-        const elapsed = Date.now() - installTime;
+        const signupTime = new Date(createdAt).getTime();
+        signupTimeRef.current = signupTime;
+        const elapsed = Date.now() - signupTime;
         const remaining = INTRO_OFFER_DURATION_MS - elapsed;
 
         if (remaining <= 0) {
           setShowIntroOffer(false);
-          setSelectedPlan('annual');
-        } else {
-          setRemainingMs(remaining);
-          setShowIntroOffer(true);
+          return;
         }
+
+        // Check RevenueCat purchase history (Q4: use SDK)
+        const neverPurchased = await hasNeverPurchased();
+        if (!neverPurchased) {
+          setShowIntroOffer(false);
+          return;
+        }
+
+        setRemainingMs(remaining);
+        setShowIntroOffer(true);
+        setSelectedPlan('intro_annual');
       } catch {
         setShowIntroOffer(false);
-        setSelectedPlan('annual');
       }
     };
 
-    initInstallTime();
-  }, []);
+    checkIntroEligibility();
+  }, [createdAt]);
 
-  // Countdown timer
+  // Countdown timer (server-based, tamper-resistant per AC-3)
   useEffect(() => {
     if (!showIntroOffer) return;
 
     const timer = setInterval(() => {
-      if (installTimeRef.current === null) return;
+      if (signupTimeRef.current === null) return;
 
-      const elapsed = Date.now() - installTimeRef.current;
+      const elapsed = Date.now() - signupTimeRef.current;
       const remaining = INTRO_OFFER_DURATION_MS - elapsed;
 
       if (remaining <= 0) {

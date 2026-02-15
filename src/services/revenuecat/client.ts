@@ -19,7 +19,7 @@ let isRevenueCatConfigured = false;
 export const initializeRevenueCat = async (userId?: string): Promise<void> => {
   const apiKey = Platform.select({
     ios: env.revenuecatIosKey,
-    android: env.revenuecatAndroidKey,
+    default: env.revenuecatAndroidKey,
   });
 
   if (!apiKey) {
@@ -41,11 +41,12 @@ export const mapCustomerInfo = (info: CustomerInfo): EntitlementInfo => {
   if (!proEntitlement) {
     return {
       isPro: false,
+      isTrialing: false,
       status: 'free' as SubscriptionStatus,
-      planType: null,
+      planType: 'free',
+      expiresAt: null,
       trialDaysRemaining: null,
-      credits: 0,
-    };
+      };
   }
 
   const now = new Date();
@@ -62,29 +63,33 @@ export const mapCustomerInfo = (info: CustomerInfo): EntitlementInfo => {
     status = 'cancelled';
   }
 
-  let planType: PlanType | null = null;
+  let planType: PlanType = 'monthly';
   const productId = proEntitlement.productIdentifier;
   if (productId.includes('annual') || productId.includes('yearly')) {
-    planType = productId.includes('intro') ? 'intro_annual' : 'annual';
+    planType = productId.includes('intro') ? 'annual_intro' : 'annual';
   } else if (productId.includes('monthly')) {
     planType = 'monthly';
   }
 
+  const expiresAt = proEntitlement.expirationDate ?? null;
+
   return {
     isPro: true,
+    isTrialing: status === 'trial',
     status,
     planType,
+    expiresAt,
     trialDaysRemaining,
-    credits: 0, // Credits managed separately in Supabase
   };
 };
 
 const freeEntitlement: EntitlementInfo = {
   isPro: false,
+  isTrialing: false,
   status: 'free' as SubscriptionStatus,
-  planType: null,
+  planType: 'free',
+  expiresAt: null,
   trialDaysRemaining: null,
-  credits: 0,
 };
 
 /**
@@ -161,4 +166,18 @@ export const addCustomerInfoListener = (
   };
   Purchases.addCustomerInfoUpdateListener(listener);
   return () => Purchases.removeCustomerInfoUpdateListener(listener);
+};
+
+/**
+ * Check if the user has never purchased any product.
+ * Used for intro offer eligibility (AC-3: 24h intro offer).
+ */
+export const hasNeverPurchased = async (): Promise<boolean> => {
+  if (!isRevenueCatConfigured) return true;
+  try {
+    const customerInfo = await Purchases.getCustomerInfo();
+    return Object.keys(customerInfo.allPurchaseDates).length === 0;
+  } catch {
+    return true;
+  }
 };

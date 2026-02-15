@@ -1,8 +1,15 @@
 import { supabase } from './client';
 import * as AppleAuthentication from 'expo-apple-authentication';
 import * as Crypto from 'expo-crypto';
+import { GoogleSignin, statusCodes as GoogleStatusCodes } from '@react-native-google-signin/google-signin';
 import { identifyUser, logOutRevenueCat } from '../revenuecat/client';
+import { env } from '@/src/config/env';
 import type { UserProfile } from '@/src/shared/types/user';
+
+// Configure Google Sign-In once at module load
+GoogleSignin.configure({
+  webClientId: env.googleWebClientId,
+});
 
 /**
  * Sign in with Apple
@@ -49,33 +56,31 @@ export const signInWithApple = async (): Promise<UserProfile> => {
 
 /**
  * Sign in with Google
- * Uses Supabase OAuth flow
+ * Uses Native SDK → idToken → signInWithIdToken (same pattern as Apple)
  */
 export const signInWithGoogle = async (): Promise<UserProfile> => {
-  const { data, error } = await supabase.auth.signInWithOAuth({
+  // Check Google Play Services (Android)
+  await GoogleSignin.hasPlayServices({ showPlayServicesUpdateDialog: true });
+
+  const signInResult = await GoogleSignin.signIn();
+
+  if (!signInResult.data?.idToken) {
+    throw new Error('Google Sign-In failed: no ID token');
+  }
+
+  const { data, error } = await supabase.auth.signInWithIdToken({
     provider: 'google',
-    options: {
-      redirectTo: 'altme://auth/callback',
-      queryParams: {
-        access_type: 'offline',
-        prompt: 'consent',
-      },
-    },
+    token: signInResult.data.idToken,
   });
 
   if (error) throw error;
+  if (!data.user) throw new Error('No user returned from Supabase');
 
-  // Note: OAuth redirects, so actual profile fetch happens in auth state listener
-  // This is a placeholder - the actual flow uses onAuthStateChange
-  const { data: sessionData } = await supabase.auth.getSession();
-  if (!sessionData.session?.user) {
-    throw new Error('No session after Google Sign-In');
-  }
+  // Identify with RevenueCat
+  await identifyUser(data.user.id);
 
-  await identifyUser(sessionData.session.user.id);
-
-  return fetchOrCreateProfile(sessionData.session.user.id, {
-    displayName: sessionData.session.user.user_metadata?.full_name ?? undefined,
+  return fetchOrCreateProfile(data.user.id, {
+    displayName: data.user.user_metadata?.full_name ?? undefined,
   });
 };
 
@@ -115,13 +120,16 @@ export const getCurrentProfile = async (userId: string): Promise<UserProfile | n
  */
 export const updateProfile = async (
   userId: string,
-  updates: Partial<Pick<UserProfile, 'displayName' | 'ageRange' | 'twinName' | 'onboardingCompleted'>>,
+  updates: Partial<Pick<UserProfile, 'displayName' | 'ageRange' | 'twinName' | 'onboardingCompleted' | 'avatarIcon' | 'speechTone' | 'mbtiType'>>,
 ): Promise<UserProfile> => {
   const dbUpdates: Record<string, unknown> = {};
   if (updates.displayName !== undefined) dbUpdates.display_name = updates.displayName;
   if (updates.ageRange !== undefined) dbUpdates.age_range = updates.ageRange;
   if (updates.twinName !== undefined) dbUpdates.twin_name = updates.twinName;
   if (updates.onboardingCompleted !== undefined) dbUpdates.onboarding_completed = updates.onboardingCompleted;
+  if (updates.avatarIcon !== undefined) dbUpdates.avatar_icon = updates.avatarIcon;
+  if (updates.speechTone !== undefined) dbUpdates.speech_tone = updates.speechTone;
+  if (updates.mbtiType !== undefined) dbUpdates.mbti_type = updates.mbtiType;
 
   const { data, error } = await supabase
     .from('profiles')
@@ -132,6 +140,21 @@ export const updateProfile = async (
 
   if (error) throw error;
   return mapDbProfile(data);
+};
+
+/**
+ * Delete user account via Edge Function (AC-7).
+ * Order: 1. OpenClaw destroy 2. RevenueCat cancel 3. auth.admin.deleteUser(CASCADE)
+ */
+export const deleteAccount = async (): Promise<void> => {
+  const { data: { session } } = await supabase.auth.getSession();
+  if (!session) throw new Error('No active session');
+
+  const { error } = await supabase.functions.invoke('delete-account', {
+    headers: { Authorization: `Bearer ${session.access_token}` },
+  });
+
+  if (error) throw error;
 };
 
 // -- Internal helpers --
@@ -167,12 +190,17 @@ const fetchOrCreateProfile = async (
 
 const mapDbProfile = (data: Record<string, unknown>): UserProfile => ({
   id: data.id as string,
-  displayName: data.display_name as string,
+  displayName: (data.display_name as string) ?? null,
+  avatarUrl: (data.avatar_url as string) ?? null,
+  email: (data.email as string) ?? null,
   ageRange: (data.age_range as UserProfile['ageRange']) ?? null,
   locale: (data.locale as string) ?? 'ja',
   timezone: (data.timezone as string) ?? 'Asia/Tokyo',
   onboardingCompleted: (data.onboarding_completed as boolean) ?? false,
   twinName: (data.twin_name as string) ?? null,
+  avatarIcon: (data.avatar_icon as UserProfile['avatarIcon']) ?? 'default',
+  speechTone: (data.speech_tone as UserProfile['speechTone']) ?? 'friendly',
+  mbtiType: (data.mbti_type as string) ?? null,
   createdAt: data.created_at as string,
   updatedAt: data.updated_at as string,
 });

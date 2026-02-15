@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert, Linking, ActivityIndicator } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert, Linking, ActivityIndicator, Pressable, Platform } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import FontAwesome from '@expo/vector-icons/FontAwesome';
 import { useRouter } from 'expo-router';
@@ -31,15 +31,120 @@ const STATUS_CONFIG: Record<OpenClawStatus, { label: string; color: string; icon
   destroying: { label: '削除中...', color: colors.warning, icon: 'clock-o' },
 };
 
+const GUEST_FEATURES = [
+  { icon: 'comments' as const, label: 'AIチャット' },
+  { icon: 'user' as const, label: '性格診断' },
+  { icon: 'book' as const, label: '日記+AI振り返り' },
+  { icon: 'line-chart' as const, label: '感情トラッキング' },
+];
+
+function GuestSettingsScreen() {
+  const signInWithApple = useAuthStore((s) => s.signInWithApple);
+  const signInWithGoogle = useAuthStore((s) => s.signInWithGoogle);
+  const appVersion = Constants.expoConfig?.version ?? '1.0.0';
+  const [isSigningIn, setIsSigningIn] = useState<'apple' | 'google' | null>(null);
+
+  const handleAppleSignIn = async () => {
+    try {
+      setIsSigningIn('apple');
+      await signInWithApple();
+    } catch {
+      Alert.alert('エラー', 'Apple でのログインに失敗しました。もう一度お試しください。');
+    } finally {
+      setIsSigningIn(null);
+    }
+  };
+
+  const handleGoogleSignIn = async () => {
+    try {
+      setIsSigningIn('google');
+      await signInWithGoogle();
+    } catch {
+      Alert.alert('エラー', 'Google でのログインに失敗しました。もう一度お試しください。');
+    } finally {
+      setIsSigningIn(null);
+    }
+  };
+
+  return (
+    <SafeAreaView style={styles.container} edges={['top']}>
+      <ScrollView contentContainerStyle={styles.content}>
+        <Text style={styles.title}>設定</Text>
+
+        <View style={styles.guestLoginCard}>
+          <Text style={styles.guestLoginTitle}>ログインして始めよう</Text>
+          <Text style={styles.guestLoginSubtitle}>AIツインがあなたを待っています</Text>
+
+          <View style={styles.guestButtons}>
+            {Platform.OS === 'ios' && (
+              <Pressable
+                style={styles.guestAppleButton}
+                onPress={handleAppleSignIn}
+                disabled={isSigningIn !== null}>
+                {isSigningIn === 'apple' ? (
+                  <ActivityIndicator color="#FFFFFF" />
+                ) : (
+                  <Text style={styles.guestAppleButtonText}>
+                    <FontAwesome name="apple" size={16} color="#FFFFFF" />
+                    {'  Appleでサインイン'}
+                  </Text>
+                )}
+              </Pressable>
+            )}
+
+            <Pressable
+              style={styles.guestGoogleButton}
+              onPress={handleGoogleSignIn}
+              disabled={isSigningIn !== null}>
+              {isSigningIn === 'google' ? (
+                <ActivityIndicator color={colors.text} />
+              ) : (
+                <Text style={styles.guestGoogleButtonText}>
+                  <FontAwesome name="google" size={16} color={colors.text} />
+                  {'  Googleでサインイン'}
+                </Text>
+              )}
+            </Pressable>
+          </View>
+        </View>
+
+        <View style={styles.guestFeatureSection}>
+          <Text style={styles.sectionTitle}>ログインで利用可能</Text>
+          {GUEST_FEATURES.map((feature) => (
+            <View key={feature.label} style={styles.guestFeatureRow}>
+              <FontAwesome name={feature.icon} size={18} color={colors.textTertiary} />
+              <Text style={styles.guestFeatureLabel}>{feature.label}</Text>
+            </View>
+          ))}
+        </View>
+
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>サポート</Text>
+          <SettingRow icon="question-circle" label="ヘルプ・FAQ" onPress={() => Linking.openURL('https://altme.app/help')} />
+          <SettingRow icon="file-text" label="利用規約" onPress={() => Linking.openURL('https://altme.app/terms')} />
+          <SettingRow icon="lock" label="プライバシーポリシー" onPress={() => Linking.openURL('https://altme.app/privacy')} />
+        </View>
+
+        <Text style={styles.version}>{APP_NAME} v{appVersion}</Text>
+      </ScrollView>
+    </SafeAreaView>
+  );
+}
+
 export default function SettingsScreen() {
   const router = useRouter();
   const isPro = useIsPro();
   const user = useUser((s) => s.user);
   const updateUser = useUser((s) => s.updateUser);
+  const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
   const signOut = useAuthStore((s) => s.signOut);
-  const credits = useSubscription((s) => s.entitlement.credits);
+  const entitlement = useSubscription((s) => s.entitlement);
 
   const appVersion = Constants.expoConfig?.version ?? '1.0.0';
+
+  if (!isAuthenticated) {
+    return <GuestSettingsScreen />;
+  }
 
   // OpenClaw instance state
   const [instance, setInstance] = useState<OpenClawInstance | null>(null);
@@ -245,8 +350,8 @@ export default function SettingsScreen() {
           </View>
           {isPro ? (
             <View style={styles.creditsRow}>
-              <Text style={styles.creditsLabel}>残りクレジット：</Text>
-              <Text style={styles.creditsValue}>{credits}</Text>
+              <Text style={styles.creditsLabel}>プラン：</Text>
+              <Text style={styles.creditsValue}>{entitlement.planType === 'annual' ? '年額' : '月額'}</Text>
             </View>
           ) : (
             <TouchableOpacity
@@ -465,4 +570,72 @@ const styles = StyleSheet.create({
   signOutButton: { paddingVertical: spacing.md, alignItems: 'center', marginTop: spacing.md },
   signOutText: { fontSize: fontSize.md, color: colors.error, fontWeight: '600' },
   version: { fontSize: fontSize.xs, color: colors.textTertiary, textAlign: 'center', marginTop: spacing.md },
+
+  // Guest settings styles
+  guestLoginCard: {
+    backgroundColor: colors.surfaceSecondary,
+    borderRadius: borderRadius.lg,
+    padding: spacing.lg,
+    marginBottom: spacing.lg,
+    alignItems: 'center',
+  },
+  guestLoginTitle: {
+    fontSize: fontSize.xl,
+    fontWeight: '700',
+    color: colors.text,
+    marginBottom: spacing.xs,
+  },
+  guestLoginSubtitle: {
+    fontSize: fontSize.md,
+    color: colors.textSecondary,
+    marginBottom: spacing.lg,
+  },
+  guestButtons: {
+    width: '100%',
+    gap: spacing.md,
+  },
+  guestAppleButton: {
+    backgroundColor: colors.text,
+    borderRadius: borderRadius.md,
+    paddingVertical: spacing.md,
+    alignItems: 'center',
+    height: 52,
+    justifyContent: 'center',
+  },
+  guestAppleButtonText: {
+    color: '#FFFFFF',
+    fontSize: fontSize.md,
+    fontWeight: '600',
+  },
+  guestGoogleButton: {
+    backgroundColor: colors.background,
+    borderRadius: borderRadius.md,
+    paddingVertical: spacing.md,
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: colors.border,
+    height: 52,
+    justifyContent: 'center',
+  },
+  guestGoogleButtonText: {
+    color: colors.text,
+    fontSize: fontSize.md,
+    fontWeight: '600',
+  },
+  guestFeatureSection: {
+    marginBottom: spacing.lg,
+  },
+  guestFeatureRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: spacing.md,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.borderLight,
+    gap: spacing.md,
+  },
+  guestFeatureLabel: {
+    flex: 1,
+    fontSize: fontSize.md,
+    color: colors.textTertiary,
+  },
 });

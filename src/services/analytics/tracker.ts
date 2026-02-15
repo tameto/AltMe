@@ -1,8 +1,8 @@
 /**
  * 課金イベントトラッキング基盤
  *
- * 現時点では console.log ベースの実装。
- * 実際の Analytics SDK（Mixpanel, Amplitude 等）は後で差し替える。
+ * 現時点では開発環境のみ console.log ベースの実装。
+ * 将来的に実際の Analytics SDK に差し替え予定。
  */
 
 // ---- イベント定義 ----
@@ -36,13 +36,13 @@ export type EventName = (typeof EVENT_NAMES)[keyof typeof EVENT_NAMES];
 /**
  * イベントを送信する
  *
- * 現在は console.log のみ。将来的に Analytics SDK に差し替え予定。
+ * 現在は開発環境のみ console.log。将来的に Analytics SDK に差し替え予定。
  */
 export const trackEvent = (event: AnalyticsEvent): void => {
-  // 開発環境では詳細ログを出力
-  console.log(`[Analytics] ${event.name}`, event.properties ?? {});
+  if (__DEV__) {
+    console.log(`[Analytics] ${event.name}`, event.properties ?? {});
+  }
   // TODO: 実際の Analytics SDK に置き換え
-  // 例: mixpanel.track(event.name, event.properties);
 };
 
 // ---- 型安全なイベントヘルパー ----

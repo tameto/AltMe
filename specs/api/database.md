@@ -353,7 +353,7 @@ CREATE POLICY "Users can view own subscription"
 
 ### 7. credits
 
-チャットクレジット残高。Freeユーザーの1日3回制限管理。
+チャットクレジット残高。**廃止予定**: token_usageテーブルに移行（Freeは初回10Kトークン、リセットなし）。
 
 ```sql
 CREATE TABLE credits (

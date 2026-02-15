@@ -50,7 +50,7 @@ function RootLayoutNav() {
   const router = useRouter();
   const segments = useSegments();
 
-  const { isAuthenticated, isLoading: authLoading, initialize } = useAuthStore();
+  const { isAuthenticated, isGuest, isLoading: authLoading, initialize } = useAuthStore();
   const user = useUser((s) => s.user);
 
   // Initialize auth on mount
@@ -82,13 +82,19 @@ function RootLayoutNav() {
 
     const inAuthGroup = segments[0] === '(auth)';
     const inOnboardingGroup = segments[0] === '(onboarding)';
+    const inTabGroup = segments[0] === '(tabs)';
 
-    if (!isAuthenticated) {
-      // Not authenticated -> go to login
+    if (!isAuthenticated && !isGuest) {
+      // Not authenticated and not guest -> go to login
       if (!inAuthGroup) {
         router.replace('/(auth)/login');
       }
-    } else if (!user?.onboardingCompleted) {
+    } else if (!isAuthenticated && isGuest) {
+      // Guest mode -> show tabs (community visible, others show overlay)
+      if (!inTabGroup) {
+        router.replace('/(tabs)');
+      }
+    } else if (isAuthenticated && !user?.onboardingCompleted) {
       // Authenticated but onboarding not done -> go to onboarding
       if (!inOnboardingGroup) {
         router.replace('/(onboarding)/welcome');
@@ -99,7 +105,7 @@ function RootLayoutNav() {
         router.replace('/(tabs)');
       }
     }
-  }, [isAuthenticated, authLoading, user?.onboardingCompleted, segments]);
+  }, [isAuthenticated, isGuest, authLoading, user?.onboardingCompleted, segments]);
 
   return (
     <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
@@ -113,6 +119,26 @@ function RootLayoutNav() {
         />
         <Stack.Screen
           name="subscription-manage"
+          options={{ headerShown: false, presentation: 'modal' }}
+        />
+        <Stack.Screen
+          name="twin-conversation-detail"
+          options={{ headerShown: false, presentation: 'modal' }}
+        />
+        <Stack.Screen
+          name="account-delete-confirm"
+          options={{ headerShown: false, presentation: 'modal' }}
+        />
+        <Stack.Screen
+          name="token-purchase"
+          options={{ headerShown: false, presentation: 'modal' }}
+        />
+        <Stack.Screen
+          name="mbti-select"
+          options={{ headerShown: false, presentation: 'modal' }}
+        />
+        <Stack.Screen
+          name="notification-settings"
           options={{ headerShown: false, presentation: 'modal' }}
         />
       </Stack>

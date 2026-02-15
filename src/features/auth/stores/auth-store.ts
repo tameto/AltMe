@@ -6,14 +6,18 @@ import {
   signOut as authSignOut,
   getCurrentProfile,
   updateProfile as authUpdateProfile,
+  deleteAccount as authDeleteAccount,
 } from '@/src/services/supabase/auth';
+import { statusCodes as GoogleStatusCodes } from '@react-native-google-signin/google-signin';
 import { initializeRevenueCat, checkSubscriptionStatus, addCustomerInfoListener } from '@/src/services/revenuecat/client';
+import { disconnectOpenClaw } from '@/src/services/openclaw/connection-manager';
 import { useUser } from '@/src/shared/hooks/use-user';
 import { useSubscription } from '@/src/shared/hooks/use-subscription';
-import type { UserProfile } from '@/src/shared/types/user';
+import type { UserProfile, AgeRange } from '@/src/shared/types/user';
 
 type AuthStore = {
   isAuthenticated: boolean;
+  isGuest: boolean;
   isLoading: boolean;
   error: string | null;
 
@@ -21,6 +25,8 @@ type AuthStore = {
   signInWithApple: () => Promise<void>;
   signInWithGoogle: () => Promise<void>;
   signOut: () => Promise<void>;
+  deleteAccount: () => Promise<void>;
+  enterGuestMode: () => void;
   updateProfile: (updates: Partial<UserProfile>) => Promise<void>;
   clearError: () => void;
   devLogin: (skipOnboarding?: boolean) => Promise<void>;
@@ -28,6 +34,7 @@ type AuthStore = {
 
 export const useAuthStore = create<AuthStore>((set) => ({
   isAuthenticated: false,
+  isGuest: false,
   isLoading: true,
   error: null,
 
@@ -95,10 +102,18 @@ export const useAuthStore = create<AuthStore>((set) => ({
         useSubscription.getState().setEntitlement(info);
       });
 
-      set({ isAuthenticated: true });
+      set({ isAuthenticated: true, isGuest: false });
     } catch (error: unknown) {
+      // Silent handling for Apple user cancellation (AC-1 edge case)
+      if (
+        error != null &&
+        typeof error === 'object' &&
+        'code' in error &&
+        (error as { code: string }).code === 'ERR_REQUEST_CANCELED'
+      ) {
+        return;
+      }
       const message = error instanceof Error ? error.message : 'ログインに失敗しました';
-      // Don't show error for user cancellation
       if (message.includes('cancelled') || message.includes('ERR_CANCELED')) return;
       set({ error: message });
       throw error;
@@ -119,8 +134,17 @@ export const useAuthStore = create<AuthStore>((set) => ({
         useSubscription.getState().setEntitlement(info);
       });
 
-      set({ isAuthenticated: true });
+      set({ isAuthenticated: true, isGuest: false });
     } catch (error: unknown) {
+      // Silent handling for user cancellation (Native SDK status codes)
+      if (
+        error != null &&
+        typeof error === 'object' &&
+        'code' in error &&
+        (error as { code: string }).code === GoogleStatusCodes.SIGN_IN_CANCELLED
+      ) {
+        return;
+      }
       const message = error instanceof Error ? error.message : 'ログインに失敗しました';
       if (message.includes('cancelled') || message.includes('ERR_CANCELED')) return;
       set({ error: message });
@@ -130,13 +154,41 @@ export const useAuthStore = create<AuthStore>((set) => ({
 
   signOut: async () => {
     try {
+      // 1. Disconnect OpenClaw WebSocket (AC-3)
+      disconnectOpenClaw();
+
+      // 2. Sign out from Supabase + RevenueCat
       await authSignOut();
-      useUser.getState().reset();
-      useSubscription.getState().reset();
-      set({ isAuthenticated: false });
     } catch (error) {
       console.error('Sign out error:', error);
+    } finally {
+      // 3. Always reset local state (even on network error per AC-3 edge case)
+      useUser.getState().reset();
+      useSubscription.getState().reset();
+      set({ isAuthenticated: false, error: null });
     }
+  },
+
+  deleteAccount: async () => {
+    try {
+      // 1. Disconnect OpenClaw WebSocket
+      disconnectOpenClaw();
+
+      // 2. Call delete-account Edge Function (handles OpenClaw destroy + RevenueCat + auth deletion)
+      await authDeleteAccount();
+    } catch (error) {
+      console.error('Account deletion error:', error);
+      throw error;
+    } finally {
+      // 3. Always reset local state
+      useUser.getState().reset();
+      useSubscription.getState().reset();
+      set({ isAuthenticated: false, isGuest: false, error: null });
+    }
+  },
+
+  enterGuestMode: () => {
+    set({ isAuthenticated: false, isGuest: true, isLoading: false });
   },
 
   updateProfile: async (updates) => {
@@ -189,25 +241,32 @@ export const useAuthStore = create<AuthStore>((set) => ({
       .eq('id', session.user.id)
       .single();
 
+    const profileData = profile as Record<string, unknown> | null;
     const devUser: UserProfile = {
       id: session.user.id,
-      displayName: profile?.display_name ?? 'テストユーザー',
-      ageRange: profile?.age_range ?? '25-34',
-      locale: profile?.locale ?? 'ja',
-      timezone: profile?.timezone ?? 'Asia/Tokyo',
-      onboardingCompleted: skipOnboarding || (profile?.onboarding_completed ?? false),
-      twinName: profile?.twin_name ?? (skipOnboarding ? 'AltMe' : null),
-      createdAt: profile?.created_at ?? new Date().toISOString(),
-      updatedAt: profile?.updated_at ?? new Date().toISOString(),
+      displayName: (profileData?.display_name as string) ?? 'テストユーザー',
+      avatarUrl: (profileData?.avatar_url as string) ?? null,
+      email: (profileData?.email as string) ?? (session.user as Record<string, unknown>).email as string ?? null,
+      ageRange: (profileData?.age_range as AgeRange) ?? '25-34',
+      locale: (profileData?.locale as string) ?? 'ja',
+      timezone: (profileData?.timezone as string) ?? 'Asia/Tokyo',
+      onboardingCompleted: skipOnboarding || ((profileData?.onboarding_completed as boolean) ?? false),
+      twinName: (profileData?.twin_name as string) ?? (skipOnboarding ? 'AltMe' : null),
+      avatarIcon: (profileData?.avatar_icon as UserProfile['avatarIcon']) ?? 'default',
+      speechTone: (profileData?.speech_tone as UserProfile['speechTone']) ?? 'friendly',
+      mbtiType: (profileData?.mbti_type as string) ?? null,
+      createdAt: (profileData?.created_at as string) ?? new Date().toISOString(),
+      updatedAt: (profileData?.updated_at as string) ?? new Date().toISOString(),
     };
 
     useUser.getState().setUser(devUser);
     useSubscription.getState().setEntitlement({
       isPro: false,
+      isTrialing: false,
       status: 'free',
-      planType: null,
+      planType: 'free',
+      expiresAt: null,
       trialDaysRemaining: null,
-      credits: 0,
     });
     useSubscription.getState().setLoading(false);
     set({ isAuthenticated: true, isLoading: false });

@@ -49,7 +49,7 @@ shared/types/ の型定義がAgent間の契約。shared/ の変更はAgent Aが�
 - Apple / Google Sign-In 認証
 - Big Five 性格診断オンボーディング
 - SOUL.md 生成 + OpenClaw プロビジョニング
-- AIチャット（Free: SSE 1日3回 / Pro: WebSocket 無制限）+ 日記統合
+- AIチャット（Free: SSE 初回10Kトークン / Pro: WebSocket 月500Kトークン）+ 日記統合
 - **コミュニティ（AIツイン同士の会話を観察）— Pro限定**
 - **ツイン情報（性格データ + 気分トラッキング + OpenClawインスタンス管理）**
 - 気分トラッキング（5段階: great/good/neutral/bad/terrible）

@@ -58,9 +58,9 @@ export default function PersonalityQuizScreen() {
         setResult({
           id: '',
           userId: '',
-          answers: allAnswers,
+          rawAnswers: allAnswers,
           summary: 'あなたの性格分析が完了しました。',
-          detailedAnalysis: null,
+          communicationStyle: null,
           personalityTraits: {
             openness: 50,
             conscientiousness: 50,
@@ -74,10 +74,16 @@ export default function PersonalityQuizScreen() {
         setResult({
           id: data.id ?? '',
           userId: data.userId ?? '',
-          answers: allAnswers,
+          rawAnswers: allAnswers,
           summary: data.summary,
-          detailedAnalysis: data.detailedAnalysis ?? null,
-          personalityTraits: data.personalityTraits ?? null,
+          communicationStyle: data.communicationStyle ?? null,
+          personalityTraits: data.personalityTraits ?? {
+            openness: 50,
+            conscientiousness: 50,
+            extraversion: 50,
+            agreeableness: 50,
+            neuroticism: 50,
+          },
           createdAt: data.createdAt ?? new Date().toISOString(),
         });
       }
@@ -87,9 +93,9 @@ export default function PersonalityQuizScreen() {
       setResult({
         id: '',
         userId: '',
-        answers: allAnswers,
+        rawAnswers: allAnswers,
         summary: 'あなたの性格分析が完了しました。',
-        detailedAnalysis: null,
+        communicationStyle: null,
         personalityTraits: {
           openness: 50,
           conscientiousness: 50,

@@ -12,4 +12,5 @@ export const env = {
   supabaseAnonKey: getEnvVar('EXPO_PUBLIC_SUPABASE_ANON_KEY'),
   revenuecatIosKey: getEnvVar('EXPO_PUBLIC_REVENUECAT_IOS_KEY'),
   revenuecatAndroidKey: getEnvVar('EXPO_PUBLIC_REVENUECAT_ANDROID_KEY'),
+  googleWebClientId: getEnvVar('EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID'),
 } as const;

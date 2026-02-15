@@ -16,7 +16,7 @@
 
 | プラン | ID | 価格 | 内容 |
 |--------|----|------|------|
-| Free | - | ¥0 | 1日3回チャット（Supabase Edge Function経由）、基本機能のみ、コミュニティはプレビューのみ（ぼかし表示） |
+| Free | - | ¥0 | 初回10,000トークン（リセットなし、Supabase Edge Function経由）、基本機能のみ、コミュニティはプレビューのみ（ぼかし表示） |
 | Pro Monthly | `pro_monthly` | ¥4,980/月 | 無制限チャット（専用OpenClawインスタンス）、日記、洞察、コミュニティ（AIツイン交流の閲覧）、全機能解放 |
 | Pro Annual | `pro_annual` | ¥39,800/年 | Pro Monthly同等、月額換算 ¥3,317（33%OFF） |
 | Pro Annual（初回限定） | `pro_annual_intro` | ¥29,800/年 | 初回限定、登録から24時間以内のみ表示、月額換算 ¥2,483（50%OFF） |
@@ -254,7 +254,7 @@ RevenueCat Offering: `token_packs`
 - DigitalOcean上のDropletが削除される
 - `openclaw_instances.status` が `stopped` に更新される
 - `subscriptions.status` が `expired` に更新される
-- ユーザーはFreeプランにダウングレードされ、チャットが1日3回制限に戻る
+- ユーザーはFreeプランにダウングレードされ、残りトークンに基づくチャット制限に戻る
 
 **エッジケース:**
 - Droplet削除がDigitalOcean API障害で失敗した場合、リトライされること
@@ -325,9 +325,9 @@ RevenueCat Offering: `token_packs`
 
 全てのOpenAI APIコール（Edge Function経由・OpenClaw Gateway経由）のトークン消費量を記録・追跡する。
 
-| プラン | 月間トークン上限 | リセット |
-|--------|----------------|---------|
-| Free | 10,000トークン | 毎月1日 00:00 UTC |
+| プラン | トークン上限 | リセット |
+|--------|------------|---------|
+| Free | 10,000トークン | なし（一回限り） |
 | Pro | 500,000トークン | 毎月1日 00:00 UTC |
 
 ### token_usage テーブル
@@ -343,9 +343,10 @@ RevenueCat Offering: `token_packs`
 | `source` | text | `'edge_function'` / `'openclaw_gateway'` |
 | `created_at` | timestamptz | 使用日時 |
 
-### 月間集計ビュー
+### 集計ビュー
 
 ```sql
+-- Pro用: 月間集計（月次リセット対象）
 CREATE VIEW monthly_token_usage AS
 SELECT
   user_id,
@@ -353,6 +354,14 @@ SELECT
   SUM(total_tokens) AS total_tokens_used
 FROM token_usage
 GROUP BY user_id, date_trunc('month', created_at);
+
+-- Free用: 累計集計（リセットなし）
+CREATE VIEW lifetime_token_usage AS
+SELECT
+  user_id,
+  SUM(total_tokens) AS total_tokens_used
+FROM token_usage
+GROUP BY user_id;
 ```
 
 ### トークン残量表示
@@ -551,6 +560,18 @@ Web App → Edge Function (create-checkout-session) → Stripe Checkout
 
 ### cancelled ステータスについて
 `cancelled`: ユーザーが解約済みだが、current_period_end まではPro機能が利用可能。期間満了後に `expired` に遷移。
+
+---
+
+## Clarifications
+
+### Session 2026-02-15
+
+- Q: Token使用量管理のリセット周期と上限到達時の動作 -> A: 月次リセット + 上限到達でチャット不可 + アップグレード誘導（既存仕様と整合確認）
+- Q: Freeユーザーのトークンリセットポリシー -> A: Freeは10Kトークン一回限り（リセットなし）。Proのみ月次500Kリセット。「1日3回」制限は全仕様から削除。
+- Q: chat.md 19ACのMVPスコープ -> A: 全19ACをMVPフルスコープに含める（Slackライク、メディア、OGP、翻訳、マークダウン、トピック、日記統合すべて初回リリース）
+- Q: SOUL.mdテンプレート構造 -> A: 標準4セクション（identity/personality/communication_style/behavioral_guidelines）。テンプレートをonboarding.mdに追記済み。
+- Q: OpenClaw Dropletスペックとプロビジョニング戦略 -> A: 最小構成（SGP1 / s-1vcpu-1gb / $6月 / 1ユーザー1Droplet）。コスト最小化優先、スケール時にサイズアップ。
 
 ---
 
