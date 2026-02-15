@@ -61,9 +61,9 @@ Proユーザーの課金確認後に呼び出す。OpenClawインスタンス用
 #cloud-config
 runcmd:
   - apt-get update -y
-  - apt-get install -y docker.io docker-compose
-  - systemctl enable docker
-  - systemctl start docker
+  - apt-get install -y docker.io docker-compose nginx certbot python3-certbot-nginx
+  - systemctl enable docker nginx
+  - systemctl start docker nginx
   - mkdir -p /opt/openclaw
   - |
     cat > /opt/openclaw/docker-compose.yml << 'COMPOSE'
@@ -85,6 +85,33 @@ runcmd:
   - export GATEWAY_TOKEN="${GATEWAY_TOKEN}"
   - export OPENAI_API_KEY="${OPENAI_API_KEY}"
   - cd /opt/openclaw && docker-compose up -d
+  # nginx reverse proxy for wss://
+  - |
+    cat > /etc/nginx/sites-available/openclaw << 'NGINX'
+    server {
+      listen 443 ssl;
+      server_name _;
+
+      # Self-signed cert initially, replaced by Let's Encrypt later
+      ssl_certificate /etc/nginx/ssl/selfsigned.crt;
+      ssl_certificate_key /etc/nginx/ssl/selfsigned.key;
+
+      location / {
+        proxy_pass http://127.0.0.1:18789;
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection "upgrade";
+        proxy_set_header Host $host;
+      }
+    }
+    NGINX
+  - mkdir -p /etc/nginx/ssl
+  - openssl req -x509 -nodes -days 365 -newkey rsa:2048 -keyout /etc/nginx/ssl/selfsigned.key -out /etc/nginx/ssl/selfsigned.crt -subj '/CN=localhost'
+  - ln -sf /etc/nginx/sites-available/openclaw /etc/nginx/sites-enabled/
+  - rm -f /etc/nginx/sites-enabled/default
+  - nginx -t && systemctl reload nginx
+  # cloud-init スクリプト内の機密情報を削除
+  - rm -f /var/lib/cloud/instance/user-data.txt
 ```
 
 **レスポンス（201 Created）:**
@@ -212,8 +239,8 @@ runcmd:
 
 | 項目 | 内容 |
 |------|------|
-| プロトコル | WebSocket |
-| エンドポイント | `ws://{ip_address}:18789` |
+| プロトコル | WebSocket（TLS暗号化） |
+| エンドポイント | `wss://{ip_address}:443`（nginx reverse proxy経由） |
 | 認証方式 | ハンドシェイク時に `gateway_token` を送信 |
 | メッセージフォーマット | JSON |
 
@@ -223,13 +250,13 @@ runcmd:
 [アプリ] → [Supabase Edge Function] → gateway_token取得
     |
     v
-[アプリ] → WebSocket接続 → ws://{ip}:18789
+[アプリ] → WebSocket接続 → wss://{ip}:443（TLS） → [nginx reverse proxy] → localhost:18789
     |
     v
-[connect イベント送信] → { "type": "connect", "token": "{gateway_token}" }
+[connect イベント送信] → { "type": "connect", "params": { "auth": { "token": "{gateway_token}" }, "deviceId": "{uuid}" } }
     |
     v
-[サーバー] → { "type": "connected", "session_id": "..." }
+[サーバー] → { "type": "connected", "sessionId": "..." }
 ```
 
 ### メッセージフォーマット
@@ -240,10 +267,12 @@ runcmd:
 ```json
 {
   "type": "connect",
-  "token": "{gateway_token}",
-  "metadata": {
-    "client_version": "1.0.0",
-    "platform": "ios"
+  "params": {
+    "auth": {
+      "token": "{gateway_token}"
+    },
+    "deviceId": "{device_uuid}",
+    "clientType": "mobile"
   }
 }
 ```
@@ -252,8 +281,8 @@ runcmd:
 ```json
 {
   "type": "connected",
-  "session_id": "sess_abc123",
-  "agent_name": "AltMe Twin"
+  "sessionId": "{session_id}",
+  "serverVersion": "1.0.0"
 }
 ```
 
@@ -275,10 +304,7 @@ runcmd:
 {
   "type": "message",
   "content": "明日の会議の準備を手伝って",
-  "message_id": "msg_uuid",
-  "context": {
-    "recent_messages": 10
-  }
+  "sessionId": "{current_session_id}"
 }
 ```
 
@@ -289,18 +315,18 @@ runcmd:
 **サーバー → クライアント:**
 ```json
 {
-  "type": "agent.text_delta",
-  "message_id": "msg_resp_uuid",
+  "type": "agent",
+  "event": "text_delta",
   "delta": "もちろん、",
-  "index": 0
+  "sessionId": "{session_id}"
 }
 ```
 ```json
 {
-  "type": "agent.text_delta",
-  "message_id": "msg_resp_uuid",
+  "type": "agent",
+  "event": "text_delta",
   "delta": "会議の準備をお手伝いします。",
-  "index": 1
+  "sessionId": "{session_id}"
 }
 ```
 
@@ -311,14 +337,10 @@ runcmd:
 **サーバー → クライアント:**
 ```json
 {
-  "type": "agent.text_done",
-  "message_id": "msg_resp_uuid",
+  "type": "agent",
+  "event": "text_done",
   "content": "もちろん、会議の準備をお手伝いします。まず、会議のアジェンダを確認しましょう。",
-  "usage": {
-    "prompt_tokens": 150,
-    "completion_tokens": 45,
-    "total_tokens": 195
-  }
+  "sessionId": "{session_id}"
 }
 ```
 
@@ -395,12 +417,14 @@ runcmd:
 | 9 | **health-check-openclaw** | NEW | ヘルスチェック実行 | Cron（5分間隔） |
 | 10 | **update-soul-md** | NEW | SOUL.md更新（ツイン名変更等） | クライアント呼出 |
 | 11 | **restart-openclaw** | NEW | OpenClawインスタンス再起動 | クライアント呼出 |
+| 12 | **onboarding-chat** | NEW | オンボーディング中の初回チャット | クライアント呼出 |
+| 13 | **generate-twin-conversation** | NEW | 2つのAIツイン間の会話生成 | クライアント呼出 |
 
 ---
 
 ### 3-1. chat（既存）
 
-Freeユーザー向けのチャット処理。OpenAI API経由でAI応答を生成する。
+Freeユーザー向けのチャット処理。OpenAI API経由でAI応答を生成し、SSEストリーミングで配信する。
 
 **エンドポイント:** `POST /functions/v1/chat`
 
@@ -415,12 +439,15 @@ Freeユーザー向けのチャット処理。OpenAI API経由でAI応答を生�
 }
 ```
 
-**レスポンス:**
-```json
-{
-  "reply": "こんにちは！今日はどんなお手伝いができますか？",
-  "credits_remaining": 2
-}
+**レスポンス（SSE ストリーミング）:**
+```
+Content-Type: text/event-stream
+
+data: {"type": "text_delta", "delta": "こん"}
+data: {"type": "text_delta", "delta": "にちは！"}
+data: {"type": "text_done", "content": "こんにちは！今日はどんなお手伝いができますか？"}
+data: {"type": "usage", "remaining": 2}
+data: [DONE]
 ```
 
 **処理フロー:**
@@ -429,8 +456,9 @@ Freeユーザー向けのチャット処理。OpenAI API経由でAI応答を生�
 3. クレジット残高チェック（日次リセット含む）
 4. クレジット消費（残高0なら拒否）
 5. OpenAI API呼出
-6. chat_messagesにuser/assistantの両方を保存
-7. レスポンス返却
+6. SSE形式でストリーミング配信
+7. chat_messagesにuser/assistantの両方を保存
+8. ストリーミング完了
 
 ---
 
@@ -990,3 +1018,171 @@ OpenClawインスタンスを再起動する（エラー復旧用）。
 | `REVENUECAT_WEBHOOK_AUTH_KEY` | RevenueCat Webhook認証キー | Edge Function環境変数（シークレット） |
 | `REVENUECAT_API_KEY` | RevenueCat API キー | アプリ環境変数 |
 | `EXPO_PUSH_TOKEN` | Expo Push通知トークン | Edge Function環境変数 |
+
+---
+
+### 3-12. onboarding-chat（NEW）
+
+オンボーディング中の初回チャット（meet-twin.tsx）で使用。OpenClawインスタンスがまだ存在しないため、Edge Function経由でOpenAI APIを呼び出す。
+
+**エンドポイント:** `POST /functions/v1/onboarding-chat`
+
+**認証:** Bearer Token（Supabase JWT）
+
+**リクエスト:**
+```json
+{
+  "message": "ユーザーのメッセージ",
+  "twin_name": "ツイン名",
+  "personality_data": {
+    "personality_type": "INTJ",
+    "traits": { ... }
+  }
+}
+```
+
+**レスポンス:**
+```json
+{
+  "reply": "AIツインの応答",
+  "turn_count": 1
+}
+```
+
+**処理フロー:**
+```
+1. 認証チェック（JWT検証）
+2. personality_resultsから最新の分析結果を取得
+3. ツイン名と性格データをシステムプロンプトに組み込み
+4. OpenAI API呼出（GPT-4o mini）
+   - システムプロンプト: "あなたは{twin_name}です。性格は{personality_data}に基づきます。"
+   - 温度: 0.8（自然な会話のため）
+5. レスポンス返却
+   - chat_messagesには保存しない（オンボーディング中のため）
+   - 会話履歴はクライアント側で管理（最大5ターン）
+```
+
+**エラーハンドリング:**
+| エラー | 対応 |
+|--------|------|
+| OpenAI API障害 | リトライ（最大2回）、失敗時はデフォルトメッセージ返却 |
+| personality_results未取得 | デフォルト性格データで続行 |
+| リクエストボディ不正 | HTTP 400、バリデーションエラー返却 |
+
+**制限:**
+- オンボーディング中のみ使用（subscription_status不問）
+- 最大メッセージ長: 500文字
+- レート制限: ユーザーあたり10req/分
+
+---
+
+### 3-13. generate-twin-conversation（NEW）
+
+コミュニティ機能用。2つのAIツインの会話を生成する。
+
+**エンドポイント:** `POST /functions/v1/generate-twin-conversation`
+
+**認証:** Bearer Token（Supabase JWT）+ Pro Entitlementチェック
+
+**リクエスト:**
+```json
+{
+  "partner_user_id": "uuid"
+}
+```
+
+**レスポンス:**
+```json
+{
+  "conversation_id": "uuid",
+  "messages": [
+    {
+      "role": "twin_a",
+      "content": "こんにちは！",
+      "timestamp": "2026-02-14T10:30:00Z"
+    },
+    {
+      "role": "twin_b",
+      "content": "はじめまして！",
+      "timestamp": "2026-02-14T10:30:05Z"
+    }
+  ],
+  "compatibility_score": 75
+}
+```
+
+**処理フロー:**
+```
+1. 認証チェック（JWT検証）
+2. Proチェック
+   - RevenueCat Entitlement "pro" が有効か確認
+   - Freeユーザーの場合はHTTP 403返却
+3. initiator_user_idのpersonality_resultsを取得
+4. partner_user_idのtwin_profiles_publicから性格データを取得
+   - twin_profiles_publicは公開プロフィールテーブル（RLSで閲覧制御）
+5. 両方のツインの性格に基づいたシステムプロンプトを構築
+   - Twin A: {initiator_twin_name}、性格: {initiator_personality}
+   - Twin B: {partner_twin_name}、性格: {partner_personality}
+6. OpenAI API（GPT-4o）で5往復程度の会話を生成
+   - プロンプト: "2人のAIツインが初めて会話するシーンを生成してください"
+   - 出力形式: JSON（role/content/timestampの配列）
+7. 相性スコアを計算（Big Fiveの類似度ベース）
+   - 各次元の差の絶対値を算出 → 平均 → 100点満点に変換
+   - 例: |O1-O2| + |C1-C2| + |E1-E2| + |A1-A2| + |N1-N2| / 5 → スコア化
+8. twin_conversationsテーブルに保存
+   - initiator_user_id, partner_user_id, messages, compatibility_score
+   - created_at（自動）
+9. レスポンス返却
+```
+
+**エラーハンドリング:**
+| エラー | 対応 |
+|--------|------|
+| Proチェック失敗 | HTTP 403、"Pro subscription required" |
+| partner_user_idが存在しない | HTTP 404、"Partner user not found" |
+| personality_results未取得 | デフォルト性格データで続行 |
+| OpenAI API障害 | リトライ（最大2回）、失敗時はHTTP 500 |
+| 同じペアの会話が既に存在 | 既存のconversation_idを返却（冪等性） |
+
+**制限:**
+- Proユーザーのみ
+- レート制限: ユーザーあたり5req/時間
+- 同じペアの会話は24時間に1回のみ生成可能（キャッシュ活用）
+- 最大会話ターン数: 10ターン
+
+**DBスキーマ（新規テーブル）:**
+```sql
+CREATE TABLE twin_conversations (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  initiator_user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+  partner_user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+  messages JSONB NOT NULL,
+  compatibility_score INTEGER CHECK (compatibility_score >= 0 AND compatibility_score <= 100),
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  UNIQUE(initiator_user_id, partner_user_id, DATE(created_at))
+);
+
+-- RLS
+ALTER TABLE twin_conversations ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "Users can view their own conversations"
+ON twin_conversations FOR SELECT
+USING (
+  auth.uid() = initiator_user_id
+  OR auth.uid() = partner_user_id
+);
+```
+
+---
+
+## 変更履歴
+
+| 日付 | 変更内容 | 理由 |
+|------|---------|------|
+| 2026-02-14 | 3-12: onboarding-chat Edge Function追加 | オンボーディング中の初回チャット機能（OpenClawインスタンス未作成時） |
+| 2026-02-14 | 3-13: generate-twin-conversation Edge Function追加 | コミュニティ機能（2つのAIツイン間の会話生成） |
+| 2026-02-14 | Edge Functions一覧テーブルに2件追加 | 仕様書の完全性担保 |
+| 2026-02-14 | Free chat Edge Function: SSEストリーミング明記 | chat.mdとの整合性（Clarify Phase Q2決定）|
+| 2026-02-14 | WebSocketプロトコル: chat.md形式に統一 | 仕様間矛盾解消 |
+| 2026-02-14 | cloud-init: wss://対応（nginx + 自己署名証明書）| セキュリティ: MVPでもTLS必須（Clarify Phase Q5決定）|
+| 2026-02-14 | cloud-init: 機密情報の自動削除 | セキュリティ強化 |

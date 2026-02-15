@@ -140,3 +140,47 @@ doc-updater（リリースノート作成）
 | doc-updater | `specs/`, `docs/`, `CLAUDE.md` |
 
 **共有ファイル**（`src/shared/`）を変更する場合は Leader を通じて調整すること。
+
+---
+
+## SDD (Spec-Driven Development) ワークフロー
+
+大規模な機能開発には SDD コマンドを使用する。詳細は `.claude/rules/sdd-workflow.md` 参照。
+
+### SDD コマンドフロー
+
+```
+/sdd-specify {機能説明}     # spec.md 生成（ブランチ + .sdd/specs/ ディレクトリも作成）
+    |
+/sdd-clarify                # 仕様の曖昧点を解消（最大5問、任意）
+    |
+/sdd-plan                   # plan.md 生成（技術設計 + リサーチ + データモデル）
+    |
+/sdd-tasks                  # tasks.md 生成（Agent Team 対応タスク）
+    |
+/sdd-analyze                # 整合性チェック（任意、読み取り専用）
+    |
+/sdd-implement              # Agent Team で並列実装
+```
+
+### SDD 適用基準（自動判断プロトコル）
+
+タスクを受け取ったら、以下のスコアリングで規模を判定:
+
+| 基準 | 質問 |
+|------|------|
+| 1 | 新しい Supabase テーブル / マイグレーションが必要か？ |
+| 2 | 3ファイル以上の新規作成が必要か？ |
+| 3 | 複数 Agent で並行作業する可能性があるか？ |
+| 4 | ビジネスルールの確認・仕様整理が必要か？ |
+| 5 | QA やステークホルダーのレビューが必要か？ |
+
+- **0個該当 → S**: 直接修正
+- **1個該当 → M**: ブランチ + PR
+- **2個以上 → L**: `/sdd-specify` で SDD フロー開始
+
+### SDD と既存 specs/ の関係
+
+- `specs/` = **Single Source of Truth**（永続的な仕様書）
+- `.sdd/specs/` = **作業用アーティファクト**（機能開発中の一時的な設計文書）
+- 実装完了後、`/sdd-implement` が `doc-updater` で `specs/` を同期更新

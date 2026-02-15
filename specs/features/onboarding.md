@@ -2,18 +2,21 @@
 
 ## 基本情報
 - 機能名: オンボーディング + SOUL.md生成
-- 関連画面: app/(onboarding)/welcome.tsx, app/(onboarding)/personality-quiz.tsx, app/(onboarding)/result.tsx, app/(onboarding)/meet-twin.tsx
+- 関連画面: app/(onboarding)/welcome.tsx, app/(onboarding)/personality-quiz.tsx, app/(onboarding)/result.tsx, app/(onboarding)/choose-avatar.tsx, app/(onboarding)/choose-tone.tsx, app/(onboarding)/meet-twin.tsx
 - 依存する機能: 認証
 - 依存される機能: OpenClawプロビジョニング（SOUL.md生成元）、チャット
 
 ## 目的
 初回ユーザーに性格診断を実施し、AIツインのペルソナ（SOUL.md）の元データを生成する。
 ユーザー自身の性格特性をBig Five診断で分析し、その結果をもとに「もう一人の自分」を構築する体験を提供する。
+また、AIツインの見た目（アイコン）と話し方（口調パターン）を選択させることで、ユーザーとAIツインの関係を深める。
 
 ## ユーザーストーリー
 - [ ] ユーザーとして、アプリの概要を理解したい。なぜならAIツインが何をしてくれるか知りたいから。
 - [ ] ユーザーとして、簡単な性格診断を受けたい。なぜなら自分に似たAIツインを作りたいから。
 - [ ] ユーザーとして、診断結果を視覚的に確認したい。なぜなら自分の性格特性を理解したいから。
+- [ ] ユーザーとして、AIツインの見た目を選びたい。なぜなら愛着を持って使いたいから。
+- [ ] ユーザーとして、AIツインの話し方を選びたい。なぜなら心地よい口調で会話したいから。
 - [ ] ユーザーとして、AIツインに名前をつけたい。なぜなら愛着を持って使いたいから。
 - [ ] ユーザーとして、AIツインと初回会話をしたい。なぜならツインの人格を確認したいから。
 
@@ -21,7 +24,9 @@
 1. **welcome.tsx**: アプリ説明、「始める」ボタン
 2. **personality-quiz.tsx**: Big Five性格診断5問（4択タップ式）
 3. **result.tsx**: 性格分析結果表示（5つのトレイト棒グラフ + サマリー）
-4. **meet-twin.tsx**: AIツインの名前設定 + 初回チャット（3往復）→ ペイウォール表示
+4. **choose-avatar.tsx**: AIアイコン選択（5パターンから選択）
+5. **choose-tone.tsx**: 口調パターン選択（5種類から選択）
+6. **meet-twin.tsx**: AIツインの名前設定 + 初回チャット（3往復）→ ペイウォール表示
 
 ## SOUL.md生成ロジック
 性格診断結果から以下を生成:
@@ -29,9 +34,11 @@
 - 性格サマリー（日本語）
 - コミュニケーションスタイル指示（話し方のトーン、語尾の傾向等）
 - AIツインの名前・口調設定
+- AIツインのアイコンタイプ（geometric/cosmic/organic/tech/zen）
 
 生成はEdge Function `personality-analyze` で実行、結果は `personality_results` テーブルに保存。
 SOUL.mdの最終生成はプロビジョニング時（`provision-openclaw` 内）。
+アイコンと口調はプロフィールテーブル（`profiles.avatar_icon`, `profiles.speech_tone`）に保存。
 
 ## 受け入れ条件（Acceptance Criteria）
 
@@ -112,7 +119,52 @@ SOUL.mdの最終生成はプロビジョニング時（`provision-openclaw` 内�
   - AI応答がエラーの場合、リトライボタンを表示
   - ユーザーが空メッセージを送信しようとした場合、送信ボタンが非活性
 
-### AC-7: オンボーディング完了後にonboardingCompleted=trueになる
+### AC-7: ユーザーがAIアイコンを選択できる
+- Given: ユーザーが診断結果画面から「次へ」をタップして choose-avatar.tsx に到達した
+- When: 5つのアイコンパターンから1つを選択する
+- Then:
+  - 5つのアイコンがグリッドレイアウト（3x2）で表示される:
+    - geometric: 幾何学的パターン
+    - cosmic: 宇宙モチーフ
+    - organic: オーガニック波状パターン
+    - tech: テクノロジー調フレーム
+    - zen: ミニマル禅的
+  - 選択したアイコンがハイライトされる
+  - プレビュー領域に160x160で選択中のアイコンが表示される
+  - 「次へ」ボタンをタップすると choose-tone.tsx に遷移
+  - 選択したアイコンタイプが Zustand に一時保存される
+- エッジケース:
+  - 選択なしで「次へ」をタップした場合、デフォルト（geometric）が選択される
+  - アプリ強制終了時、Zustand から選択状態を復元
+
+### AC-8: ユーザーがAIツインの口調パターンを選択できる
+- Given: ユーザーが choose-avatar.tsx で アイコンを選択して遷移した
+- When: 5つの口調パターンから1つを選択する
+- Then:
+  - 5つの口調パターンが会話サンプルカード形式で表示される（スクロール可能）:
+    - polite: 敬語・丁寧系（例: 「おはようございます。今日はどのような1日でしたか？」）
+    - friendly: カジュアル・親友感（例: 「おはよう！今日はどんな感じだった？😊」）
+    - intellectual: 知的・論理的（例: 「おはよう。今日の出来事で印象に残ったことは？」）
+    - mentor: メンター系・励まし（例: 「おはよ〜！今日はどうだった？」）
+    - tsundere: ツンデレ系（例: 「…おはよ。別に心配してたわけじゃないけど」）
+  - 選択した口調がハイライトされる
+  - 「次へ」（完了）ボタンをタップすると meet-twin.tsx に遷移
+  - 選択した口調パターンが Zustand に一時保存される
+- エッジケース:
+  - 選択なしで「次へ」をタップした場合、デフォルト（friendly）が選択される
+  - アプリ強制終了時、Zustand から選択状態を復元
+
+### AC-9: 選択されたアイコンと口調が profilesテーブルに保存される
+- Given: ユーザーが choose-tone.tsx で口調を選択して meet-twin に遷移した
+- When: AIツイン名を設定してオンボーディングを完了する
+- Then:
+  - `profiles`テーブルの`avatar_icon`に選択したアイコンタイプが保存される
+  - `profiles`テーブルの`speech_tone`に選択した口調パターンが保存される
+  - これらの情報はユーザーの SOUL.md 生成に使用される
+- エッジケース:
+  - DB保存失敗時、ローカル状態を維持してリトライ
+
+### AC-10: オンボーディング完了後にonboardingCompleted=trueになる
 - Given: ユーザーが初回チャット3往復を完了した
 - When: 「オンボーディング完了」ボタンをタップする
 - Then:
@@ -124,17 +176,13 @@ SOUL.mdの最終生成はプロビジョニング時（`provision-openclaw` 内�
   - DB更新失敗時、リトライし、3回失敗したらエラー表示（ただしローカル状態は更新してUXを損なわない）
   - アプリ強制終了でオンボーディング途中離脱した場合、次回起動時は最初から再開
 
-### AC-8: 性格診断結果がpersonality_resultsテーブルに永続化される
+### AC-11: 性格診断結果がpersonality_resultsテーブルに永続化される
 - Given: Edge Function `personality-analyze` が正常に実行された
 - When: 分析結果が返却される
 - Then:
   - `personality_results`テーブルに以下が保存される:
     - `user_id`: 認証ユーザーのID
-    - `openness`: 開放性スコア（0-100）
-    - `conscientiousness`: 誠実性スコア（0-100）
-    - `extraversion`: 外向性スコア（0-100）
-    - `agreeableness`: 協調性スコア（0-100）
-    - `neuroticism`: 神経症傾向スコア（0-100）
+    - `personality_traits`: Big Fiveスコア JSON（openness, conscientiousness, extraversion, agreeableness, neuroticism, 各0-100）
     - `summary`: 性格サマリーテキスト
     - `communication_style`: コミュニケーションスタイルJSON
     - `raw_answers`: 回答データ（JSON）
@@ -177,9 +225,49 @@ SOUL.mdの最終生成はプロビジョニング時（`provision-openclaw` 内�
   - 各スコア数値（0-100）
   - 性格サマリーテキスト
 - アクション:
-  - 「次へ」ボタン → meet-twin.tsx へ遷移
+  - 「次へ」ボタン → choose-avatar.tsx へ遷移
 - 状態遷移:
   - ローディング → 結果表示
+
+### AIアイコン選択画面 (choose-avatar.tsx)
+- 入力項目: アイコンパターン選択（5パターンから1つ）
+- 表示項目:
+  - プログレスバー（5/6）
+  - 「AIの見た目を選ぼう」タイトル
+  - アイコングリッド（3x2レイアウト、5パターン表示）
+  - 選択中のアイコン大プレビュー（160x160pt）
+  - 「次へ」ボタン
+- アイコンパターン:
+  - geometric: 幾何学的図形
+  - cosmic: 宇宙・星モチーフ
+  - organic: オーガニック波状
+  - tech: テクノロジー調フレーム
+  - zen: ミニマル禅的
+- アクション:
+  - アイコンタップ → 選択状態に変化、プレビュー更新
+  - 「次へ」ボタン → choose-tone.tsx へ遷移
+- 状態遷移:
+  - 未選択 → 選択中（ハイライト）→ プレビュー表示
+
+### 口調パターン選択画面 (choose-tone.tsx)
+- 入力項目: 口調パターン選択（5パターンから1つ）
+- 表示項目:
+  - プログレスバー（6/6）
+  - 「AIの話し方を選ぼう」タイトル
+  - 会話サンプルカード×5（スクロール可能）
+  - 各カード内に口調タイプ + 会話例
+  - 「次へ」（完了）ボタン
+- 口調パターン:
+  - polite: 敬語・丁寧系
+  - friendly: カジュアル・親友感
+  - intellectual: 知的・論理的
+  - mentor: メンター系・励まし
+  - tsundere: ツンデレ系
+- アクション:
+  - カードタップ → 選択状態に変化、背景ハイライト
+  - 「次へ」ボタン → meet-twin.tsx へ遷移
+- 状態遷移:
+  - 未選択 → 選択中（ハイライト）→ 完了へ
 
 ### AIツイン初対面画面 (meet-twin.tsx)
 - 入力項目:
@@ -210,19 +298,22 @@ SOUL.mdの最終生成はプロビジョニング時（`provision-openclaw` 内�
 
 ## データ仕様
 - 使用するテーブル/コレクション:
-  - `profiles`（`onboarding_completed`フラグ、`twin_name`の更新）
+  - `profiles`（`onboarding_completed`, `twin_name`, `avatar_icon`, `speech_tone` の更新）
   - `personality_results`（性格診断結果の保存）
 - 必要なAPI:
   - Supabase Edge Function: `personality-analyze`（Big Five分析 + サマリー生成）
   - Supabase Edge Function: `onboarding-chat`（初回チャット応答）
-  - Supabase DB: `profiles` テーブルUPDATE
+  - Supabase DB: `profiles` テーブルUPDATE（avatar_icon, speech_tone を追加）
   - Supabase DB: `personality_results` テーブルINSERT
 
 ## テスト観点
-- [ ] 正常系テスト: ウェルカム → 診断 → 結果 → ツイン初対面の全フローが完走する
+- [ ] 正常系テスト: ウェルカム → 診断 → 結果 → アイコン選択 → 口調選択 → ツイン初対面の全フローが完走する
 - [ ] 正常系テスト: 5問全てに回答できる
 - [ ] 正常系テスト: 戻る・進むで回答が保持される
 - [ ] 正常系テスト: Edge Function呼び出しで診断結果が返却される
+- [ ] 正常系テスト: AIアイコンを5パターンから選択できる（デフォルト geometric）
+- [ ] 正常系テスト: AIツイン口調を5パターンから選択できる（デフォルト friendly）
+- [ ] 正常系テスト: avatar_icon と speech_tone が profiles テーブルに保存される
 - [ ] 正常系テスト: AIツインの名前が保存される
 - [ ] 正常系テスト: 初回チャットで3往復会話できる
 - [ ] 正常系テスト: onboarding_completedがtrueに更新される
@@ -234,5 +325,13 @@ SOUL.mdの最終生成はプロビジョニング時（`provision-openclaw` 内�
 - [ ] 境界値テスト: 名前の最大文字数（20文字）
 - [ ] 境界値テスト: 名前の最小文字数（1文字）
 - [ ] 境界値テスト: Big Fiveスコアの境界（0, 50, 100）
-- [ ] UIテスト: プログレスバーが正しく進行する
+- [ ] UIテスト: プログレスバーが正しく進行する（1/6 → 2/6 → ... → 6/6）
 - [ ] UIテスト: 選択肢タップ後の遅延遷移が適切に動作する
+- [ ] UIテスト: アイコングリッドのタップ領域が44pt以上
+- [ ] UIテスト: 口調サンプルカードのタップ領域が十分
+
+## 変更履歴
+
+| 日付 | 変更内容 | 理由 | 関連タスク |
+|------|---------|------|-----------|
+| 2026-02-15 | フロー: 4画面→6画面に変更（choose-avatar, choose-tone追加）<br>ユーザーストーリー: AIアイコン・口調選択を追加<br>新仕様: AC-7,8,9,10,11（アイコン・口調選択・保存）<br>画面仕様: choose-avatar.tsx, choose-tone.tsx の完全仕様<br>データ仕様: profiles.avatar_icon, profiles.speech_tone カラム追記 | V3 Liquid Glass: AIアイコン・口調カスタマイズ機能追加 | — |

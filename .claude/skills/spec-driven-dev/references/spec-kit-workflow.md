@@ -8,11 +8,11 @@
 - PRDは実装のガイドではなく、実装を**生成する**ソース
 - 仕様書は開発の「共通言語（lingua franca）」であり、コードに代わるコミュニケーション媒体
 
-## 8ステップワークフロー（Review + Reconcile 拡張）
+## 9ステップワークフロー（Design + Review + Reconcile 拡張）
 
 ```
-constitution → specify → clarify → plan → tasks → implement → review → reconcile
-   原則定義     仕様作成    曖昧解消   技術計画   タスク化    実装      品質検証   仕様同期
+constitution → specify → clarify → plan → design → tasks → implement → review → reconcile
+   原則定義     仕様作成    曖昧解消   技術計画  画面設計   タスク化    実装      品質検証   仕様同期
 ```
 
 ---

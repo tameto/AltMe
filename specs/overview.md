@@ -80,7 +80,7 @@
      → Gateway URL をDB保存
 
 3. AIチャットフロー（Proユーザー）:
-   App → WebSocket (ws://{ip}:18789) → ユーザー専用OpenClaw Gateway
+   App → WebSocket (wss://{ip}:18789) → ユーザー専用OpenClaw Gateway
      → Response → App State → DB保存
 
 4. AIチャットフロー（無料ユーザー）:
@@ -94,8 +94,8 @@
 ```
 
 ### OpenClaw Gateway通信仕様
-- プロトコル: WebSocket
-- エンドポイント: `ws://{droplet_ip}:18789`
+- プロトコル: WebSocket（セキュア: wss://）
+- エンドポイント: `wss://{droplet_ip}:18789`
 - 認証: トークン認証（JWT）
 - フレーム形式: JSON Schema WebSocketフレーム
 - SOUL.md: オンボーディング結果から自動生成し、OpenClawインスタンスに設定
@@ -109,11 +109,12 @@
 | 1 | 認証（Apple / Google Sign-In） | Must | Agent A | features/auth.md |
 | 2 | オンボーディング + SOUL.md生成 | Must | Agent C | features/onboarding.md |
 | 3 | OpenClawプロビジョニング | Must | Agent A/C | features/openclaw-provisioning.md |
-| 4 | AIチャット（WebSocket） | Must | Agent C | features/chat.md |
-| 5 | 日記 + AI振り返り | Should | Agent D | features/journal.md |
-| 6 | 洞察 + 感情トラッキング | Should | Agent D | features/insights.md |
+| 4 | AIチャット（WebSocket）+ 日記統合 | Must | Agent C | features/chat.md |
+| 5 | コミュニティ（AIツイン同士の会話観察、Pro限定） | Should | Agent D | features/community.md |
+| 6 | ツイン情報（性格データ + 洞察 + OpenClawステータス） | Should | Agent D | features/insights.md |
+<!-- 注: 将来的にinsights.md→twin-info.mdへのリネームを検討 -->
 | 7 | 課金（RevenueCat） | Must | Agent B | features/subscription.md |
-| 8 | 設定 + インスタンス管理 | Should | Agent D | features/settings.md |
+| 8 | 設定 + インスタンス管理 + アカウント削除 | Should | Agent D | features/settings.md |
 
 ---
 
@@ -121,7 +122,7 @@
 
 - 画像生成（コスト高）
 - 音声チャット（Phase 2以降）
-- ソーシャル機能
+- ユーザー同士のDM・フォロー（コミュニティはツイン交流のみ）
 - マルチエージェント（1ユーザー1インスタンス）
 - Web版（モバイルアプリのみ）
 - 多言語対応（Phase 2以降、MVP時点では日本語+英語）
@@ -140,13 +141,14 @@
 ### 無料ユーザー制限
 - 1日3回までチャット可能
 - Supabase Edge Function経由でAI応答（OpenClawなし）
-- 日記・洞察機能は閲覧のみ
+- コミュニティ機能は利用不可（ブラー表示 + ペイウォール誘導）
+- ツイン情報の基本データは閲覧可能
 - OpenClawインスタンスはデプロイされない
 
 ### Proユーザー特典
 - チャット無制限
 - 専用OpenClawインスタンス（DigitalOcean Droplet）
-- 全機能フルアクセス
+- 全機能フルアクセス（コミュニティ・ツイン情報・インスタンス管理）
 - SOUL.mdによるパーソナライズAI
 
 ### RevenueCat設定
@@ -170,15 +172,18 @@
 1. ウェルカム (`app/(onboarding)/welcome.tsx`)
 2. パーソナリティクイズ (`app/(onboarding)/personality-quiz.tsx`)
 3. 結果表示 (`app/(onboarding)/result.tsx`)
-4. ツインと対面 (`app/(onboarding)/meet-twin.tsx`)
+4. AIアイコン選択 (`app/(onboarding)/choose-avatar.tsx`)
+5. 口調パターン (`app/(onboarding)/choose-tone.tsx`)
+6. ツインと対面 (`app/(onboarding)/meet-twin.tsx`)
 
 #### ペイウォール
 1. ペイウォール (`app/(paywall)/index.tsx`)
 
-#### メインタブ（認証後）
-1. チャット（ホーム） (`app/(tabs)/index.tsx`)
-2. 日記履歴 (`app/(tabs)/history.tsx`)
-3. 設定 (`app/(tabs)/settings.tsx`)
+#### メインタブ（認証後、4タブ構成）
+1. チャット（ホーム） (`app/(tabs)/index.tsx`) — AIツインとの1:1チャット + 日記統合
+2. コミュニティ (`app/(tabs)/community.tsx`) — AIツイン同士の会話を観察（Pro限定）
+3. ツイン情報 (`app/(tabs)/twin.tsx`) — 性格データ + 気分 + OpenClawステータス
+4. 設定 (`app/(tabs)/settings.tsx`) — アカウント・サブスク管理 + インスタンス管理 + アカウント削除
 
 ---
 
@@ -228,15 +233,18 @@ altme/
 │   │   ├── welcome.tsx
 │   │   ├── personality-quiz.tsx
 │   │   ├── result.tsx
+│   │   ├── choose-avatar.tsx
+│   │   ├── choose-tone.tsx
 │   │   └── meet-twin.tsx
 │   ├── (paywall)/                # ペイウォール
 │   │   ├── _layout.tsx
 │   │   └── index.tsx
-│   └── (tabs)/                   # メインタブ（3タブ）
+│   └── (tabs)/                   # メインタブ（4タブ）
 │       ├── _layout.tsx
-│       ├── index.tsx             # チャット（ホーム）
-│       ├── history.tsx           # 日記履歴 + 気分トラッキング
-│       └── settings.tsx          # 設定 + サブスク + インスタンス管理
+│       ├── index.tsx             # チャット（ホーム）+ 日記統合
+│       ├── community.tsx         # コミュニティ（AIツイン同士の会話、Pro限定）
+│       ├── twin.tsx              # ツイン情報（性格 + 気分 + OpenClawステータス）
+│       └── settings.tsx          # 設定 + サブスク + インスタンス管理 + アカウント削除
 ├── src/
 │   ├── features/                 # 機能モジュール
 │   │   ├── auth/
@@ -261,16 +269,17 @@ altme/
 │   │   │   ├── stores/
 │   │   │   ├── utils/
 │   │   │   └── __tests__/
-│   │   ├── journal/
+│   │   ├── community/              # AIツイン同士の会話（Pro限定）
 │   │   │   ├── components/
 │   │   │   ├── hooks/
 │   │   │   ├── stores/
 │   │   │   └── __tests__/
-│   │   ├── insights/
+│   │   ├── twin-info/              # 性格 + 気分 + OpenClawステータス
 │   │   │   ├── components/
 │   │   │   ├── hooks/
 │   │   │   ├── stores/
 │   │   │   └── __tests__/
+│   │   # 注: journal/ はチャットに統合、insights/ は twin-info/ に統合
 │   │   └── settings/
 │   │       ├── components/
 │   │       ├── hooks/
@@ -338,11 +347,11 @@ altme/
 | 01 | specs/features/auth.md | 認証仕様 | Agent A |
 | 02 | specs/features/onboarding.md | オンボーディング仕様 | Agent C |
 | 03 | specs/features/openclaw-provisioning.md | OpenClawプロビジョニング仕様 | Agent A/C |
-| 04 | specs/features/chat.md | AIチャット仕様 | Agent C |
-| 05 | specs/features/journal.md | 日記機能仕様 | Agent D |
-| 06 | specs/features/insights.md | 洞察・レポート仕様 | Agent D |
+| 04 | specs/features/chat.md | AIチャット仕様（日記統合） | Agent C |
+| 05 | specs/features/community.md | コミュニティ仕様（AIツイン同士の会話、Pro限定） | Agent D |
+| 06 | specs/features/twin-info.md | ツイン情報仕様（性格 + 気分 + OpenClawステータス） | Agent D |
 | 07 | specs/features/subscription.md | 課金仕様（RevenueCat） | Agent B |
-| 08 | specs/features/settings.md | 設定・インスタンス管理仕様 | Agent D |
+| 08 | specs/features/settings.md | 設定・インスタンス管理・アカウント削除仕様 | Agent D |
 
 ### AgentTeam構成
 
@@ -351,7 +360,7 @@ altme/
 | A | Foundation | shared/, services/, config/, auth, レイアウト, DBマイグレーション |
 | B | Subscription | subscription/, (paywall)/, RevenueCat全般, Webhook |
 | C | Core AI | chat/, onboarding/, openclaw/, Edge Functions(chat, provision) |
-| D | Engagement | journal/, insights/, settings/, 通知, Edge Functions(journal, insight) |
+| D | Engagement | community/, twin-info/, settings/, 通知, Edge Functions(community) |
 
 ### Agent間ルール
 - `features/` は担当Agentのみ変更可
@@ -368,3 +377,11 @@ altme/
 - OpenClaw APIのモックを用意（テスト時は実サーバーに接続しない）
 - テストケースは仕様書の受け入れ条件から導出する
 - RevenueCat: サンドボックスアカウントで必ず課金フローをテスト
+
+---
+
+## 変更履歴
+| 日付 | 変更内容 | 理由 | 関連タスク |
+|------|---------|------|-----------|
+| 2026-02-14 | タブ構成を3タブから4タブに変更（Chat/Community/Twin Info/Settings）<br>日記機能をチャットに統合<br>洞察機能をツイン情報に統合<br>コミュニティ機能追加（Pro限定、AIツイン同士の会話観察）<br>アカウント削除機能追加<br>ソーシャル機能方針変更（ユーザー同士のDM・フォローなし） | Reconcile: 製品方針の変更に伴う仕様更新 | — |
+| 2026-02-15 | オンボーディング: 4画面→6画面に変更<br>新画面追加: choose-avatar.tsx (4), choose-tone.tsx (5)<br>画面一覧更新<br>ディレクトリ構成にchoose-avatar.tsx, choose-tone.tsx追記 | V3 Liquid Glass: AIアイコン・口調カスタマイズ機能追加 | — |

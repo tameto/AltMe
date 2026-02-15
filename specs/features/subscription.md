@@ -16,8 +16,8 @@
 
 | プラン | ID | 価格 | 内容 |
 |--------|----|------|------|
-| Free | - | ¥0 | 1日3回チャット（Supabase Edge Function経由）、基本機能のみ |
-| Pro Monthly | `pro_monthly` | ¥4,980/月 | 無制限チャット（専用OpenClawインスタンス）、日記、洞察、全機能解放 |
+| Free | - | ¥0 | 1日3回チャット（Supabase Edge Function経由）、基本機能のみ、コミュニティはプレビューのみ（ぼかし表示） |
+| Pro Monthly | `pro_monthly` | ¥4,980/月 | 無制限チャット（専用OpenClawインスタンス）、日記、洞察、コミュニティ（AIツイン交流の閲覧）、全機能解放 |
 | Pro Annual | `pro_annual` | ¥39,800/年 | Pro Monthly同等、月額換算 ¥3,317（33%OFF） |
 | Pro Annual（初回限定） | `pro_annual_intro` | ¥29,800/年 | 初回限定、登録から24時間以内のみ表示、月額換算 ¥2,483（50%OFF） |
 
@@ -127,7 +127,7 @@
 - RevenueCatの `pro` Entitlementが有効になる
 - `subscriptions` テーブルの `status` が `active`、`plan` が `monthly` に更新される
 - `provision-openclaw` Edge Functionが呼び出され、専用OpenClawインスタンスが作成される
-- アプリ内でPro機能（無制限チャット、日記、洞察）が利用可能になる
+- アプリ内でPro機能（無制限チャット、日記、洞察、コミュニティ、ツイン情報の詳細分析）が利用可能になる
 
 **エッジケース:**
 - 決済画面でキャンセルした場合、状態が変わらないこと
@@ -149,6 +149,7 @@
 - RevenueCatの `pro` Entitlementが有効になる
 - `subscriptions` テーブルの `plan` が `annual` に更新される
 - 専用OpenClawインスタンスが作成される
+- アプリ内でPro機能（無制限チャット、日記、洞察、コミュニティ、ツイン情報の詳細分析）が利用可能になる
 - 有効期限が購入日から1年後に設定される
 
 **エッジケース:**
@@ -193,7 +194,7 @@
 **When** トライアル対象のプランを選択し、決済情報を登録する
 **Then**
 - 3日間の無料トライアルが開始される
-- `subscriptions.status` が `trialing` に設定される
+- `subscriptions.status` が `trial` に設定される
 - トライアル中もOpenClawインスタンスがプロビジョニングされる（Pro機能が使える）
 - 3日後に自動的に課金が発生し、`status` が `active` に変わる
 
@@ -308,7 +309,7 @@
 ## 状態遷移図
 
 ```
-[Free] ---(購入/トライアル開始)---> [Trialing / Active]
+[Free] ---(購入/トライアル開始)---> [Trial / Active]
   ^                                      |
   |                                      |
   +-------(期限切れ/解約)----------------+
@@ -317,6 +318,22 @@
 ```
 
 ### subscriptions.status の遷移
-- `free` → `trialing` → `active` → `expired` → `free`
+- `free` → `trial` → `active` → `expired` → `free`
 - `active` → `grace_period` → `active`（決済リトライ成功時）
 - `active` → `grace_period` → `expired`（決済リトライ失敗時）
+- `active` → `cancelled`（ユーザーが解約、期間満了まで有効）
+- `cancelled` → `expired`（有効期限到達時）
+
+### cancelled ステータスについて
+`cancelled`: ユーザーが解約済みだが、current_period_end まではPro機能が利用可能。期間満了後に `expired` に遷移。
+
+---
+
+## 変更履歴
+
+| 日付 | 変更内容 | 理由 | 関連タスク |
+|------|---------|------|-----------|
+| 2026-02-14 | Free/Pro比較テーブルにコミュニティ機能を追加 | コミュニティ機能のPro特典化 | - |
+| 2026-02-14 | AC-1, AC-2の内容更新（コミュニティ、ツイン情報の詳細分析を追記） | Pro機能の明確化 | - |
+| 2026-02-14 | trialing → trial（全箇所） | RevenueCat用語統一（Clarify Phase） | - |
+| 2026-02-14 | cancelled ステータス追加 | 解約済み期間内ユーザーの状態管理 | - |
