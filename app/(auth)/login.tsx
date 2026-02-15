@@ -136,7 +136,7 @@ const styles = StyleSheet.create({
     gap: spacing.md,
   },
   appleButton: {
-    backgroundColor: colors.text,
+    backgroundColor: '#000000',
     borderRadius: borderRadius.md,
     paddingVertical: spacing.md,
     alignItems: 'center',

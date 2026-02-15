@@ -92,10 +92,10 @@ export function GuestPromptOverlay() {
             onPress={handleGoogleSignIn}
             disabled={isSigningIn !== null}>
             {isSigningIn === 'google' ? (
-              <ActivityIndicator color={colors.text} />
+              <ActivityIndicator color="#1F1F1F" />
             ) : (
               <Text style={styles.googleButtonText}>
-                <FontAwesome name="google" size={16} color={colors.text} />
+                <FontAwesome name="google" size={16} color="#1F1F1F" />
                 {'  '}{t('auth.signInWithGoogle')}
               </Text>
             )}
@@ -154,7 +154,7 @@ const styles = StyleSheet.create({
     gap: spacing.md,
   },
   appleButton: {
-    backgroundColor: colors.text,
+    backgroundColor: '#000000',
     borderRadius: borderRadius.md,
     paddingVertical: spacing.md,
     alignItems: 'center',
@@ -167,17 +167,17 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   googleButton: {
-    backgroundColor: colors.background,
+    backgroundColor: '#FFFFFF',
     borderRadius: borderRadius.md,
     paddingVertical: spacing.md,
     alignItems: 'center',
     borderWidth: 1,
-    borderColor: colors.border,
+    borderColor: '#747775',
     height: 52,
     justifyContent: 'center',
   },
   googleButtonText: {
-    color: colors.text,
+    color: '#1F1F1F',
     fontSize: fontSize.md,
     fontWeight: '600',
   },

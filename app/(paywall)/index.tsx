@@ -389,7 +389,7 @@ const styles = StyleSheet.create({
   },
   planCardSelected: {
     borderColor: colors.primary,
-    backgroundColor: '#7C3AED0A',
+    backgroundColor: colors.primary + '0A',
   },
   planHeader: {
     flexDirection: 'row',
