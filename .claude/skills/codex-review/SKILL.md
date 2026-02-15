@@ -135,7 +135,18 @@ codex exec --full-auto --model gpt-5.3-codex \
 4. 仕様書（specs/）と照合
 5. 誤検出は除外
 
-### Step 4: 統合レポート
+### Step 4: レビュー完了マーカーの作成
+
+レビュー完了後、PR 前 hook（`codex-review-gate.sh`）のためにマーカーファイルを作成する:
+
+```bash
+BRANCH=$(git branch --show-current)
+touch "/tmp/codex-reviewed-${BRANCH}"
+```
+
+これにより `gh pr create` 時の Codex レビュー未実行警告が抑制される。
+
+### Step 5: 統合レポート
 
 ```markdown
 ## Codex Review 結果
