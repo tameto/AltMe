@@ -1,9 +1,8 @@
 import React from 'react';
-import { View, Text, StyleSheet, ScrollView, Pressable } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, Pressable, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Feather from '@expo/vector-icons/Feather';
 import { useTranslation } from 'react-i18next';
-import { useRouter } from 'expo-router';
 
 import { CosmicBackground } from '@/src/shared/components/cosmic-background';
 import { colors, spacing, fontSize, fontFamily, borderRadius } from '@/src/config/theme';
@@ -26,7 +25,6 @@ const MOCK_BIG_FIVE: BigFiveTrait[] = [
 
 export default function TwinScreen() {
   const { t } = useTranslation();
-  const router = useRouter();
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
   const user = useUser((s) => s.user);
 
@@ -44,7 +42,7 @@ export default function TwinScreen() {
   const mbti = user?.mbtiType || 'INFP';
 
   const handleViewSoulMd = () => {
-    router.push('/soul-md' as never);
+    Alert.alert('SOUL.md', t('twin.soulMdComingSoon'));
   };
 
   return (

@@ -394,7 +394,9 @@
     "conversationDetail": {
       "title": "ツイン会話詳細",
       "subtitle": "会話の詳細と振り返り"
-    }
+    },
+    "defaultName": "AltMe",
+    "soulMdComingSoon": "SOUL.md の閲覧機能は近日公開予定です。"
   },
   "guest": {
     "title": "ログインして始めよう",

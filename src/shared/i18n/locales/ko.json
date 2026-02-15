@@ -393,7 +393,9 @@
     "conversationDetail": {
       "title": "트윈 대화 상세",
       "subtitle": "대화 상세 및 리플렉션"
-    }
+    },
+    "defaultName": "AltMe",
+    "soulMdComingSoon": "SOUL.md 뷰어는 곧 제공될 예정입니다."
   },
   "guest": {
     "title": "로그인하여 시작하세요",

@@ -393,7 +393,9 @@
     "conversationDetail": {
       "title": "Twin Conversation Detail",
       "subtitle": "Conversation details and reflection"
-    }
+    },
+    "defaultName": "AltMe",
+    "soulMdComingSoon": "SOUL.md viewer is coming soon."
   },
   "guest": {
     "title": "Sign in to Get Started",
