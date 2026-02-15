@@ -3,7 +3,7 @@ import Feather from '@expo/vector-icons/Feather';
 import { Tabs } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 
-import { colors } from '@/src/config/theme';
+import { tabBarColors } from '@/src/config/theme';
 
 function TabBarIcon(props: {
   name: React.ComponentProps<typeof Feather>['name'];
@@ -18,8 +18,15 @@ export default function TabLayout() {
   return (
     <Tabs
       screenOptions={{
-        tabBarActiveTintColor: colors.primary,
-        headerShown: true,
+        tabBarActiveTintColor: tabBarColors.active,
+        tabBarInactiveTintColor: tabBarColors.inactive,
+        tabBarStyle: {
+          backgroundColor: tabBarColors.background,
+          borderTopColor: tabBarColors.border,
+          borderTopWidth: 1,
+          elevation: 0,
+        },
+        headerShown: false,
       }}
     >
       <Tabs.Screen

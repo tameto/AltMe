@@ -241,7 +241,25 @@ SOUL.mdの最終生成はプロビジョニング時（`provision-openclaw` 内�
 
 ## 画面仕様
 
+### V4 Dark Premium 共通UI
+
+全6画面に適用:
+- **背景**: CosmicBackground（宇宙背景 + `#0F172ACC` オーバーレイ）
+- **プログレスインジケータ**: 画面上部、完了ステップはシアン `#7DD3FC`、未完了はグレー `#334155`
+
+---
+
 ### ウェルカム画面 (welcome.tsx)
+
+V4 Dark Premium UIデザイン仕様（O-1）:
+- **ロボットアイコン**: シアン輪郭（`#7DD3FC`）のAIアイコン
+- **見出し**: 「もう一人の自分を作ろう」40px/Bold
+- **説明文**: 16px/Regular、`#94A3B8`
+- **CTAボタン**: GoldButton「始める」（`#E8C567`→`#C9A033`→`#A07B1A`、高さ54px）
+- **時間目安**: 「約3分で完了します」12px/`#64748B`
+
+---
+
 - 入力項目: なし
 - 表示項目:
   - アプリロゴ
@@ -253,6 +271,16 @@ SOUL.mdの最終生成はプロビジョニング時（`provision-openclaw` 内�
 - 状態遷移: なし
 
 ### 性格診断画面 (personality-quiz.tsx)
+
+V4 Dark Premium UIデザイン仕様（O-2）:
+- **ヘッダー**: 「← 性格診断 N/6」形式（N = 現在のオンボーディング画面番号）
+- **質問番号ラベル**: シアン `#7DD3FC`「Q2」等
+- **選択肢カード**:
+  - 未選択: GlassCard（`rgba(30, 41, 59, 0.6)`、白テキスト `#F8FAFC`）
+  - 選択済み: 白背景・黒テキスト（視覚的に明確な選択状態）
+
+---
+
 - 入力項目: 4択選択（質問ごと）
 - 表示項目:
   - プログレスバー（1/5 〜 5/5）
@@ -266,6 +294,15 @@ SOUL.mdの最終生成はプロビジョニング時（`provision-openclaw` 内�
   - 未回答 → 選択中（ハイライト）→ 次の質問（自動遷移）
 
 ### 結果画面 (result.tsx)
+
+V4 Dark Premium UIデザイン仕様（O-3）:
+- **Big Five バーグラフ**: シアン `#7DD3FC` プログレスバー（5トレイト）
+- **MBTI結果**: GlassCard 内に表示
+- **パーソナリティ説明**: 16px/Regular、`#94A3B8`
+- **CTAボタン**: GoldButton「次へ」
+
+---
+
 - 入力項目: なし
 - 表示項目:
   - Big Five棒グラフ（5トレイト）
@@ -277,6 +314,15 @@ SOUL.mdの最終生成はプロビジョニング時（`provision-openclaw` 内�
   - ローディング → 結果表示
 
 ### AIアイコン選択画面 (choose-avatar.tsx)
+
+V4 Dark Premium UIデザイン仕様（O-4）:
+- **アイコングリッド**: 6つのアバターオプション（3x2グリッド）
+  - 未選択: GlassCard 背景（`rgba(30, 41, 59, 0.6)`）
+  - 選択済み: シアングロー効果（`#7DD3FC` シャドウ/リング）
+- **CTAボタン**: GoldButton「次へ」
+
+---
+
 - 入力項目: アイコンパターン選択（5パターンから1つ）
 - 表示項目:
   - プログレスバー（5/6）
@@ -297,6 +343,16 @@ SOUL.mdの最終生成はプロビジョニング時（`provision-openclaw` 内�
   - 未選択 → 選択中（ハイライト）→ プレビュー表示
 
 ### 口調パターン選択画面 (choose-tone.tsx)
+
+V4 Dark Premium UIデザイン仕様（O-5）:
+- **口調カード**: GlassCard 形式、5つのカード（スクロール可能）
+  - 未選択: GlassCard 標準スタイル
+  - 選択済み: シアンボーダーハイライト（`#7DD3FC`）
+- **進捗表示**: 「6/6」オンボーディング番号
+- **CTAボタン**: GoldButton「次へ」
+
+---
+
 - 入力項目: 口調パターン選択（5パターンから1つ）
 - 表示項目:
   - プログレスバー（6/6）
@@ -317,6 +373,14 @@ SOUL.mdの最終生成はプロビジョニング時（`provision-openclaw` 内�
   - 未選択 → 選択中（ハイライト）→ 完了へ
 
 ### AIツイン初対面画面 (meet-twin.tsx)
+
+V4 Dark Premium UIデザイン仕様（O-6）:
+- **ツイン名入力フィールド**: GlassCard（`input` variant）
+- **チャットプレビュー**: glassmorphism バブル（AIメッセージ: `bubbleAi`、ユーザーメッセージ: `bubbleUser`）
+- **完了CTA**: GoldButton「オンボーディング完了」
+
+---
+
 - 入力項目:
   - AIツインの名前テキストフィールド（最大20文字）
   - チャットメッセージ入力フィールド
@@ -383,3 +447,4 @@ SOUL.mdの最終生成はプロビジョニング時（`provision-openclaw` 内�
 |------|---------|------|-----------|
 | 2026-02-15 | フロー: 4画面→6画面に変更（choose-avatar, choose-tone追加）<br>ユーザーストーリー: AIアイコン・口調選択を追加<br>新仕様: AC-7,8,9,10,11（アイコン・口調選択・保存）<br>画面仕様: choose-avatar.tsx, choose-tone.tsx の完全仕様<br>データ仕様: profiles.avatar_icon, profiles.speech_tone カラム追記 | V3 Liquid Glass: AIアイコン・口調カスタマイズ機能追加 | — |
 | 2026-02-15 | AC-5のデフォルト名を「ツイン」→「My Agent」に変更 | AIツイン名前変更機能に伴うデフォルト名統一 | — |
+| 2026-02-16 | 全6オンボーディング画面にV4 Dark Premium UIデザイン仕様追記<br>共通: CosmicBackground、シアン進捗インジケータ<br>O-1: ロボットアイコン・GoldButton「始める」・時間目安<br>O-2: シアン質問番号・選択済み=白背景黒テキスト/未選択=glass<br>O-3: シアンBig Fiveバーグラフ・GlassCard MBTI結果<br>O-4: アバターグリッド選択済み=シアングロー効果<br>O-5: 口調カード選択済み=シアンボーダー<br>O-6: GlassCard入力フィールド・glassmorphismチャットバブル | Reconcile: V4 Dark Premium UI 実装完了後の仕様書同期 | — |

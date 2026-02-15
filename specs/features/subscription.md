@@ -128,6 +128,21 @@ RevenueCat Offering: `token_packs`
   - かつ過去に一度もProプランを購入していない
 - カウントダウンタイマー表示（残り時間）
 
+#### V4 Dark Premium UIデザイン仕様（app/(paywall)/index.tsx）
+
+- **背景**: CosmicBackground（宇宙背景 + `#0F172ACC` オーバーレイ）
+- **王冠アイコン**: ゴールド（`#D4A853`）
+- **タイトル**: 「Proにアップグレード」、40px/Bold
+- **カウントダウンタイマー**: 「初回限定 残り HH:MM:SS」リアルタイム更新（初回限定オファー表示時のみ）
+- **チェックリスト**: 6項目の特典一覧（シアンチェックアイコン `#7DD3FC`）
+- **プランカード**: GlassCard（glassmorphism）で3プランを表示
+  - 月額 ¥4,980
+  - 年額 ¥39,800（33%OFF バッジ）
+  - 初回限定年額 ¥29,800（50%OFF バッジ）
+- **CTAボタン**: GoldButton「3日間無料で始める」（`#E8C567`→`#C9A033`→`#A07B1A`、高さ54px）
+- **復元リンク**: 「購入を復元」テキストリンク（`#94A3B8`）
+- **法的リンク**: 利用規約・プライバシーポリシー（`#64748B`、小文字）
+
 ---
 
 ## 受け入れ条件
@@ -591,3 +606,4 @@ Web App → Edge Function (create-checkout-session) → Stripe Checkout
 | 2026-02-15 | token_usage/token_creditsテーブルスキーマ追加 | データ仕様の充実化 | T12 |
 | 2026-02-15 | create-checkout-session Edge Function詳細追加 | Web課金の実装仕様明確化 | T12 |
 | 2026-02-15 | RevenueCat Stripe Provider統合仕様追加 | クロスプラットフォーム同期の明文化 | T12 |
+| 2026-02-16 | Paywall画面にV4 Dark Premium UIデザイン仕様追記（CosmicBackground、GlassCardプランカード、GoldButton CTA、カウントダウンタイマー、チェックリスト） | Reconcile: V4 Dark Premium UI 実装完了後の仕様書同期 | — |

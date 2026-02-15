@@ -2,8 +2,11 @@ import { StyleSheet, View, Text, Pressable } from 'react-native';
 import { router } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
+import Feather from '@expo/vector-icons/Feather';
 import { useTranslation } from 'react-i18next';
-import { colors, spacing, fontSize, borderRadius } from '@/src/config/theme';
+import { CosmicBackground } from '@/src/shared/components/cosmic-background';
+import { GoldButton } from '@/src/shared/components/gold-button';
+import { colors, spacing, fontFamily, borderRadius } from '@/src/config/theme';
 import {
   useOnboardingStore,
   type AvatarStyle,
@@ -20,9 +23,6 @@ const AVATAR_OPTIONS: {
   { key: 'zen', icon: 'leaf' },
 ];
 
-const TEAL = '#7DD3FC';
-const GOLD = '#F59E0B';
-
 export default function ChooseAvatarScreen() {
   const { t } = useTranslation();
   const avatarStyle = useOnboardingStore((s) => s.avatarStyle);
@@ -36,127 +36,125 @@ export default function ChooseAvatarScreen() {
   };
 
   return (
-    <SafeAreaView style={styles.container}>
-      <View style={styles.content}>
-        <View style={styles.header}>
-          <Pressable style={styles.backButton} onPress={() => router.back()}>
-            <Text style={styles.backButtonText}>
-              {'\u2190 '}{t('common.back')}
-            </Text>
-          </Pressable>
-          <Text style={styles.step}>{t('onboarding.avatar.step')}</Text>
-        </View>
+    <CosmicBackground>
+      <SafeAreaView style={styles.container}>
+        <View style={styles.content}>
+          <View style={styles.header}>
+            <Pressable style={styles.backButton} onPress={() => router.back()}>
+              <Feather name="arrow-left" size={24} color="#F8FAFC" />
+            </Pressable>
+            <Text style={styles.step}>4/6</Text>
+          </View>
 
-        <Text style={styles.title}>{t('onboarding.avatar.title')}</Text>
+          <Text style={styles.title}>{t('onboarding.avatar.title')}</Text>
 
-        <View style={styles.previewContainer}>
-          <View style={[styles.previewCircle, avatarStyle ? styles.previewCircleActive : null]}>
-            {selectedOption ? (
-              <MaterialCommunityIcons
-                name={selectedOption.icon}
-                size={64}
-                color={TEAL}
-              />
-            ) : (
-              <MaterialCommunityIcons
-                name="account-outline"
-                size={64}
-                color={colors.textTertiary}
-              />
-            )}
+          <View style={styles.previewContainer}>
+            <View style={[styles.previewCircle, avatarStyle ? styles.previewCircleActive : null]}>
+              {selectedOption ? (
+                <MaterialCommunityIcons
+                  name={selectedOption.icon}
+                  size={72}
+                  color="#7DD3FC"
+                />
+              ) : (
+                <MaterialCommunityIcons
+                  name="account-outline"
+                  size={72}
+                  color="#64748B"
+                />
+              )}
+            </View>
+          </View>
+
+          <View style={styles.grid}>
+            {AVATAR_OPTIONS.map((option) => {
+              const isSelected = avatarStyle === option.key;
+              return (
+                <Pressable
+                  key={option.key}
+                  style={[styles.gridItem, isSelected ? styles.gridItemSelected : null]}
+                  onPress={() => setAvatarStyle(option.key)}
+                >
+                  <MaterialCommunityIcons
+                    name={option.icon}
+                    size={36}
+                    color={isSelected ? '#7DD3FC' : '#94A3B8'}
+                  />
+                  <Text
+                    style={[styles.gridLabel, isSelected ? styles.gridLabelSelected : null]}
+                  >
+                    {t(`onboarding.avatar.styles.${option.key}`)}
+                  </Text>
+                </Pressable>
+              );
+            })}
+          </View>
+
+          <View style={styles.footer}>
+            <GoldButton
+              title={t('onboarding.avatar.cta')}
+              onPress={handleNext}
+              disabled={!avatarStyle}
+              style={styles.ctaButton}
+            />
           </View>
         </View>
-
-        <View style={styles.grid}>
-          {AVATAR_OPTIONS.map((option) => {
-            const isSelected = avatarStyle === option.key;
-            return (
-              <Pressable
-                key={option.key}
-                style={[styles.gridItem, isSelected ? styles.gridItemSelected : null]}
-                onPress={() => setAvatarStyle(option.key)}
-              >
-                <MaterialCommunityIcons
-                  name={option.icon}
-                  size={32}
-                  color={isSelected ? TEAL : colors.textSecondary}
-                />
-                <Text
-                  style={[styles.gridLabel, isSelected ? styles.gridLabelSelected : null]}
-                >
-                  {t(`onboarding.avatar.styles.${option.key}`)}
-                </Text>
-              </Pressable>
-            );
-          })}
-        </View>
-
-        <View style={styles.footer}>
-          <Pressable
-            style={[styles.ctaButton, !avatarStyle ? styles.ctaButtonDisabled : null]}
-            onPress={handleNext}
-            disabled={!avatarStyle}
-          >
-            <Text style={styles.ctaButtonText}>{t('onboarding.avatar.cta')}</Text>
-          </Pressable>
-        </View>
-      </View>
-    </SafeAreaView>
+      </SafeAreaView>
+    </CosmicBackground>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.background,
   },
   content: {
     flex: 1,
-    padding: spacing.xl,
+    paddingHorizontal: spacing.xl,
   },
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
+    marginTop: spacing.md,
     marginBottom: spacing.lg,
   },
   backButton: {
-    paddingVertical: spacing.xs,
-    paddingRight: spacing.md,
-  },
-  backButtonText: {
-    fontSize: fontSize.md,
-    color: colors.primary,
-    fontWeight: '500',
+    padding: spacing.xs,
   },
   step: {
-    fontSize: fontSize.sm,
-    color: colors.textSecondary,
+    fontFamily: fontFamily.medium,
+    fontSize: 14,
+    color: '#94A3B8',
   },
   title: {
-    fontSize: fontSize.xxl,
-    fontWeight: '700',
-    color: colors.text,
+    fontFamily: fontFamily.bold,
+    fontSize: 28,
+    color: '#F8FAFC',
     textAlign: 'center',
     marginBottom: spacing.xl,
   },
   previewContainer: {
     alignItems: 'center',
-    marginBottom: spacing.xl,
+    marginBottom: spacing.xxl,
   },
   previewCircle: {
     width: 160,
     height: 160,
     borderRadius: 80,
-    backgroundColor: colors.surface,
-    borderWidth: 2,
-    borderColor: colors.border,
+    backgroundColor: '#FFFFFF0D',
+    borderWidth: 1,
+    borderColor: '#FFFFFF25',
     justifyContent: 'center',
     alignItems: 'center',
   },
   previewCircleActive: {
-    borderColor: TEAL,
-    backgroundColor: `${TEAL}15`,
+    borderColor: '#7DD3FC',
+    borderWidth: 3,
+    shadowColor: '#7DD3FC',
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.4,
+    shadowRadius: 12,
   },
   grid: {
     flexDirection: 'row',
@@ -166,28 +164,33 @@ const styles = StyleSheet.create({
     marginBottom: spacing.xl,
   },
   gridItem: {
-    width: 90,
-    height: 90,
+    width: 100,
+    height: 100,
     borderRadius: borderRadius.md,
-    backgroundColor: colors.surface,
-    borderWidth: 2,
-    borderColor: colors.border,
+    backgroundColor: '#FFFFFF0D',
+    borderWidth: 1,
+    borderColor: '#FFFFFF25',
     justifyContent: 'center',
     alignItems: 'center',
     gap: spacing.xs,
   },
   gridItemSelected: {
-    borderColor: TEAL,
-    backgroundColor: `${TEAL}15`,
+    borderColor: '#7DD3FC',
+    borderWidth: 3,
+    shadowColor: '#7DD3FC',
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.4,
+    shadowRadius: 12,
   },
   gridLabel: {
-    fontSize: fontSize.xs,
-    color: colors.textSecondary,
-    fontWeight: '500',
+    fontFamily: fontFamily.medium,
+    fontSize: 12,
+    color: '#94A3B8',
+    textAlign: 'center',
   },
   gridLabelSelected: {
-    color: TEAL,
-    fontWeight: '700',
+    fontFamily: fontFamily.semiBold,
+    color: '#7DD3FC',
   },
   footer: {
     flex: 1,
@@ -195,17 +198,6 @@ const styles = StyleSheet.create({
     paddingBottom: spacing.lg,
   },
   ctaButton: {
-    backgroundColor: GOLD,
-    borderRadius: borderRadius.lg,
-    paddingVertical: spacing.lg,
-    alignItems: 'center',
-  },
-  ctaButtonDisabled: {
-    opacity: 0.4,
-  },
-  ctaButtonText: {
-    color: colors.textInverse,
-    fontSize: fontSize.lg,
-    fontWeight: '700',
+    alignSelf: 'stretch',
   },
 });

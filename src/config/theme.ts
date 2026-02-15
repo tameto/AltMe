@@ -56,3 +56,38 @@ export const fontSize = {
   xxl: 32,
   hero: 40,
 } as const;
+
+export const glassmorphism = {
+  card: { bg: '#FFFFFF12', border: '#FFFFFF25', blur: 16 },
+  bubble: {
+    ai: { bg: '#FFFFFF4D', border: '#FFFFFF15' },
+    user: { bg: '#7DD3FC4D', border: '#7DD3FC30' },
+  },
+  input: { bg: '#FFFFFF0D', border: '#FFFFFF15' },
+} as const;
+
+export const goldGradient = {
+  colors: ['#E8C567', '#C9A033', '#A07B1A'] as const,
+  start: { x: 0, y: 0 },
+  end: { x: 1, y: 0 },
+} as const;
+
+export const sendGradient = {
+  colors: ['#7DD3FC', '#38BDF8'] as const,
+  start: { x: 0, y: 0 },
+  end: { x: 1, y: 1 },
+} as const;
+
+export const tabBarColors = {
+  background: '#0F172AEE',
+  active: '#00D4FF',
+  inactive: '#64748B',
+  border: '#FFFFFF15',
+} as const;
+
+export const fontFamily = {
+  regular: 'Outfit_400Regular',
+  medium: 'Outfit_500Medium',
+  semiBold: 'Outfit_600SemiBold',
+  bold: 'Outfit_700Bold',
+} as const;

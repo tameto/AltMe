@@ -3,20 +3,23 @@ import {
   View,
   Text,
   TextInput,
-  TouchableOpacity,
   FlatList,
   KeyboardAvoidingView,
   Platform,
   StyleSheet,
   ActivityIndicator,
+  Pressable,
+  ScrollView,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import FontAwesome from '@expo/vector-icons/FontAwesome';
+import { Feather, MaterialCommunityIcons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useTranslation } from 'react-i18next';
+import { LinearGradient } from 'expo-linear-gradient';
 
-import { colors, spacing, borderRadius, fontSize } from '@/src/config/theme';
+import { colors, spacing, borderRadius, fontSize, fontFamily, sendGradient, glassmorphism } from '@/src/config/theme';
+import { CosmicBackground } from '@/src/shared/components/cosmic-background';
 import { FREE_DAILY_LIMIT, CHAT, APP_NAME } from '@/src/config/constants';
 import { useIsPro } from '@/src/shared/hooks/use-subscription';
 import { useUser } from '@/src/shared/hooks/use-user';
@@ -57,9 +60,11 @@ export default function ChatScreen() {
 
   if (!isAuthenticated) {
     return (
-      <SafeAreaView style={styles.container} edges={['top']}>
-        <GuestPromptOverlay />
-      </SafeAreaView>
+      <CosmicBackground>
+        <SafeAreaView style={styles.container} edges={['top']}>
+          <GuestPromptOverlay />
+        </SafeAreaView>
+      </CosmicBackground>
     );
   }
 
@@ -423,14 +428,17 @@ export default function ChatScreen() {
     return (
       <View style={[styles.messageBubble, isUser ? styles.userBubble : styles.aiBubble]}>
         {!isUser && (
-          <View style={styles.avatarContainer}>
-            <FontAwesome name="user-circle" size={14} color={colors.primary} />
+          <View style={styles.aiAvatarContainer}>
+            <MaterialCommunityIcons name="robot-outline" size={14} color={colors.primary} />
           </View>
         )}
         <View style={[styles.messageContent, isUser ? styles.userContent : styles.aiContent]}>
           <Text style={[styles.messageText, isUser && styles.userText]}>
             {item.content}
             {isStreaming && <Text style={styles.cursor}>|</Text>}
+          </Text>
+          <Text style={styles.messageTimestamp}>
+            {new Date(item.createdAt).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}
           </Text>
         </View>
       </View>
@@ -444,58 +452,49 @@ export default function ChatScreen() {
 
   if (isLoadingHistory) {
     return (
-      <SafeAreaView style={styles.container} edges={['top']}>
-        <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color={colors.primary} />
-        </View>
-      </SafeAreaView>
+      <CosmicBackground>
+        <SafeAreaView style={styles.container} edges={['top']}>
+          <View style={styles.loadingContainer}>
+            <ActivityIndicator size="large" color={colors.primary} />
+          </View>
+        </SafeAreaView>
+      </CosmicBackground>
     );
   }
 
   return (
-    <SafeAreaView style={styles.container} edges={['top']}>
-      <View style={styles.header}>
-        <View style={styles.headerLeft}>
-          <View style={[styles.statusDot, { backgroundColor: statusDotColor }]} />
-          <Text style={styles.headerTitle}>{user?.twinName || APP_NAME}</Text>
-          {isPro && connectionMode === 'websocket' && (
-            <View style={styles.modeBadge}>
-              <Text style={styles.modeBadgeText}>{t('chat.proLabel')}</Text>
+    <CosmicBackground>
+      <SafeAreaView style={styles.container} edges={['top']}>
+        <View style={styles.header}>
+          <View style={styles.headerLeft}>
+            <View style={styles.avatarWrapper}>
+              <MaterialCommunityIcons name="robot-outline" size={20} color={colors.primary} />
+            </View>
+            <Text style={styles.headerTitle}>{user?.twinName || APP_NAME}</Text>
+            <View style={[styles.statusDot, { backgroundColor: statusDotColor }]} />
+          </View>
+          {!isPro && (
+            <View style={styles.remainingBadge}>
+              <Text style={styles.remainingBadgeText}>
+                {Math.max(0, FREE_DAILY_LIMIT - todayUserCount)}
+              </Text>
             </View>
           )}
         </View>
-        {!isPro && (
-          <TouchableOpacity
-            style={styles.upgradeButton}
-            onPress={() => router.push('/(paywall)' as never)}>
-            <Text style={styles.upgradeText}>{t('chat.proLabel')}</Text>
-          </TouchableOpacity>
+
+        {!isOnline && (
+          <View style={styles.offlineBanner}>
+            <Feather name="wifi-off" size={12} color={colors.error} />
+            <Text style={styles.offlineText}>{t('chat.offline')}</Text>
+          </View>
         )}
-      </View>
 
-      {!isPro && (
-        <View style={styles.limitBanner}>
-          <Text style={styles.limitText}>
-            {isAtLimit
-              ? t('chat.upgradePrompt')
-              : t('chat.remainingCount', { count: Math.max(0, FREE_DAILY_LIMIT - todayUserCount) })}
-          </Text>
-        </View>
-      )}
-
-      {!isOnline && (
-        <View style={styles.offlineBanner}>
-          <FontAwesome name="wifi" size={12} color={colors.error} />
-          <Text style={styles.offlineText}>{t('chat.offline')}</Text>
-        </View>
-      )}
-
-      {isOnline && isPro && wsStatus === 'reconnecting' && (
-        <View style={styles.reconnectBanner}>
-          <ActivityIndicator size="small" color={colors.warning} />
-          <Text style={styles.reconnectText}>{t('chat.connectionStatus.reconnecting')}</Text>
-        </View>
-      )}
+        {isOnline && isPro && wsStatus === 'reconnecting' && (
+          <View style={styles.reconnectBanner}>
+            <ActivityIndicator size="small" color={colors.warning} />
+            <Text style={styles.reconnectText}>{t('chat.connectionStatus.reconnecting')}</Text>
+          </View>
+        )}
 
       <FlatList
         ref={flatListRef}
@@ -517,36 +516,42 @@ export default function ChatScreen() {
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         keyboardVerticalOffset={90}>
         <View style={styles.inputContainer}>
-          <TextInput
-            style={styles.textInput}
-            value={inputText}
-            onChangeText={setInputText}
-            placeholder={isAtLimit ? t('chat.inputPlaceholderAtLimit') : t('chat.inputPlaceholderDefault')}
-            placeholderTextColor={colors.textTertiary}
-            multiline
-            maxLength={CHAT.maxMessageLength}
-            editable={!isAtLimit}
-          />
-          <TouchableOpacity
-            style={[styles.sendButton, (!inputText.trim() || isLoading || !isOnline) && styles.sendButtonDisabled]}
-            onPress={handleSend}
-            disabled={!inputText.trim() || isLoading || !isOnline}>
-            <FontAwesome
-              name="send"
-              size={16}
-              color={inputText.trim() && !isLoading && isOnline ? colors.textInverse : colors.textTertiary}
+          <View style={styles.inputWrapper}>
+            <TextInput
+              style={styles.textInput}
+              value={inputText}
+              onChangeText={setInputText}
+              placeholder={isAtLimit ? t('chat.inputPlaceholderAtLimit') : t('chat.inputPlaceholderDefault')}
+              placeholderTextColor={colors.textTertiary}
+              multiline
+              maxLength={CHAT.maxMessageLength}
+              editable={!isAtLimit}
             />
-          </TouchableOpacity>
+            {inputText.trim() && !isLoading && isOnline ? (
+              <Pressable
+                style={styles.sendButton}
+                onPress={handleSend}>
+                <LinearGradient
+                  colors={sendGradient.colors}
+                  start={sendGradient.start}
+                  end={sendGradient.end}
+                  style={styles.sendGradient}>
+                  <Feather name="send" size={18} color={colors.text} />
+                </LinearGradient>
+              </Pressable>
+            ) : null}
+          </View>
         </View>
       </KeyboardAvoidingView>
-    </SafeAreaView>
+      </SafeAreaView>
+    </CosmicBackground>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.background,
+    backgroundColor: 'transparent',
   },
   loadingContainer: {
     flex: 1,
@@ -558,55 +563,45 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     paddingHorizontal: spacing.md,
-    paddingVertical: spacing.sm,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.border,
+    paddingVertical: spacing.md,
   },
   headerLeft: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: spacing.sm,
   },
+  avatarWrapper: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    borderWidth: 2,
+    borderColor: colors.primary,
+    backgroundColor: glassmorphism.input.bg,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  headerTitle: {
+    fontSize: fontSize.lg,
+    fontFamily: fontFamily.bold,
+    color: colors.text,
+  },
   statusDot: {
     width: 8,
     height: 8,
     borderRadius: 4,
   },
-  headerTitle: {
-    fontSize: fontSize.lg,
-    fontWeight: '700',
-    color: colors.text,
-  },
-  modeBadge: {
-    backgroundColor: colors.primary + '20',
-    paddingHorizontal: spacing.xs + 2,
-    paddingVertical: 1,
-    borderRadius: borderRadius.sm,
-  },
-  modeBadgeText: {
-    fontSize: fontSize.xs,
-    fontWeight: '600',
-    color: colors.primary,
-  },
-  upgradeButton: {
+  remainingBadge: {
     backgroundColor: colors.primary,
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.xs,
     borderRadius: borderRadius.full,
-  },
-  upgradeText: {
-    color: colors.textInverse,
-    fontSize: fontSize.sm,
-    fontWeight: '600',
-  },
-  limitBanner: {
-    backgroundColor: colors.surfaceSecondary,
+    paddingHorizontal: spacing.sm,
     paddingVertical: spacing.xs,
+    minWidth: 32,
     alignItems: 'center',
   },
-  limitText: {
-    fontSize: fontSize.xs,
-    color: colors.textSecondary,
+  remainingBadgeText: {
+    fontSize: fontSize.sm,
+    fontFamily: fontFamily.semiBold,
+    color: colors.textInverse,
   },
   offlineBanner: {
     flexDirection: 'row',
@@ -618,8 +613,8 @@ const styles = StyleSheet.create({
   },
   offlineText: {
     fontSize: fontSize.xs,
+    fontFamily: fontFamily.medium,
     color: colors.error,
-    fontWeight: '500',
   },
   reconnectBanner: {
     flexDirection: 'row',
@@ -631,8 +626,8 @@ const styles = StyleSheet.create({
   },
   reconnectText: {
     fontSize: fontSize.xs,
+    fontFamily: fontFamily.medium,
     color: colors.warning,
-    fontWeight: '500',
   },
   messageList: {
     paddingHorizontal: spacing.md,
@@ -650,11 +645,13 @@ const styles = StyleSheet.create({
   aiBubble: {
     justifyContent: 'flex-start',
   },
-  avatarContainer: {
-    width: 28,
-    height: 28,
-    borderRadius: 14,
-    backgroundColor: colors.surfaceSecondary,
+  aiAvatarContainer: {
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+    backgroundColor: glassmorphism.input.bg,
+    borderWidth: 1,
+    borderColor: colors.primary,
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: spacing.sm,
@@ -662,29 +659,45 @@ const styles = StyleSheet.create({
   messageContent: {
     maxWidth: '75%',
     paddingHorizontal: spacing.md,
-    paddingVertical: spacing.sm,
-    borderRadius: borderRadius.lg,
+    paddingVertical: spacing.sm + 2,
+    gap: spacing.xs,
   },
   userContent: {
-    backgroundColor: colors.primary,
-    marginLeft: 'auto',
-    borderBottomRightRadius: spacing.xs,
+    backgroundColor: glassmorphism.bubble.user.bg,
+    borderWidth: 1,
+    borderColor: glassmorphism.bubble.user.border,
+    borderTopLeftRadius: borderRadius.lg,
+    borderTopRightRadius: 4,
+    borderBottomRightRadius: borderRadius.lg,
+    borderBottomLeftRadius: borderRadius.lg,
   },
   aiContent: {
-    backgroundColor: colors.surfaceSecondary,
-    borderBottomLeftRadius: spacing.xs,
+    backgroundColor: glassmorphism.bubble.ai.bg,
+    borderWidth: 1,
+    borderColor: glassmorphism.bubble.ai.border,
+    borderTopLeftRadius: 4,
+    borderTopRightRadius: borderRadius.lg,
+    borderBottomRightRadius: borderRadius.lg,
+    borderBottomLeftRadius: borderRadius.lg,
   },
   messageText: {
     fontSize: fontSize.md,
+    fontFamily: fontFamily.regular,
     color: colors.text,
     lineHeight: 22,
   },
   userText: {
-    color: colors.textInverse,
+    color: colors.text,
+  },
+  messageTimestamp: {
+    fontSize: 11,
+    fontFamily: fontFamily.regular,
+    color: '#FFFFFF60',
+    alignSelf: 'flex-end',
   },
   cursor: {
     color: colors.primary,
-    fontWeight: '700',
+    fontFamily: fontFamily.bold,
   },
   typingIndicator: {
     flexDirection: 'row',
@@ -695,38 +708,46 @@ const styles = StyleSheet.create({
   },
   typingText: {
     fontSize: fontSize.sm,
+    fontFamily: fontFamily.regular,
     color: colors.textSecondary,
   },
   inputContainer: {
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.md,
+    backgroundColor: 'transparent',
+  },
+  inputWrapper: {
     flexDirection: 'row',
     alignItems: 'flex-end',
+    backgroundColor: glassmorphism.input.bg,
+    borderWidth: 1,
+    borderColor: glassmorphism.input.border,
+    borderRadius: borderRadius.full,
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.sm,
-    borderTopWidth: 1,
-    borderTopColor: colors.border,
-    backgroundColor: colors.background,
     gap: spacing.sm,
   },
   textInput: {
     flex: 1,
-    minHeight: 40,
+    minHeight: 24,
     maxHeight: 120,
-    backgroundColor: colors.surfaceSecondary,
-    borderRadius: borderRadius.xl,
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.sm,
     fontSize: fontSize.md,
+    fontFamily: fontFamily.regular,
     color: colors.text,
+    paddingTop: 0,
+    paddingBottom: 0,
   },
   sendButton: {
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: colors.primary,
+    overflow: 'hidden',
+  },
+  sendGradient: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
     justifyContent: 'center',
     alignItems: 'center',
-  },
-  sendButtonDisabled: {
-    backgroundColor: colors.surfaceSecondary,
   },
 });

@@ -122,13 +122,30 @@ Apple/Google Sign-Inを通じてSupabase Authと連携し、ユーザーの認�
 
 ## 画面仕様
 
-### ログイン画面 (app/(auth)/login.tsx)
+### ランディング画面 (app/(auth)/login.tsx — Landing部分: A-0)
+
+V4 Dark Premium デザイン適用。
+
+- 背景: CosmicBackground（宇宙背景 + `#0F172ACC` オーバーレイ）
+- 表示項目:
+  - 「AltMe」ロゴ + タグライン
+  - 3つの GlassCard フィーチャーカード（glassmorphism）
+  - GoldButton「ログインして始める」（`#E8C567`→`#C9A033`→`#A07B1A`グラデーション、高さ54px）
+  - ゲストブラウズリンク
+  - 法的リンク（利用規約・プライバシーポリシー）
+- アクション:
+  - GoldButton タップ → Login部分（A-1）に遷移
+  - ゲストリンクタップ → ゲストモード開始 → メインタブ
+
+### ログイン画面 (app/(auth)/login.tsx — Login部分: A-1)
+
+V4 Dark Premium デザイン適用。ランディングと同じ CosmicBackground を継続。
+
+- 背景: CosmicBackground（ランディングと共通）
 - 入力項目: なし（ソーシャルログインのみ）
 - 表示項目:
-  - アプリロゴ
-  - キャッチコピー
-  - 「Appleでサインイン」ボタン（iOS標準スタイル）
-  - 「Googleでサインイン」ボタン
+  - Apple Sign-In ボタン（白背景 `#FFFFFF`、黒テキスト `#000000`、Apple HIG準拠）
+  - Google Sign-In ボタン（白背景 `#FFFFFF`、灰ボーダー `#747775`、黒テキスト `#1F1F1F`、Googleブランドガイドライン準拠）
   - 利用規約・プライバシーポリシーリンク
   - devLoginボタン（__DEV__モードのみ）
 - アクション:
@@ -242,3 +259,4 @@ AppleのHuman Interface Guidelinesに準拠（既存実装通り）。
 | 日付 | 変更内容 | 理由 | 関連タスク |
 |------|---------|------|-----------|
 | 2026-02-16 | AC-2: Google Sign-In 実装方式を「Native SDK」に更新（`@react-native-google-signin/google-signin` 使用）<br>AC-4: SecureStore adapter + AppState listener 実装詳細を追記<br>AC-6: GuestPromptOverlay コンポーネント実装詳細を追記（`guest-prompt.tsx` 画面ではなくオーバーレイ形式） | Reconcile: Auth SDD 実装完了後の仕様書同期 | T042-T052 |
+| 2026-02-16 | ランディング画面（A-0）をログイン画面仕様から分離して追記<br>V4 Dark Premium UI 仕様を追記（CosmicBackground、GlassCardフィーチャーカード、GoldButton、Apple/Googleボタンのブランド準拠スタイル） | Reconcile: V4 Dark Premium UI 実装完了後の仕様書同期 | — |

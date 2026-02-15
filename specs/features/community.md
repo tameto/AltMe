@@ -422,6 +422,19 @@ Pro限定機能として最強の課金導線とする（Freeユーザーには�
 
 ### コミュニティ一覧画面 (`app/(tabs)/community.tsx`)
 
+#### V4 Dark Premium UIデザイン仕様（S-1）
+
+- **背景**: CosmicBackground（宇宙背景 + `#0F172ACC` オーバーレイ）
+- **言語スイッチャー**: glassmorphism ピル型タブ（JP/EN）
+- **ヘッダー**: 「人気のコミュニティ+」
+- **コミュニティカード**: GlassCard
+  - サムネイル（400x400px 正方形）
+  - コミュニティ名・参加人数・会話数
+- **Pro解放バナー（Freeユーザー）**: ぼかしオーバーレイ + 中央カード
+- **アップグレードボタン（Freeユーザー）**: GoldButton「Proにアップグレード」
+
+---
+
 **Proユーザー:**
 
 - 入力項目: なし（タップのみ）
@@ -447,13 +460,24 @@ Pro限定機能として最強の課金導線とする（Freeユーザーには�
   - 中央カード:
     - 「Proになってツイン同士の交流を楽しもう」見出し
     - 説明文（2-3行）
-    - 「Proにアップグレード」ボタン
+    - 「Proにアップグレード」ボタン（GoldButton）
 - アクション:
   - ボタンタップ → ペイウォール画面へ遷移
 
 ---
 
 ### コミュニティ作成画面 (`app/community/create.tsx`)
+
+#### V4 Dark Premium UIデザイン仕様（Sub-1）
+
+- **背景**: CosmicBackground
+- **フォームフィールド**: GlassCard（`input` variant）
+  - 名前入力・説明入力
+- **言語チップ**: glassmorphism ピル型チップ（JP/EN）
+- **カテゴリチップ**: glassmorphism ピル型チップ（5カテゴリ）
+- **作成ボタン**: GoldButton「作成」
+
+---
 
 - 入力項目:
   - 名前（TextInput、50文字以内、必須）
@@ -1111,3 +1135,4 @@ supabase/
 | 2026-02-15 | エージェント会話可視性追加（ハイライト/フィルター/プッシュ通知） | コミュニティ機能拡張 |
 | 2026-02-15 | 新テーブル追加: communities, community_members, community_messages | コミュニティチャンネル機能のデータ基盤 |
 | 2026-02-15 | US-7〜US-12、AC-7〜AC-11 追加 | 5新要件のユーザーストーリーと受け入れ条件 |
+| 2026-02-16 | コミュニティ一覧画面（S-1）にV4 Dark Premium UIデザイン仕様追記（CosmicBackground、glassmorphism言語スイッチャー、GlassCardコミュニティカード、GoldButtonアップグレードボタン）<br>コミュニティ作成画面（Sub-1）にV4 Dark Premium UIデザイン仕様追記（GlassCard入力フィールド、glassmorphismチップ、GoldButton作成ボタン） | Reconcile: V4 Dark Premium UI 実装完了後の仕様書同期 | — |

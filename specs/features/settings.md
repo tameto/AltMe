@@ -219,6 +219,20 @@
 ## 画面仕様
 
 ### 設定画面 (app/(tabs)/settings.tsx)
+
+#### V4 Dark Premium UIデザイン仕様（MyPage: S-3）
+
+- **背景**: CosmicBackground（宇宙背景 + `#0F172ACC` オーバーレイ）
+- **ユーザー情報カード**: GlassCard
+  - ユーザー表示名
+  - メールアドレス
+  - ゴールド Pro バッジ（課金中のみ表示、`#D4A853`）
+- **設定リスト**: GlassCard ベースのリストアイテム
+  - 各アイテム: アイコン（シアン `#7DD3FC`）+ ラベル + 右シェブロン
+  - セクション区切り: `#334155` ボーダー
+- **危険ゾーン**: 赤い「アカウントを削除」リンク（`#EF4444`）
+
+
 - 入力項目:
   - 表示名テキストフィールド
   - AIツイン名テキストフィールド
@@ -360,3 +374,4 @@
 | 2026-02-15 | AC-2をAIツイン設定（名前・アイコン・口調）に拡張<br>AIアイコン変更・口調変更機能追加<br>SOUL.md再生成トリガー明記<br>テスト観点・表示テストに追加 | V3 Liquid Glass: AIアイコン・口調カスタマイズ機能追加 | — |
 | 2026-02-15 | AC-2にMBTI入力（AC-2.4）追加<br>AC-8（プッシュ通知実装）、AC-9（通知設定メニュー）追加<br>notification_settings/push_tokensテーブル仕様追加<br>send-push-notification Edge Function追加<br>profiles.mbti_type カラム追加 | MBTI入力・プッシュ通知実装・通知設定メニュー追加 | — |
 | 2026-02-16 | AC-7: アカウント削除の画面パスを明記（`app/account-delete-confirm.tsx` モーダル）<br>削除処理の実装詳細を追記（Edge Function `delete-account`、削除順序: OpenClaw→RevenueCat→auth.admin.deleteUser）<br>設定画面からのアカウント削除導線を追記（設定一覧の最下部）<br>データ仕様に `delete-account` Edge Function 追加 | Reconcile: Auth SDD 実装完了後の仕様書同期 | T042-T052 |
+| 2026-02-16 | 設定画面（MyPage）にV4 Dark Premium UIデザイン仕様追記（CosmicBackground、GlassCardユーザー情報カード、GlassCard設定リスト、ゴールドProバッジ、赤いアカウント削除リンク） | Reconcile: V4 Dark Premium UI 実装完了後の仕様書同期 | — |

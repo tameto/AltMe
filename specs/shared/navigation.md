@@ -243,6 +243,33 @@ Root Layout（app/_layout.tsx）で以下の条件分岐を実装する。
 
 ---
 
+## 7. タブバーデザイン仕様（V4 Dark Premium）
+
+### タブバースタイリング（tabBarColors トークン）
+
+```typescript
+tabBarColors: {
+  background: '#0F172AEE',   // ダークネイビー半透明
+  active: '#00D4FF',         // シアン（アクティブタブアイコン/ラベル）
+  inactive: '#64748B',       // グレー（非アクティブタブ）
+  border: '#1E293B',         // 上部ボーダーライン
+}
+```
+
+### タブアイコン
+- ライブラリ: `lucide-react-native`
+- アクティブサイズ: 24pt
+- タップターゲット: 44pt 以上
+
+| タブ | アイコン | パス |
+|-----|---------|-----|
+| チャット | MessageCircle | `(tabs)/index.tsx` |
+| コミュニティ | Users | `(tabs)/community.tsx` |
+| ツイン情報 | User | `(tabs)/twin.tsx` |
+| 設定 | Settings | `(tabs)/settings.tsx` |
+
+---
+
 ## 変更履歴
 | 日付 | 変更内容 | 理由 | 関連タスク |
 |------|---------|------|-----------|
@@ -250,3 +277,4 @@ Root Layout（app/_layout.tsx）で以下の条件分岐を実装する。
 | 2026-02-15 | オンボーディング: 4画面→6画面に変更<br>新画面追加: choose-avatar.tsx (4/6), choose-tone.tsx (5/6)<br>ツイン対面を #6に変更<br>画面遷移図更新 | V3 Liquid Glass: オンボーディングにアイコン・口調選択を追加 | — |
 | 2026-02-15 | ゲストブラウズモード追加（未認証でもコミュニティ閲覧可能）<br>ゲスト促進画面（guest-prompt.tsx）追加<br>設定サブ画面3つ追加: notifications, mbti, twin-name<br>コミュニティ作成画面追加: community/create<br>ルーティングガード更新（guest/authenticated/subscriberの3レベル）<br>画面数: 14→19に更新 | 新機能対応: ゲストブラウズ、通知設定、MBTI、コミュニティ作成 | — |
 | 2026-02-16 | ゲストブラウズモード実装詳細を更新:<br>`guest-prompt.tsx` 画面を削除 → `GuestPromptOverlay` コンポーネント（オーバーレイ形式）に変更<br>タブ各画面内で `isAuthenticated` 判定して条件分岐表示<br>`auth-store` に `isGuest: boolean` と `enterGuestMode()` 追加<br>ルーティングガード詳細を追記（未認証かつゲストでない/ゲストモード/認証済み） | Reconcile: Auth SDD 実装完了後の仕様書同期 | T042-T052 |
+| 2026-02-16 | タブバーデザイン仕様追加（V4 Dark Premium）<br>tabBarColors トークン定義追記（background/active/inactive/border）<br>タブアイコン仕様追記（lucide-react-native） | Reconcile: V4 Dark Premium UI 実装完了後の仕様書同期 | — |

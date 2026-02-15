@@ -727,7 +727,18 @@ src/
 
 ### チャット画面 (`app/(tabs)/index.tsx`)
 
-- ヘッダー: AIツイン名 + 接続状態インジケーター
+#### V4 Dark Premium UIデザイン仕様
+
+- **背景**: CosmicBackground（宇宙背景 + `#0F172ACC` オーバーレイ）
+- **ヘッダー**: AIツイン名 + オンライン状態インジケーター（`#34D399`）+ Freeユーザー残回数表示
+- **カテゴリタグ行**: glassmorphism pill スタイルのトピックタブ（ヘッダー下）
+- **AIメッセージバブル**: GlassCard（`bubbleAi` variant: `rgba(30, 41, 59, 0.7)` + `blur(12px)`）、左寄せ、アイコン付き、タイムスタンプ
+- **ユーザーメッセージバブル**: GlassCard（`bubbleUser` variant: `rgba(125, 211, 252, 0.25)`）、右寄せ
+- **送信ボタン**: sendGradient（`#7DD3FC`→`#38BDF8`）LinearGradient
+- **入力バー**: GlassCard（`input` variant: `rgba(30, 41, 59, 0.8)`）
+
+#### 機能仕様
+
 - メッセージ一覧: FlatList、下方向スクロール、最新メッセージが下
   - **日記統合ビュー**: 通常チャットと振り返りメッセージが混在
   - 振り返りメッセージには📝バッジを左上に表示
@@ -748,7 +759,8 @@ src/
 - 翻訳: コンテキストメニューから翻訳 → メッセージ下に折りたたみ表示
 - 最新メッセージに戻るFAB: 上方向スクロール時に「↓」ボタン表示（未読バッジ付き）
 - 未読バッジ: タブバーに未読数表示、画面表示時に自動既読
-- Freeユーザー: 残り回数バッジ表示
+- Freeユーザー: 残り回数バッジ表示（ヘッダーに表示）
+- Proユーザー: WebSocket接続インジケータ表示、残回数非表示
 - ストリーミング中: タイピングインジケーター + deltaテキスト表示
 
 ### 初回チャット (`app/(onboarding)/meet-twin.tsx`)
@@ -972,3 +984,4 @@ Content-Type: application/json
 | 2026-02-14 | journal_entries.mood参照削除 | mood_recordsがSSoT（Clarify Phase Q3決定）|
 | 2026-02-15 | トピックタブ機能追加（#日常, #仕事, #振り返り, #相談）<br>chat_messages.topic_id カラム追記（DEFAULT: 'daily'）<br>AC-9→AC-10に変更、AC-9にトピック機能を追加<br>Slackライクメッセージ構造・日付セパレーター仕様追加 | V3 Liquid Glass: トピックタブ・メッセージ構造リデザイン | — |
 | 2026-02-15 | 9要件追加: 画像送信(AC-11)、マークダウン表示(AC-12)、マークダウン入力(AC-13)、コピペ(AC-14)、動画・音声(AC-15)、未読/既読(AC-16)、最新メッセージFAB(AC-17)、OGP表示(AC-18)、翻訳(AC-19)。chat_messages に is_read/read_at カラム追加。メタデータに attachments/ogp/translation 追加。fetch-ogp/translate-message Edge Function追加。メディアアップロード仕様追加 | チャットリッチ化 | — |
+| 2026-02-16 | チャット画面にV4 Dark Premium UIデザイン仕様追記（CosmicBackground、AIバブル glassmorphism bubbleAi、ユーザーバブル glassmorphism bubbleUser、sendGradient 送信ボタン、input GlassCard 入力バー、Proユーザー WebSocket接続インジケータ） | Reconcile: V4 Dark Premium UI 実装完了後の仕様書同期 | — |

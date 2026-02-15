@@ -197,7 +197,8 @@
         "personalityAnalysis": "詳細性格分析",
         "journalReflection": "日記 + AI振り返り",
         "emotionTracking": "感情トラッキング",
-        "aiInsights": "AI洞察レポート"
+        "aiInsights": "AI洞察レポート",
+        "unlimitedChat": "無制限チャット"
       },
       "plans": {
         "monthly": "月額",

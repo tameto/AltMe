@@ -9,16 +9,17 @@ import {
   Platform,
 } from 'react-native';
 import FontAwesome from '@expo/vector-icons/FontAwesome';
+import Feather from '@expo/vector-icons/Feather';
 import { useTranslation } from 'react-i18next';
 
-import { colors, spacing, fontSize, borderRadius } from '@/src/config/theme';
+import { colors, spacing, fontSize, borderRadius, fontFamily } from '@/src/config/theme';
 import { useAuthStore } from '@/src/features/auth/stores/auth-store';
 
 const FEATURE_KEYS = [
-  { icon: 'comments' as const, key: 'guest.features.chat' },
+  { icon: 'message-circle' as const, key: 'guest.features.chat' },
   { icon: 'user' as const, key: 'guest.features.quiz' },
-  { icon: 'book' as const, key: 'guest.features.journal' },
-  { icon: 'line-chart' as const, key: 'guest.features.insights' },
+  { icon: 'book-open' as const, key: 'guest.features.journal' },
+  { icon: 'trending-up' as const, key: 'guest.features.insights' },
 ];
 
 export function GuestPromptOverlay() {
@@ -60,10 +61,10 @@ export function GuestPromptOverlay() {
         <View style={styles.featureList}>
           {FEATURE_KEYS.map((feature) => (
             <View key={feature.key} style={styles.featureRow}>
-              <FontAwesome
+              <Feather
                 name={feature.icon}
                 size={16}
-                color={colors.textTertiary}
+                color={colors.primary}
               />
               <Text style={styles.featureLabel}>{t(feature.key)}</Text>
             </View>
@@ -124,18 +125,21 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: fontSize.xl,
-    fontWeight: '700',
+    fontFamily: fontFamily.bold,
     color: colors.text,
     marginBottom: spacing.sm,
   },
   subtitle: {
     fontSize: fontSize.md,
+    fontFamily: fontFamily.regular,
     color: colors.textSecondary,
   },
   featureList: {
     width: '100%',
-    backgroundColor: colors.surfaceSecondary,
+    backgroundColor: '#FFFFFF08',
     borderRadius: borderRadius.lg,
+    borderWidth: 1,
+    borderColor: '#FFFFFF15',
     padding: spacing.md,
     marginBottom: spacing.xl,
     gap: spacing.md,
@@ -147,7 +151,8 @@ const styles = StyleSheet.create({
   },
   featureLabel: {
     fontSize: fontSize.md,
-    color: colors.textTertiary,
+    fontFamily: fontFamily.regular,
+    color: '#94A3B8',
   },
   buttons: {
     width: '100%',
@@ -155,30 +160,28 @@ const styles = StyleSheet.create({
   },
   appleButton: {
     backgroundColor: '#000000',
-    borderRadius: borderRadius.md,
-    paddingVertical: spacing.md,
+    borderRadius: 14,
     alignItems: 'center',
-    height: 52,
+    height: 54,
     justifyContent: 'center',
   },
   appleButtonText: {
     color: '#FFFFFF',
     fontSize: fontSize.md,
-    fontWeight: '600',
+    fontFamily: fontFamily.semiBold,
   },
   googleButton: {
     backgroundColor: '#FFFFFF',
-    borderRadius: borderRadius.md,
-    paddingVertical: spacing.md,
+    borderRadius: 14,
     alignItems: 'center',
     borderWidth: 1,
-    borderColor: '#747775',
-    height: 52,
+    borderColor: '#7DD3FC80',
+    height: 54,
     justifyContent: 'center',
   },
   googleButtonText: {
     color: '#1F1F1F',
     fontSize: fontSize.md,
-    fontWeight: '600',
+    fontFamily: fontFamily.semiBold,
   },
 });

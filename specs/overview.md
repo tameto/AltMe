@@ -405,9 +405,90 @@ altme/
 
 ---
 
+## デザインシステム（V4 Dark Premium）
+
+### デザインコンセプト
+V4 Dark Premium Redesign: ダークコスミックテーマ + glassmorphism + ゴールドCTA の統一されたデザインシステム。
+全19画面（認証2、チャット3、タブ3、オンボーディング6、ペイウォール1、モーダル3、サブ1）に適用。
+
+### カラートークン（src/config/theme.ts）
+
+| トークン | 値 | 用途 |
+|---------|-----|------|
+| background | `#0F172A` | 全画面ベース背景 |
+| backgroundSecondary | `#131C2E` | セカンダリ背景 |
+| surface | `#1E293B` | カード・入力欄背景 |
+| primary | `#7DD3FC` | アクティブ要素・リンク・インジケータ |
+| primaryLight | `#BAE6FD` | ホバー・ライト |
+| accent / gold | `#D4A853` | CTA ボタン・バッジ |
+| text | `#F8FAFC` | プライマリテキスト |
+| textSecondary | `#94A3B8` | セカンダリテキスト |
+| textTertiary | `#64748B` | ターシャリテキスト |
+| border | `#334155` | ボーダー |
+| success | `#34D399` | 成功・オンライン |
+| error | `#EF4444` | エラー・削除 |
+| warning | `#F59E0B` | 警告 |
+
+### 新規デザイントークン（src/config/theme.ts）
+
+```typescript
+glassmorphism: {
+  card:       { bg: 'rgba(30, 41, 59, 0.6)', border: 'rgba(248, 250, 252, 0.1)', blur: 16 },
+  bubbleAi:   { bg: 'rgba(30, 41, 59, 0.7)', border: 'rgba(248, 250, 252, 0.08)', blur: 12 },
+  bubbleUser: { bg: 'rgba(125, 211, 252, 0.25)', border: 'rgba(125, 211, 252, 0.4)', blur: 8 },
+  input:      { bg: 'rgba(30, 41, 59, 0.8)', border: 'rgba(248, 250, 252, 0.15)', blur: 10 },
+}
+goldGradient: ['#E8C567', '#C9A033', '#A07B1A']  // 3-stop
+sendGradient: ['#7DD3FC', '#38BDF8']
+tabBarColors: {
+  background: '#0F172AEE',
+  active: '#00D4FF',
+  inactive: '#64748B',
+  border: '#1E293B',
+}
+fontFamily: {
+  regular: 'Outfit_400Regular',
+  medium: 'Outfit_500Medium',
+  semiBold: 'Outfit_600SemiBold',
+  bold: 'Outfit_700Bold',
+}
+```
+
+### 新規共通コンポーネント（src/shared/components/）
+
+| コンポーネント | ファイル | 用途 |
+|--------------|---------|------|
+| CosmicBackground | `cosmic-background.tsx` | 全画面共通の宇宙背景（ImageBackground + `#0F172ACC` オーバーレイ） |
+| GlassCard | `glass-card.tsx` | BlurView glassmorphism カード（variants: default/ai-bubble/user-bubble/input） |
+| GoldButton | `gold-button.tsx` | LinearGradient CTA ボタン（`#E8C567`→`#C9A033`→`#A07B1A`、高さ54px、角丸22px） |
+
+### 追加パッケージ
+- `expo-blur` — BlurView（glassmorphism エフェクト）
+- `expo-linear-gradient` — LinearGradient（ゴールドCTA・センドグラデーション）
+- `@expo-google-fonts/outfit` — Outfit フォントファミリー
+
+### タイポグラフィスケール
+
+| 用途 | サイズ | Weight |
+|------|-------|--------|
+| ヒーロータイトル | 40px | 700 (Bold) |
+| セクションタイトル | 24px | 700 (Bold) |
+| カードタイトル | 18px | 600 (SemiBold) |
+| 本文 | 16px | 400 (Regular) |
+| キャプション | 14px | 400 (Regular) |
+| ラベル | 12px | 500 (Medium) |
+
+### Cosmic背景
+- 全画面共通の星空/ネビュラ背景画像
+- オーバーレイ: `#0F172ACC`（80% opacity）
+- フォールバック背景色: `#0F172A`
+
+---
+
 ## 変更履歴
 | 日付 | 変更内容 | 理由 | 関連タスク |
 |------|---------|------|-----------|
 | 2026-02-14 | タブ構成を3タブから4タブに変更（Chat/Community/Twin Info/Settings）<br>日記機能をチャットに統合<br>洞察機能をツイン情報に統合<br>コミュニティ機能追加（Pro限定、AIツイン同士の会話観察）<br>アカウント削除機能追加<br>ソーシャル機能方針変更（ユーザー同士のDM・フォローなし） | Reconcile: 製品方針の変更に伴う仕様更新 | — |
 | 2026-02-15 | オンボーディング: 4画面→6画面に変更<br>新画面追加: choose-avatar.tsx (4), choose-tone.tsx (5)<br>画面一覧更新<br>ディレクトリ構成にchoose-avatar.tsx, choose-tone.tsx追記 | V3 Liquid Glass: AIアイコン・口調カスタマイズ機能追加 | — |
 | 2026-02-15 | ゲストブラウズモード追加<br>Web版課金（Stripe）追加<br>トークン管理追加<br>API Key保護原則追加<br>Googleロゴ規約準拠追加<br>「やらないこと」からWeb版を変更（課金のみWeb対応） | 7新要件の反映 | — |
+| 2026-02-16 | デザインシステムセクション追加（V4 Dark Premium）<br>カラートークン・glassmorphism・goldGradient・sendGradient・tabBarColors・fontFamily追記<br>新規共通コンポーネント（CosmicBackground/GlassCard/GoldButton）追記<br>追加パッケージ（expo-blur/expo-linear-gradient/@expo-google-fonts/outfit）追記<br>タイポグラフィスケール追記 | Reconcile: V4 Dark Premium UI 実装完了後の仕様書同期 | — |

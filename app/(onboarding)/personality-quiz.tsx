@@ -3,7 +3,9 @@ import { useRef, useCallback } from 'react';
 import { router } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
-import { colors, spacing, fontSize, borderRadius } from '@/src/config/theme';
+import Feather from '@expo/vector-icons/Feather';
+import { CosmicBackground } from '@/src/shared/components/cosmic-background';
+import { colors, spacing, fontFamily, borderRadius } from '@/src/config/theme';
 import { ONBOARDING_QUESTION_COUNT } from '@/src/config/constants';
 import {
   useOnboardingStore,
@@ -134,145 +136,154 @@ export default function PersonalityQuizScreen() {
   };
 
   return (
-    <SafeAreaView style={styles.container}>
-      <View style={styles.content}>
-        <View style={styles.header}>
-          <Pressable
-            style={styles.backButton}
-            onPress={handleBack}
-            disabled={isFirstQuestion}
-          >
-            <Text
-              style={[
-                styles.backButtonText,
-                isFirstQuestion && styles.backButtonDisabled,
-              ]}
+    <CosmicBackground>
+      <SafeAreaView style={styles.container}>
+        <View style={styles.content}>
+          <View style={styles.header}>
+            <Pressable
+              style={styles.backButton}
+              onPress={handleBack}
+              disabled={isFirstQuestion}
             >
-              {'\u2190 '}{t('common.back')}
+              <Feather
+                name="arrow-left"
+                size={24}
+                color={isFirstQuestion ? '#64748B' : '#F8FAFC'}
+              />
+            </Pressable>
+            <Text style={styles.counter}>
+              性格診断 {currentStep + 1}/{ONBOARDING_QUESTION_COUNT}
             </Text>
-          </Pressable>
-          <Text style={styles.counter}>
-            {currentStep + 1} / {ONBOARDING_QUESTION_COUNT}
-          </Text>
-        </View>
-
-        <View style={styles.progressBar}>
-          <View style={[styles.progressFill, { width: `${progress * 100}%` }]} />
-        </View>
-
-        <Animated.View style={[styles.questionContainer, { opacity: fadeAnim }]}>
-          <Text style={styles.question}>{currentQuestion.question}</Text>
-
-          <View style={styles.options}>
-            {currentQuestion.options.map((option) => {
-              const isSelected = answers.find(
-                (a) => a.questionId === currentQuestion.id,
-              )?.answer === option.value;
-
-              return (
-                <Pressable
-                  key={option.value}
-                  style={[
-                    styles.optionButton,
-                    isSelected && styles.optionButtonSelected,
-                  ]}
-                  onPress={() => handleSelect(option.value)}
-                >
-                  <Text
-                    style={[
-                      styles.optionText,
-                      isSelected && styles.optionTextSelected,
-                    ]}
-                  >
-                    {option.label}
-                  </Text>
-                </Pressable>
-              );
-            })}
+            <View style={styles.placeholder} />
           </View>
-        </Animated.View>
-      </View>
-    </SafeAreaView>
+
+          <View style={styles.progressBar}>
+            <View style={[styles.progressFill, { width: `${progress * 100}%` }]} />
+          </View>
+
+          <Animated.View style={[styles.questionContainer, { opacity: fadeAnim }]}>
+            <Text style={styles.questionNumber}>Q{currentStep + 1}</Text>
+            <Text style={styles.question}>{currentQuestion.question}</Text>
+
+            <View style={styles.options}>
+              {currentQuestion.options.map((option, index) => {
+                const isSelected = answers.find(
+                  (a) => a.questionId === currentQuestion.id,
+                )?.answer === option.value;
+
+                const optionLabel = String.fromCharCode(65 + index); // A, B, C, D
+
+                return (
+                  <Pressable
+                    key={option.value}
+                    style={[
+                      styles.optionButton,
+                      isSelected && styles.optionButtonSelected,
+                    ]}
+                    onPress={() => handleSelect(option.value)}
+                  >
+                    <Text
+                      style={[
+                        styles.optionText,
+                        isSelected && styles.optionTextSelected,
+                      ]}
+                    >
+                      <Text style={styles.optionPrefix}>{optionLabel}. </Text>
+                      {option.label}
+                    </Text>
+                  </Pressable>
+                );
+              })}
+            </View>
+          </Animated.View>
+        </View>
+      </SafeAreaView>
+    </CosmicBackground>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.background,
   },
   content: {
     flex: 1,
-    padding: spacing.xl,
+    paddingHorizontal: spacing.xl,
   },
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: spacing.md,
+    marginTop: spacing.md,
+    marginBottom: spacing.lg,
   },
   backButton: {
-    paddingVertical: spacing.xs,
-    paddingRight: spacing.md,
-  },
-  backButtonText: {
-    fontSize: fontSize.md,
-    color: colors.primary,
-    fontWeight: '500',
-  },
-  backButtonDisabled: {
-    opacity: 0.3,
+    padding: spacing.xs,
+    width: 40,
+    alignItems: 'flex-start',
   },
   counter: {
-    fontSize: fontSize.sm,
-    color: colors.textSecondary,
+    fontFamily: fontFamily.semiBold,
+    fontSize: 16,
+    color: '#F8FAFC',
+  },
+  placeholder: {
+    width: 40,
   },
   progressBar: {
     height: 6,
-    backgroundColor: colors.border,
-    borderRadius: 3,
+    backgroundColor: '#FFFFFF15',
+    borderRadius: 9999,
     marginBottom: spacing.xxl,
     overflow: 'hidden',
   },
   progressFill: {
     height: '100%',
-    backgroundColor: colors.primary,
-    borderRadius: 3,
+    backgroundColor: '#7DD3FC',
+    borderRadius: 9999,
   },
   questionContainer: {
     flex: 1,
-    justifyContent: 'center',
+    paddingTop: spacing.xxl,
+  },
+  questionNumber: {
+    fontFamily: fontFamily.bold,
+    fontSize: 32,
+    color: '#7DD3FC',
+    marginBottom: spacing.md,
   },
   question: {
-    fontSize: fontSize.xl,
-    fontWeight: '700',
-    color: colors.text,
-    textAlign: 'center',
+    fontFamily: fontFamily.regular,
+    fontSize: 18,
+    color: '#F8FAFC',
     marginBottom: spacing.xxl,
-    lineHeight: 34,
+    lineHeight: 28,
   },
   options: {
     gap: spacing.md,
   },
   optionButton: {
-    backgroundColor: colors.surface,
-    borderRadius: borderRadius.md,
-    padding: spacing.lg,
-    borderWidth: 2,
-    borderColor: colors.border,
+    backgroundColor: '#FFFFFF12',
+    borderRadius: 12,
+    paddingVertical: 16,
+    paddingHorizontal: 20,
+    borderWidth: 1,
+    borderColor: '#FFFFFF25',
   },
   optionButtonSelected: {
-    borderColor: colors.primary,
-    backgroundColor: colors.primaryLight + '1A',
+    backgroundColor: '#FFFFFF',
+    borderColor: '#FFFFFF',
+  },
+  optionPrefix: {
+    fontFamily: fontFamily.semiBold,
   },
   optionText: {
-    fontSize: fontSize.md,
-    color: colors.text,
-    textAlign: 'center',
-    fontWeight: '500',
+    fontFamily: fontFamily.regular,
+    fontSize: 16,
+    color: '#F8FAFC',
+    lineHeight: 24,
   },
   optionTextSelected: {
-    color: colors.primary,
-    fontWeight: '700',
+    color: '#0F172A',
   },
 });

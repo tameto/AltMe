@@ -13,7 +13,9 @@ import { useState, useRef, useCallback, useEffect } from 'react';
 import { router } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
-import { colors, spacing, fontSize, borderRadius } from '@/src/config/theme';
+import { CosmicBackground } from '@/src/shared/components/cosmic-background';
+import { GoldButton } from '@/src/shared/components/gold-button';
+import { colors, spacing, fontFamily, borderRadius, glassmorphism } from '@/src/config/theme';
 import { useOnboardingStore } from '@/src/features/onboarding/stores/onboarding-store';
 import { useAuthStore } from '@/src/features/auth/stores/auth-store';
 import { useIsPro } from '@/src/shared/hooks/use-subscription';
@@ -196,9 +198,9 @@ export default function MeetTwinScreen() {
             isTwin ? styles.twinBubble : styles.userBubble,
           ]}
         >
-          {isTwin && (
+          {isTwin ? (
             <Text style={styles.twinLabel}>{t('onboarding.meetTwin.twinLabel')}</Text>
-          )}
+          ) : null}
           <Text
             style={[
               styles.messageText,
@@ -210,102 +212,103 @@ export default function MeetTwinScreen() {
         </View>
       );
     },
-    [],
+    [t],
   );
 
   const keyExtractor = useCallback((item: ChatMessage) => item.id, []);
 
   return (
-    <SafeAreaView style={styles.container} edges={['top', 'left', 'right']}>
-      <KeyboardAvoidingView
-        style={styles.keyboardAvoid}
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        keyboardVerticalOffset={0}
-      >
-        <View style={styles.header}>
-          <Text style={styles.headerTitle}>
-            {t('onboarding.meetTwin.title')}
-          </Text>
-          <Text style={styles.headerSubtitle}>
-            {t('onboarding.meetTwin.subtitle')}
-          </Text>
-        </View>
-
-        <FlatList
-          ref={flatListRef}
-          data={messages}
-          renderItem={renderMessage}
-          keyExtractor={keyExtractor}
-          style={styles.messageList}
-          contentContainerStyle={styles.messageListContent}
-          onContentSizeChange={() =>
-            flatListRef.current?.scrollToEnd({ animated: true })
-          }
-        />
-
-        {isLoading && (
-          <View style={styles.typingIndicator}>
-            <ActivityIndicator size="small" color={colors.primary} />
-            <Text style={styles.typingText}>
-              {t('onboarding.meetTwin.typing')}
+    <CosmicBackground>
+      <SafeAreaView style={styles.container} edges={['top', 'left', 'right']}>
+        <KeyboardAvoidingView
+          style={styles.keyboardAvoid}
+          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+          keyboardVerticalOffset={0}
+        >
+          <View style={styles.header}>
+            <Text style={styles.headerTitle}>
+              {t('onboarding.meetTwin.title')}
+            </Text>
+            <Text style={styles.headerSubtitle}>
+              {t('onboarding.meetTwin.subtitle')}
             </Text>
           </View>
-        )}
 
-        {chatEnded ? (
-          <View style={styles.endSection}>
-            <Pressable style={styles.paywallButton} onPress={handlePaywall}>
-              <Text style={styles.paywallButtonText}>
-                {t('onboarding.meetTwin.unlockButton')}
+          <FlatList
+            ref={flatListRef}
+            data={messages}
+            renderItem={renderMessage}
+            keyExtractor={keyExtractor}
+            style={styles.messageList}
+            contentContainerStyle={styles.messageListContent}
+            onContentSizeChange={() =>
+              flatListRef.current?.scrollToEnd({ animated: true })
+            }
+          />
+
+          {isLoading ? (
+            <View style={styles.typingIndicator}>
+              <ActivityIndicator size="small" color="#7DD3FC" />
+              <Text style={styles.typingText}>
+                {t('onboarding.meetTwin.typing')}
               </Text>
-            </Pressable>
-            <Pressable style={styles.skipButton} onPress={handleSkip}>
-              <Text style={styles.skipButtonText}>
-                {t('onboarding.meetTwin.skipButton')}
-              </Text>
-            </Pressable>
-          </View>
-        ) : (
-          <SafeAreaView edges={['bottom']} style={styles.inputSafeArea}>
-            <View style={styles.inputContainer}>
-              <TextInput
-                style={styles.textInput}
-                value={inputText}
-                onChangeText={setInputText}
-                placeholder={t('onboarding.meetTwin.inputPlaceholder')}
-                placeholderTextColor={colors.textTertiary}
-                multiline
-                maxLength={500}
-                returnKeyType="send"
-                onSubmitEditing={sendMessage}
-                blurOnSubmit={false}
-                editable={!isLoading}
+            </View>
+          ) : null}
+
+          {chatEnded ? (
+            <View style={styles.endSection}>
+              <GoldButton
+                title={t('onboarding.meetTwin.unlockButton')}
+                onPress={handlePaywall}
+                style={styles.unlockButton}
               />
-              <Pressable
-                style={[
-                  styles.sendButton,
-                  (!inputText.trim() || isLoading) && styles.sendButtonDisabled,
-                ]}
-                onPress={sendMessage}
-                disabled={!inputText.trim() || isLoading}
-              >
-                <Text style={styles.sendButtonText}>{t('onboarding.meetTwin.send')}</Text>
+              <Pressable style={styles.skipButton} onPress={handleSkip}>
+                <Text style={styles.skipButtonText}>
+                  {t('onboarding.meetTwin.skipButton')}
+                </Text>
               </Pressable>
             </View>
-            <Text style={styles.messageCounter}>
-              {t('onboarding.meetTwin.remaining', { count: MAX_FREE_EXCHANGES - userMessageCount })}
-            </Text>
-          </SafeAreaView>
-        )}
-      </KeyboardAvoidingView>
-    </SafeAreaView>
+          ) : (
+            <SafeAreaView edges={['bottom']} style={styles.inputSafeArea}>
+              <View style={styles.inputContainer}>
+                <TextInput
+                  style={styles.textInput}
+                  value={inputText}
+                  onChangeText={setInputText}
+                  placeholder={t('onboarding.meetTwin.inputPlaceholder')}
+                  placeholderTextColor="#64748B"
+                  multiline
+                  maxLength={500}
+                  returnKeyType="send"
+                  onSubmitEditing={sendMessage}
+                  blurOnSubmit={false}
+                  editable={!isLoading}
+                />
+                <Pressable
+                  style={[
+                    styles.sendButton,
+                    (!inputText.trim() || isLoading) && styles.sendButtonDisabled,
+                  ]}
+                  onPress={sendMessage}
+                  disabled={!inputText.trim() || isLoading}
+                >
+                  <Text style={styles.sendButtonText}>{t('onboarding.meetTwin.send')}</Text>
+                </Pressable>
+              </View>
+              <Text style={styles.messageCounter}>
+                {t('onboarding.meetTwin.remaining', { count: MAX_FREE_EXCHANGES - userMessageCount })}
+              </Text>
+            </SafeAreaView>
+          )}
+        </KeyboardAvoidingView>
+      </SafeAreaView>
+    </CosmicBackground>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.background,
   },
   keyboardAvoid: {
     flex: 1,
@@ -314,16 +317,17 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingVertical: spacing.md,
     borderBottomWidth: 1,
-    borderBottomColor: colors.border,
+    borderBottomColor: glassmorphism.card.border,
   },
   headerTitle: {
-    fontSize: fontSize.lg,
-    fontWeight: '700',
-    color: colors.text,
+    fontFamily: fontFamily.semiBold,
+    fontSize: 18,
+    color: '#F8FAFC',
   },
   headerSubtitle: {
-    fontSize: fontSize.xs,
-    color: colors.textSecondary,
+    fontFamily: fontFamily.regular,
+    fontSize: 12,
+    color: '#94A3B8',
     marginTop: spacing.xs / 2,
   },
   messageList: {
@@ -335,34 +339,37 @@ const styles = StyleSheet.create({
   },
   messageBubble: {
     maxWidth: '80%',
-    borderRadius: borderRadius.lg,
+    borderRadius: borderRadius.md,
     padding: spacing.md,
   },
   twinBubble: {
     alignSelf: 'flex-start',
-    backgroundColor: colors.surface,
+    backgroundColor: glassmorphism.bubble.ai.bg,
     borderWidth: 1,
-    borderColor: colors.border,
+    borderColor: glassmorphism.bubble.ai.border,
   },
   userBubble: {
     alignSelf: 'flex-end',
-    backgroundColor: colors.primary,
+    backgroundColor: glassmorphism.bubble.user.bg,
+    borderWidth: 1,
+    borderColor: glassmorphism.bubble.user.border,
   },
   twinLabel: {
-    fontSize: fontSize.xs,
-    fontWeight: '600',
-    color: colors.primary,
+    fontFamily: fontFamily.semiBold,
+    fontSize: 11,
+    color: '#7DD3FC',
     marginBottom: spacing.xs,
   },
   messageText: {
-    fontSize: fontSize.md,
-    lineHeight: 24,
+    fontFamily: fontFamily.regular,
+    fontSize: 15,
+    lineHeight: 22,
   },
   twinMessageText: {
-    color: colors.text,
+    color: '#F8FAFC',
   },
   userMessageText: {
-    color: colors.textInverse,
+    color: '#F8FAFC',
   },
   typingIndicator: {
     flexDirection: 'row',
@@ -372,12 +379,13 @@ const styles = StyleSheet.create({
     gap: spacing.sm,
   },
   typingText: {
-    fontSize: fontSize.sm,
-    color: colors.textSecondary,
+    fontFamily: fontFamily.regular,
+    fontSize: 14,
+    color: '#94A3B8',
   },
   inputSafeArea: {
     borderTopWidth: 1,
-    borderTopColor: colors.border,
+    borderTopColor: glassmorphism.card.border,
   },
   inputContainer: {
     flexDirection: 'row',
@@ -387,62 +395,56 @@ const styles = StyleSheet.create({
   },
   textInput: {
     flex: 1,
-    backgroundColor: colors.surface,
-    borderRadius: borderRadius.lg,
+    backgroundColor: glassmorphism.input.bg,
+    borderRadius: borderRadius.md,
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.sm,
-    fontSize: fontSize.md,
-    color: colors.text,
+    fontFamily: fontFamily.regular,
+    fontSize: 15,
+    color: '#F8FAFC',
     maxHeight: 100,
     borderWidth: 1,
-    borderColor: colors.border,
+    borderColor: glassmorphism.input.border,
   },
   sendButton: {
-    backgroundColor: colors.primary,
-    borderRadius: borderRadius.lg,
+    backgroundColor: '#7DD3FC',
+    borderRadius: borderRadius.md,
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.sm,
     justifyContent: 'center',
+    height: 40,
   },
   sendButtonDisabled: {
     opacity: 0.4,
   },
   sendButtonText: {
-    color: colors.textInverse,
-    fontSize: fontSize.sm,
-    fontWeight: '600',
+    fontFamily: fontFamily.semiBold,
+    color: '#0F172A',
+    fontSize: 14,
   },
   messageCounter: {
     textAlign: 'center',
-    fontSize: fontSize.xs,
-    color: colors.textTertiary,
+    fontFamily: fontFamily.regular,
+    fontSize: 12,
+    color: '#64748B',
     paddingBottom: spacing.sm,
   },
   endSection: {
     padding: spacing.xl,
     alignItems: 'center',
     borderTopWidth: 1,
-    borderTopColor: colors.border,
+    borderTopColor: glassmorphism.card.border,
   },
-  paywallButton: {
-    backgroundColor: colors.primary,
-    borderRadius: borderRadius.lg,
-    paddingVertical: spacing.lg,
-    paddingHorizontal: spacing.xxl,
-    alignItems: 'center',
+  unlockButton: {
     alignSelf: 'stretch',
     marginBottom: spacing.md,
-  },
-  paywallButtonText: {
-    color: colors.textInverse,
-    fontSize: fontSize.lg,
-    fontWeight: '700',
   },
   skipButton: {
     paddingVertical: spacing.sm,
   },
   skipButtonText: {
-    color: colors.textSecondary,
-    fontSize: fontSize.md,
+    fontFamily: fontFamily.regular,
+    color: '#94A3B8',
+    fontSize: 15,
   },
 });

@@ -1,12 +1,13 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert, Linking, ActivityIndicator, Pressable, Platform } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import FontAwesome from '@expo/vector-icons/FontAwesome';
+import Feather from '@expo/vector-icons/Feather';
 import { useRouter } from 'expo-router';
 import Constants from 'expo-constants';
 import { useTranslation } from 'react-i18next';
 
-import { colors, spacing, borderRadius, fontSize } from '@/src/config/theme';
+import { CosmicBackground } from '@/src/shared/components/cosmic-background';
+import { colors, spacing, borderRadius, fontSize, fontFamily } from '@/src/config/theme';
 import { useSubscription, useIsPro } from '@/src/shared/hooks/use-subscription';
 import { useUser } from '@/src/shared/hooks/use-user';
 import { useAuthStore } from '@/src/features/auth/stores/auth-store';
@@ -24,19 +25,19 @@ const HELP_URL = 'https://altme.app/help';
 const TERMS_URL = 'https://altme.app/terms';
 const PRIVACY_URL = 'https://altme.app/privacy';
 
-const STATUS_ICON_CONFIG: Record<OpenClawStatus, { labelKey: string; color: string; icon: React.ComponentProps<typeof FontAwesome>['name'] }> = {
-  provisioning: { labelKey: 'settings.instance.statusProvisioning', color: colors.warning, icon: 'clock-o' },
+const STATUS_ICON_CONFIG: Record<OpenClawStatus, { labelKey: string; color: string; icon: React.ComponentProps<typeof Feather>['name'] }> = {
+  provisioning: { labelKey: 'settings.instance.statusProvisioning', color: colors.warning, icon: 'clock' },
   running: { labelKey: 'settings.instance.statusRunning', color: colors.success, icon: 'check-circle' },
   stopped: { labelKey: 'settings.instance.statusStopped', color: colors.textTertiary, icon: 'stop-circle' },
-  error: { labelKey: 'settings.instance.statusError', color: colors.error, icon: 'exclamation-circle' },
-  destroying: { labelKey: 'settings.instance.statusDestroying', color: colors.warning, icon: 'clock-o' },
+  error: { labelKey: 'settings.instance.statusError', color: colors.error, icon: 'alert-circle' },
+  destroying: { labelKey: 'settings.instance.statusDestroying', color: colors.warning, icon: 'clock' },
 };
 
 const GUEST_FEATURE_KEYS = [
-  { icon: 'comments' as const, key: 'guest.features.chat' },
+  { icon: 'message-circle' as const, key: 'guest.features.chat' },
   { icon: 'user' as const, key: 'guest.features.quiz' },
   { icon: 'book' as const, key: 'guest.features.journal' },
-  { icon: 'line-chart' as const, key: 'guest.features.insights' },
+  { icon: 'bar-chart-2' as const, key: 'guest.features.insights' },
 ];
 
 function GuestSettingsScreen() {
@@ -69,67 +70,72 @@ function GuestSettingsScreen() {
   };
 
   return (
-    <SafeAreaView style={styles.container} edges={['top']}>
-      <ScrollView contentContainerStyle={styles.content}>
-        <Text style={styles.title}>{t('settings.settingsTitle')}</Text>
+    <CosmicBackground>
+      <SafeAreaView style={styles.container} edges={['top']}>
+        <ScrollView
+          contentContainerStyle={styles.content}
+          contentInsetAdjustmentBehavior="automatic"
+        >
+          <Text style={styles.title}>AltMe</Text>
 
-        <View style={styles.guestLoginCard}>
-          <Text style={styles.guestLoginTitle}>{t('guest.title')}</Text>
-          <Text style={styles.guestLoginSubtitle}>{t('guest.subtitle')}</Text>
+          <View style={styles.guestLoginCard}>
+            <Text style={styles.guestLoginTitle}>{t('guest.title')}</Text>
+            <Text style={styles.guestLoginSubtitle}>{t('guest.subtitle')}</Text>
 
-          <View style={styles.guestButtons}>
-            {Platform.OS === 'ios' && (
+            <View style={styles.guestButtons}>
+              {Platform.OS === 'ios' && (
+                <Pressable
+                  style={styles.guestAppleButton}
+                  onPress={handleAppleSignIn}
+                  disabled={isSigningIn !== null}>
+                  {isSigningIn === 'apple' ? (
+                    <ActivityIndicator color="#FFFFFF" />
+                  ) : (
+                    <Text style={styles.guestAppleButtonText}>
+                      <Feather name="smartphone" size={16} color="#FFFFFF" />
+                      {'  '}{t('auth.signInWithApple')}
+                    </Text>
+                  )}
+                </Pressable>
+              )}
+
               <Pressable
-                style={styles.guestAppleButton}
-                onPress={handleAppleSignIn}
+                style={styles.guestGoogleButton}
+                onPress={handleGoogleSignIn}
                 disabled={isSigningIn !== null}>
-                {isSigningIn === 'apple' ? (
-                  <ActivityIndicator color="#FFFFFF" />
+                {isSigningIn === 'google' ? (
+                  <ActivityIndicator color={colors.text} />
                 ) : (
-                  <Text style={styles.guestAppleButtonText}>
-                    <FontAwesome name="apple" size={16} color="#FFFFFF" />
-                    {'  '}{t('auth.signInWithApple')}
+                  <Text style={styles.guestGoogleButtonText}>
+                    <Feather name="globe" size={16} color={colors.text} />
+                    {'  '}{t('auth.signInWithGoogle')}
                   </Text>
                 )}
               </Pressable>
-            )}
-
-            <Pressable
-              style={styles.guestGoogleButton}
-              onPress={handleGoogleSignIn}
-              disabled={isSigningIn !== null}>
-              {isSigningIn === 'google' ? (
-                <ActivityIndicator color={colors.text} />
-              ) : (
-                <Text style={styles.guestGoogleButtonText}>
-                  <FontAwesome name="google" size={16} color={colors.text} />
-                  {'  '}{t('auth.signInWithGoogle')}
-                </Text>
-              )}
-            </Pressable>
-          </View>
-        </View>
-
-        <View style={styles.guestFeatureSection}>
-          <Text style={styles.sectionTitle}>{t('settings.guestLogin.availableFeatures')}</Text>
-          {GUEST_FEATURE_KEYS.map((feature) => (
-            <View key={feature.key} style={styles.guestFeatureRow}>
-              <FontAwesome name={feature.icon} size={18} color={colors.textTertiary} />
-              <Text style={styles.guestFeatureLabel}>{t(feature.key)}</Text>
             </View>
-          ))}
-        </View>
+          </View>
 
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>{t('settings.support.title')}</Text>
-          <SettingRow icon="question-circle" label={t('settings.support.help')} onPress={() => Linking.openURL(HELP_URL)} />
-          <SettingRow icon="file-text" label={t('settings.support.terms')} onPress={() => Linking.openURL(TERMS_URL)} />
-          <SettingRow icon="lock" label={t('settings.support.privacy')} onPress={() => Linking.openURL(PRIVACY_URL)} />
-        </View>
+          <View style={styles.guestFeatureSection}>
+            <Text style={styles.sectionTitle}>{t('settings.guestLogin.availableFeatures')}</Text>
+            {GUEST_FEATURE_KEYS.map((feature) => (
+              <View key={feature.key} style={styles.guestFeatureRow}>
+                <Feather name={feature.icon} size={18} color={colors.textTertiary} />
+                <Text style={styles.guestFeatureLabel}>{t(feature.key)}</Text>
+              </View>
+            ))}
+          </View>
 
-        <Text style={styles.version}>{APP_NAME} v{appVersion}</Text>
-      </ScrollView>
-    </SafeAreaView>
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>{t('settings.support.title')}</Text>
+            <SettingRow icon="help-circle" label={t('settings.support.help')} onPress={() => Linking.openURL(HELP_URL)} />
+            <SettingRow icon="file-text" label={t('settings.support.terms')} onPress={() => Linking.openURL(TERMS_URL)} />
+            <SettingRow icon="shield" label={t('settings.support.privacy')} onPress={() => Linking.openURL(PRIVACY_URL)} />
+          </View>
+
+          <Text style={styles.version}>{APP_NAME} v{appVersion}</Text>
+        </ScrollView>
+      </SafeAreaView>
+    </CosmicBackground>
   );
 }
 
@@ -326,257 +332,220 @@ export default function SettingsScreen() {
   };
 
   return (
-    <SafeAreaView style={styles.container} edges={['top']}>
-      <ScrollView contentContainerStyle={styles.content}>
-        <Text style={styles.title}>{t('settings.settingsTitle')}</Text>
+    <CosmicBackground>
+      <SafeAreaView style={styles.container} edges={['top']}>
+        <ScrollView
+          contentContainerStyle={styles.content}
+          contentInsetAdjustmentBehavior="automatic"
+        >
+          <Text style={styles.title}>AltMe</Text>
 
-        <View style={styles.profileCard}>
-          <View style={styles.avatar}>
-            <FontAwesome name="user" size={24} color={colors.primary} />
-          </View>
-          <View style={styles.profileInfo}>
-            <Text style={styles.profileName}>{user?.displayName || t('settings.guest')}</Text>
-            {user?.twinName ? (
-              <Text style={styles.twinNameLabel}>{t('settings.twinLabel', { name: user.twinName })}</Text>
-            ) : null}
-          </View>
-        </View>
-
-        <View style={styles.subscriptionCard}>
-          <View style={styles.subscriptionHeader}>
-            <Text style={styles.subscriptionTitle}>{isPro ? t('settings.proPlan') : t('settings.freePlan')}</Text>
-            {isPro && (
-              <View style={styles.proBadge}>
-                <Text style={styles.proBadgeText}>PRO</Text>
+          {/* Profile Card */}
+          <View style={styles.profileCard}>
+            <View style={styles.profileAvatar}>
+              <Feather name="user" size={28} color={colors.primary} />
+            </View>
+            <View style={styles.profileInfo}>
+              <View style={styles.profileNameRow}>
+                <Text style={styles.profileName}>{user?.displayName || t('settings.guest')}</Text>
+                {isPro && (
+                  <View style={styles.proBadge}>
+                    <Text style={styles.proBadgeText}>Pro</Text>
+                  </View>
+                )}
               </View>
-            )}
-          </View>
-          {isPro ? (
-            <View style={styles.creditsRow}>
-              <Text style={styles.creditsLabel}>{t('settings.planLabel')}</Text>
-              <Text style={styles.creditsValue}>{entitlement.planType === 'annual' ? t('settings.planAnnual') : t('settings.planMonthly')}</Text>
+              <Text style={styles.profileEmail}>{user?.email || ''}</Text>
             </View>
-          ) : (
-            <TouchableOpacity
-              style={styles.upgradeButton}
-              onPress={() => router.push('/(paywall)' as never)}>
-              <Text style={styles.upgradeText}>{t('settings.upgradeToPro')}</Text>
-            </TouchableOpacity>
-          )}
-        </View>
-
-        {/* OpenClaw Instance Status Card (Pro only) */}
-        {isPro && (
-          <View style={styles.instanceCard}>
-            <View style={styles.instanceHeader}>
-              <Text style={styles.instanceTitle}>{t('settings.instance.title')}</Text>
-              {isLoadingInstance && (
-                <ActivityIndicator size="small" color={colors.textSecondary} />
-              )}
-            </View>
-            {instance ? (
-              <>
-                <View style={styles.instanceStatusRow}>
-                  <FontAwesome
-                    name={STATUS_ICON_CONFIG[instance.status].icon}
-                    size={16}
-                    color={STATUS_ICON_CONFIG[instance.status].color}
-                  />
-                  <Text style={[styles.instanceStatusText, { color: STATUS_ICON_CONFIG[instance.status].color }]}>
-                    {t(STATUS_ICON_CONFIG[instance.status].labelKey)}
-                  </Text>
-                  {instance.status === 'provisioning' && (
-                    <ActivityIndicator size="small" color={colors.warning} style={{ marginLeft: spacing.xs }} />
-                  )}
-                </View>
-                {instance.status === 'error' && instance.errorMessage && (
-                  <Text style={styles.instanceErrorText}>{instance.errorMessage}</Text>
-                )}
-                {(instance.status === 'error' || instance.status === 'running') && (
-                  <TouchableOpacity
-                    style={[styles.restartButton, isRestarting && styles.restartButtonDisabled]}
-                    onPress={handleRestartInstance}
-                    disabled={isRestarting}>
-                    <FontAwesome name="refresh" size={14} color={colors.textInverse} />
-                    <Text style={styles.restartButtonText}>
-                      {isRestarting ? t('settings.instance.restarting') : t('settings.instance.restart')}
-                    </Text>
-                  </TouchableOpacity>
-                )}
-              </>
-            ) : (
-              !isLoadingInstance && (
-                <Text style={styles.instanceNotFound}>{t('settings.instance.notFound')}</Text>
-              )
-            )}
           </View>
-        )}
 
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>{t('settings.account.title')}</Text>
-          <SettingRow icon="user" label={t('settings.profile.edit')} onPress={handleEditProfile} />
-          {isPro && (
-            <SettingRow icon="credit-card" label={t('settings.subscription')} onPress={handleSubscriptionManage} />
-          )}
-          <SettingRow icon="bell" label={t('settings.notifications.title')} onPress={handleNotificationSettings} />
-        </View>
+          {/* Settings List */}
+          <View style={styles.settingsList}>
+            <SettingRow
+              icon="bell"
+              label={t('settings.notifications.title')}
+              onPress={handleNotificationSettings}
+            />
+            <SettingRow
+              icon="shield"
+              label={t('settings.support.privacy')}
+              onPress={handleOpenPrivacy}
+            />
+            <SettingRow
+              icon="settings"
+              label={t('settings.twinSettings.title')}
+              subtitle={t('settings.twinSettings.subtitle')}
+              onPress={handleEditTwinName}
+            />
+            <SettingRow
+              icon="globe"
+              label={t('settings.language')}
+              onPress={() => Alert.alert(t('settings.language'), t('settings.languageComingSoon'))}
+            />
+            <SettingRow
+              icon="help-circle"
+              label={t('settings.support.help')}
+              onPress={handleOpenHelp}
+            />
+          </View>
 
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>{t('settings.twinSettings.title')}</Text>
-          <SettingRow icon="refresh" label={t('settings.twinSettings.retakeQuiz')} onPress={handleRetakePersonalityQuiz} />
-          <SettingRow icon="edit" label={t('settings.twinSettings.editName')} onPress={handleEditTwinName} />
-        </View>
+          {/* Logout Button */}
+          <Pressable style={styles.logoutButton} onPress={handleSignOut}>
+            <Text style={styles.logoutText}>{t('settings.account.logout')}</Text>
+          </Pressable>
 
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>{t('settings.support.title')}</Text>
-          <SettingRow icon="question-circle" label={t('settings.support.help')} onPress={handleOpenHelp} />
-          <SettingRow icon="file-text" label={t('settings.support.terms')} onPress={handleOpenTerms} />
-          <SettingRow icon="lock" label={t('settings.support.privacy')} onPress={handleOpenPrivacy} />
-        </View>
+          {/* Delete Account Link */}
+          <Pressable onPress={() => Alert.alert(t('settings.account.delete'), t('settings.account.deleteConfirm'))}>
+            <Text style={styles.deleteAccountText}>
+              {t('settings.account.deleteAccount')}
+            </Text>
+          </Pressable>
 
-        <TouchableOpacity style={styles.signOutButton} onPress={handleSignOut}>
-          <Text style={styles.signOutText}>{t('settings.account.logout')}</Text>
-        </TouchableOpacity>
-
-        <Text style={styles.version}>{APP_NAME} v{appVersion}</Text>
-      </ScrollView>
-    </SafeAreaView>
+          <Text style={styles.version}>{APP_NAME} v{appVersion}</Text>
+        </ScrollView>
+      </SafeAreaView>
+    </CosmicBackground>
   );
 }
 
 function SettingRow({
   icon,
   label,
+  subtitle,
   onPress,
 }: {
-  icon: React.ComponentProps<typeof FontAwesome>['name'];
+  icon: React.ComponentProps<typeof Feather>['name'];
   label: string;
+  subtitle?: string;
   onPress: () => void;
 }) {
   return (
     <TouchableOpacity style={styles.settingRow} onPress={onPress}>
-      <FontAwesome name={icon} size={18} color={colors.textSecondary} />
-      <Text style={styles.settingLabel}>{label}</Text>
-      <FontAwesome name="chevron-right" size={12} color={colors.textTertiary} />
+      <Feather name={icon} size={20} color={colors.text} />
+      <View style={styles.settingRowContent}>
+        <Text style={styles.settingLabel}>{label}</Text>
+        {subtitle ? (
+          <Text style={styles.settingSubtitle}>{subtitle}</Text>
+        ) : null}
+      </View>
+      <Feather name="chevron-right" size={20} color={colors.textTertiary} />
     </TouchableOpacity>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: colors.background },
-  content: { padding: spacing.md, paddingBottom: spacing.xxl },
-  title: { fontSize: fontSize.xxl, fontWeight: '700', color: colors.text, marginBottom: spacing.lg },
-  profileCard: {
-    flexDirection: 'row', alignItems: 'center',
-    backgroundColor: colors.surfaceSecondary, borderRadius: borderRadius.lg,
-    padding: spacing.md, marginBottom: spacing.md,
+  container: {
+    flex: 1,
+    backgroundColor: 'transparent',
   },
-  avatar: {
-    width: 48, height: 48, borderRadius: 24,
-    backgroundColor: colors.primaryLight + '30',
-    justifyContent: 'center', alignItems: 'center', marginRight: spacing.md,
-  },
-  profileInfo: { flex: 1 },
-  profileName: { fontSize: fontSize.md, fontWeight: '600', color: colors.text },
-  twinNameLabel: { fontSize: fontSize.sm, color: colors.textSecondary, marginTop: 2 },
-  subscriptionCard: {
-    backgroundColor: colors.surfaceSecondary, borderRadius: borderRadius.lg,
-    padding: spacing.md, marginBottom: spacing.md,
-  },
-  subscriptionHeader: {
-    flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
-    marginBottom: spacing.sm,
-  },
-  subscriptionTitle: { fontSize: fontSize.md, fontWeight: '600', color: colors.text },
-  proBadge: {
-    backgroundColor: colors.primary,
-    paddingHorizontal: spacing.sm, paddingVertical: 2,
-    borderRadius: borderRadius.full,
-  },
-  proBadgeText: { fontSize: fontSize.xs, fontWeight: '700', color: colors.textInverse },
-  creditsRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-  creditsLabel: { fontSize: fontSize.sm, color: colors.textSecondary },
-  creditsValue: { fontSize: fontSize.md, fontWeight: '700', color: colors.primary },
-  upgradeButton: {
-    backgroundColor: colors.primary, paddingVertical: spacing.sm,
-    borderRadius: borderRadius.md, alignItems: 'center',
-  },
-  upgradeText: { color: colors.textInverse, fontSize: fontSize.md, fontWeight: '600' },
-
-  // OpenClaw Instance Card
-  instanceCard: {
-    backgroundColor: colors.surfaceSecondary,
-    borderRadius: borderRadius.lg,
+  content: {
     padding: spacing.md,
+    paddingBottom: spacing.xxl,
+  },
+  title: {
+    fontSize: 24,
+    fontFamily: fontFamily.bold,
+    color: colors.text,
     marginBottom: spacing.lg,
   },
-  instanceHeader: {
+  profileCard: {
+    backgroundColor: '#FFFFFF08',
+    borderRadius: 16,
+    padding: spacing.md,
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
-    marginBottom: spacing.sm,
+    gap: spacing.md,
+    marginBottom: spacing.lg,
   },
-  instanceTitle: {
-    fontSize: fontSize.md,
-    fontWeight: '600',
-    color: colors.text,
+  profileAvatar: {
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    backgroundColor: '#FFFFFF12',
+    justifyContent: 'center',
+    alignItems: 'center',
   },
-  instanceStatusRow: {
+  profileInfo: {
+    flex: 1,
+    gap: 4,
+  },
+  profileNameRow: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: spacing.sm,
-    marginBottom: spacing.sm,
   },
-  instanceStatusText: {
-    fontSize: fontSize.sm,
-    fontWeight: '600',
+  profileName: {
+    fontSize: fontSize.md,
+    fontFamily: fontFamily.bold,
+    color: colors.text,
   },
-  instanceErrorText: {
+  proBadge: {
+    backgroundColor: colors.accent,
+    borderRadius: 6,
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+  },
+  proBadgeText: {
     fontSize: fontSize.xs,
-    color: colors.error,
-    marginBottom: spacing.sm,
-  },
-  instanceNotFound: {
-    fontSize: fontSize.sm,
-    color: colors.textTertiary,
-  },
-  restartButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: spacing.xs,
-    backgroundColor: colors.primary,
-    paddingVertical: spacing.sm,
-    borderRadius: borderRadius.md,
-    marginTop: spacing.xs,
-  },
-  restartButtonDisabled: {
-    opacity: 0.6,
-  },
-  restartButtonText: {
-    fontSize: fontSize.sm,
-    fontWeight: '600',
+    fontFamily: fontFamily.bold,
     color: colors.textInverse,
   },
-
-  section: { marginBottom: spacing.lg },
-  sectionTitle: {
-    fontSize: fontSize.sm, fontWeight: '600', color: colors.textSecondary,
-    textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: spacing.sm,
+  profileEmail: {
+    fontSize: fontSize.sm,
+    color: colors.textSecondary,
+  },
+  settingsList: {
+    marginBottom: spacing.xl,
   },
   settingRow: {
-    flexDirection: 'row', alignItems: 'center',
-    paddingVertical: spacing.md, borderBottomWidth: 1,
-    borderBottomColor: colors.borderLight, gap: spacing.md,
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: spacing.md,
+    borderBottomWidth: 1,
+    borderBottomColor: '#FFFFFF0A',
+    gap: spacing.md,
   },
-  settingLabel: { flex: 1, fontSize: fontSize.md, color: colors.text },
-  signOutButton: { paddingVertical: spacing.md, alignItems: 'center', marginTop: spacing.md },
-  signOutText: { fontSize: fontSize.md, color: colors.error, fontWeight: '600' },
-  version: { fontSize: fontSize.xs, color: colors.textTertiary, textAlign: 'center', marginTop: spacing.md },
+  settingRowContent: {
+    flex: 1,
+  },
+  settingLabel: {
+    fontSize: fontSize.md,
+    fontFamily: fontFamily.medium,
+    color: colors.text,
+  },
+  settingSubtitle: {
+    fontSize: 14,
+    color: colors.textSecondary,
+    marginTop: 2,
+  },
+  logoutButton: {
+    borderColor: colors.error,
+    borderWidth: 1,
+    borderRadius: 12,
+    height: 48,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: spacing.md,
+  },
+  logoutText: {
+    fontSize: fontSize.md,
+    fontFamily: fontFamily.semiBold,
+    color: colors.error,
+  },
+  deleteAccountText: {
+    fontSize: 14,
+    color: colors.error,
+    textAlign: 'center',
+    marginBottom: spacing.lg,
+  },
+  version: {
+    fontSize: fontSize.xs,
+    color: colors.textTertiary,
+    textAlign: 'center',
+  },
 
   // Guest settings styles
   guestLoginCard: {
-    backgroundColor: colors.surfaceSecondary,
+    backgroundColor: '#FFFFFF08',
     borderRadius: borderRadius.lg,
     padding: spacing.lg,
     marginBottom: spacing.lg,
@@ -584,7 +553,7 @@ const styles = StyleSheet.create({
   },
   guestLoginTitle: {
     fontSize: fontSize.xl,
-    fontWeight: '700',
+    fontFamily: fontFamily.bold,
     color: colors.text,
     marginBottom: spacing.xs,
   },
@@ -608,7 +577,7 @@ const styles = StyleSheet.create({
   guestAppleButtonText: {
     color: '#FFFFFF',
     fontSize: fontSize.md,
-    fontWeight: '600',
+    fontFamily: fontFamily.semiBold,
   },
   guestGoogleButton: {
     backgroundColor: '#FFFFFF',
@@ -623,22 +592,33 @@ const styles = StyleSheet.create({
   guestGoogleButtonText: {
     color: '#1F1F1F',
     fontSize: fontSize.md,
-    fontWeight: '600',
+    fontFamily: fontFamily.semiBold,
   },
   guestFeatureSection: {
     marginBottom: spacing.lg,
+  },
+  sectionTitle: {
+    fontSize: fontSize.sm,
+    fontFamily: fontFamily.semiBold,
+    color: colors.textSecondary,
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+    marginBottom: spacing.sm,
   },
   guestFeatureRow: {
     flexDirection: 'row',
     alignItems: 'center',
     paddingVertical: spacing.md,
     borderBottomWidth: 1,
-    borderBottomColor: colors.borderLight,
+    borderBottomColor: '#FFFFFF0A',
     gap: spacing.md,
   },
   guestFeatureLabel: {
     flex: 1,
     fontSize: fontSize.md,
     color: colors.textTertiary,
+  },
+  section: {
+    marginBottom: spacing.lg,
   },
 });

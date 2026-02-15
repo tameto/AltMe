@@ -1,8 +1,11 @@
 import { StyleSheet, View, Text, Pressable, ScrollView } from 'react-native';
 import { router } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import Feather from '@expo/vector-icons/Feather';
 import { useTranslation } from 'react-i18next';
-import { colors, spacing, fontSize, borderRadius } from '@/src/config/theme';
+import { CosmicBackground } from '@/src/shared/components/cosmic-background';
+import { GoldButton } from '@/src/shared/components/gold-button';
+import { colors, spacing, fontFamily, borderRadius, glassmorphism } from '@/src/config/theme';
 import {
   useOnboardingStore,
   type ToneStyle,
@@ -16,9 +19,6 @@ const TONE_OPTIONS: ToneStyle[] = [
   'tsundere',
 ];
 
-const TEAL = '#7DD3FC';
-const GOLD = '#F59E0B';
-
 export default function ChooseToneScreen() {
   const { t } = useTranslation();
   const toneStyle = useOnboardingStore((s) => s.toneStyle);
@@ -30,93 +30,88 @@ export default function ChooseToneScreen() {
   };
 
   return (
-    <SafeAreaView style={styles.container}>
-      <View style={styles.content}>
-        <View style={styles.header}>
-          <Pressable style={styles.backButton} onPress={() => router.back()}>
-            <Text style={styles.backButtonText}>
-              {'\u2190 '}{t('common.back')}
-            </Text>
-          </Pressable>
-          <Text style={styles.step}>{t('onboarding.tone.step')}</Text>
-        </View>
+    <CosmicBackground>
+      <SafeAreaView style={styles.container}>
+        <View style={styles.content}>
+          <View style={styles.header}>
+            <Pressable style={styles.backButton} onPress={() => router.back()}>
+              <Feather name="arrow-left" size={24} color="#F8FAFC" />
+            </Pressable>
+            <Text style={styles.step}>5/6</Text>
+          </View>
 
-        <Text style={styles.title}>{t('onboarding.tone.title')}</Text>
+          <Text style={styles.title}>{t('onboarding.tone.title')}</Text>
 
-        <ScrollView
-          style={styles.scrollView}
-          contentContainerStyle={styles.scrollContent}
-          showsVerticalScrollIndicator={false}
-        >
-          {TONE_OPTIONS.map((tone) => {
-            const isSelected = toneStyle === tone;
-            return (
-              <Pressable
-                key={tone}
-                style={[styles.toneCard, isSelected ? styles.toneCardSelected : null]}
-                onPress={() => setToneStyle(tone)}
-              >
-                <Text
-                  style={[styles.toneLabel, isSelected ? styles.toneLabelSelected : null]}
-                >
-                  {t(`onboarding.tone.styles.${tone}`)}
-                </Text>
-                <Text
-                  style={[styles.toneSample, isSelected ? styles.toneSampleSelected : null]}
-                >
-                  {t(`onboarding.tone.samples.${tone}`)}
-                </Text>
-              </Pressable>
-            );
-          })}
-        </ScrollView>
-
-        <View style={styles.footer}>
-          <Pressable
-            style={[styles.ctaButton, !toneStyle ? styles.ctaButtonDisabled : null]}
-            onPress={handleNext}
-            disabled={!toneStyle}
+          <ScrollView
+            style={styles.scrollView}
+            contentContainerStyle={styles.scrollContent}
+            showsVerticalScrollIndicator={false}
+            contentInsetAdjustmentBehavior="automatic"
           >
-            <Text style={styles.ctaButtonText}>{t('onboarding.tone.cta')}</Text>
-          </Pressable>
+            {TONE_OPTIONS.map((tone) => {
+              const isSelected = toneStyle === tone;
+              return (
+                <Pressable
+                  key={tone}
+                  style={[styles.toneCard, isSelected ? styles.toneCardSelected : null]}
+                  onPress={() => setToneStyle(tone)}
+                >
+                  <Text
+                    style={[styles.toneLabel, isSelected ? styles.toneLabelSelected : null]}
+                  >
+                    {t(`onboarding.tone.styles.${tone}`)}
+                  </Text>
+                  <Text
+                    style={[styles.toneSample, isSelected ? styles.toneSampleSelected : null]}
+                  >
+                    {t(`onboarding.tone.samples.${tone}`)}
+                  </Text>
+                </Pressable>
+              );
+            })}
+          </ScrollView>
+
+          <View style={styles.footer}>
+            <GoldButton
+              title={t('onboarding.tone.cta')}
+              onPress={handleNext}
+              disabled={!toneStyle}
+              style={styles.ctaButton}
+            />
+          </View>
         </View>
-      </View>
-    </SafeAreaView>
+      </SafeAreaView>
+    </CosmicBackground>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.background,
   },
   content: {
     flex: 1,
-    padding: spacing.xl,
+    paddingHorizontal: spacing.xl,
   },
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
+    marginTop: spacing.md,
     marginBottom: spacing.lg,
   },
   backButton: {
-    paddingVertical: spacing.xs,
-    paddingRight: spacing.md,
-  },
-  backButtonText: {
-    fontSize: fontSize.md,
-    color: colors.primary,
-    fontWeight: '500',
+    padding: spacing.xs,
   },
   step: {
-    fontSize: fontSize.sm,
-    color: colors.textSecondary,
+    fontFamily: fontFamily.medium,
+    fontSize: 14,
+    color: '#94A3B8',
   },
   title: {
-    fontSize: fontSize.xxl,
-    fontWeight: '700',
-    color: colors.text,
+    fontFamily: fontFamily.bold,
+    fontSize: 28,
+    color: '#F8FAFC',
     textAlign: 'center',
     marginBottom: spacing.lg,
   },
@@ -128,49 +123,39 @@ const styles = StyleSheet.create({
     paddingBottom: spacing.md,
   },
   toneCard: {
-    backgroundColor: colors.surface,
-    borderRadius: borderRadius.lg,
+    backgroundColor: glassmorphism.card.bg,
+    borderRadius: borderRadius.md,
     padding: spacing.lg,
-    borderWidth: 2,
-    borderColor: colors.border,
+    borderWidth: 1,
+    borderColor: glassmorphism.card.border,
   },
   toneCardSelected: {
-    borderColor: `${TEAL}50`,
-    backgroundColor: `${TEAL}15`,
+    backgroundColor: '#FFFFFF',
+    borderColor: '#FFFFFF',
   },
   toneLabel: {
-    fontSize: fontSize.lg,
-    fontWeight: '700',
-    color: colors.text,
+    fontFamily: fontFamily.semiBold,
+    fontSize: 18,
+    color: '#F8FAFC',
     marginBottom: spacing.sm,
   },
   toneLabelSelected: {
-    color: TEAL,
+    color: '#0F172A',
   },
   toneSample: {
-    fontSize: fontSize.sm,
-    color: colors.textSecondary,
+    fontFamily: fontFamily.regular,
+    fontSize: 14,
+    color: '#94A3B8',
     lineHeight: 22,
   },
   toneSampleSelected: {
-    color: colors.text,
+    color: '#334155',
   },
   footer: {
     paddingTop: spacing.lg,
     paddingBottom: spacing.lg,
   },
   ctaButton: {
-    backgroundColor: GOLD,
-    borderRadius: borderRadius.lg,
-    paddingVertical: spacing.lg,
-    alignItems: 'center',
-  },
-  ctaButtonDisabled: {
-    opacity: 0.4,
-  },
-  ctaButtonText: {
-    color: colors.textInverse,
-    fontSize: fontSize.lg,
-    fontWeight: '700',
+    alignSelf: 'stretch',
   },
 });
