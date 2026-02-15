@@ -254,3 +254,68 @@ packages/
 ```
 
 Even if the shared package uses the native dependency, the app must also list it for autolinking to detect and link the native code.
+
+---
+
+## 5. hooks-before-conditional-returns
+
+**Impact: CRITICAL** -- prevents hooks order violation (runtime error in development, unpredictable behavior in production)
+
+React の Rules of Hooks: すべての hooks（useState, useEffect, useCallback, useRef, useMemo 等）は、
+条件分岐や早期リターンの**前に**宣言する必要がある。hooks の呼び出し順序はレンダリング間で一定でなければならない。
+
+**Incorrect (hooks after early return):**
+
+```tsx
+function ChatScreen() {
+  const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
+
+  // BAD: この return の後に hooks がある
+  if (!isAuthenticated) {
+    return <GuestPromptOverlay />;
+  }
+
+  const [messages, setMessages] = useState<Message[]>([]); // CRASH!
+  const [isLoading, setIsLoading] = useState(false);       // CRASH!
+
+  useEffect(() => {
+    loadMessages();
+  }, []);
+
+  return <MessageList messages={messages} />;
+}
+```
+
+**Correct (all hooks before any conditional return):**
+
+```tsx
+function ChatScreen() {
+  const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
+
+  // GOOD: すべての hooks を先に宣言
+  const [messages, setMessages] = useState<Message[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
+
+  useEffect(() => {
+    if (!isAuthenticated) return; // hooks 内の条件は OK
+    loadMessages();
+  }, [isAuthenticated]);
+
+  // GOOD: hooks の後に条件付きリターン
+  if (!isAuthenticated) {
+    return <GuestPromptOverlay />;
+  }
+
+  return <MessageList messages={messages} />;
+}
+```
+
+**Key points:**
+- hooks 内部の条件分岐（`useEffect` 内の `if (!x) return`）は問題ない
+- 問題は**コンポーネントレベル**の `if (...) return` の後に hooks を置くこと
+- ゲストガード、認証チェック、ローディング表示などの早期リターンパターンで頻発する
+- `eslint-plugin-react-hooks` の `rules-of-hooks` ルールで自動検出可能
+
+**Lint rule:** Enable `react-hooks/rules-of-hooks` from [eslint-plugin-react-hooks](https://www.npmjs.com/package/eslint-plugin-react-hooks) to catch this automatically.
+
+> **AltMe 対応**: `hooks-order-check.sh` PostToolUse hook で自動検出。認証ガード (`if (!isAuthenticated) return`) の配置に特に注意。
