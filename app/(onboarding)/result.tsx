@@ -1,17 +1,10 @@
 import { StyleSheet, View, Text, Pressable, ActivityIndicator, ScrollView } from 'react-native';
 import { router } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useTranslation } from 'react-i18next';
 import { colors, spacing, fontSize, borderRadius } from '@/src/config/theme';
 import { useOnboardingStore } from '@/src/features/onboarding/stores/onboarding-store';
 import type { PersonalityTraits } from '@/src/shared/types/user';
-
-const TRAIT_LABELS: Record<keyof PersonalityTraits, string> = {
-  openness: '開放性',
-  conscientiousness: '誠実性',
-  extraversion: '外向性',
-  agreeableness: '協調性',
-  neuroticism: '神経質傾向',
-};
 
 const TRAIT_ORDER: Array<keyof PersonalityTraits> = [
   'openness',
@@ -36,10 +29,11 @@ function TraitBar({ label, value }: { label: string; value: number }) {
 }
 
 export default function ResultScreen() {
+  const { t } = useTranslation();
   const { personalityResult, isAnalyzing } = useOnboardingStore();
 
   const handleMeetTwin = () => {
-    router.push('/(onboarding)/meet-twin');
+    router.push('/(onboarding)/choose-avatar');
   };
 
   if (isAnalyzing || !personalityResult) {
@@ -48,10 +42,10 @@ export default function ResultScreen() {
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color={colors.primary} />
           <Text style={styles.loadingText}>
-            {'あなたの性格を分析中...'}
+            {t('onboarding.result.analyzing')}
           </Text>
           <Text style={styles.loadingSubtext}>
-            {'少々お待ちください'}
+            {t('onboarding.result.pleaseWait')}
           </Text>
         </View>
       </SafeAreaView>
@@ -68,7 +62,7 @@ export default function ResultScreen() {
         showsVerticalScrollIndicator={false}
       >
         <Text style={styles.title}>
-          {'あなたの性格タイプ'}
+          {t('onboarding.result.title')}
         </Text>
 
         <View style={styles.summaryCard}>
@@ -78,12 +72,12 @@ export default function ResultScreen() {
         {traits && (
           <View style={styles.traitsCard}>
             <Text style={styles.traitsTitle}>
-              {'パーソナリティチャート'}
+              {t('onboarding.result.bigFiveTitle')}
             </Text>
             {TRAIT_ORDER.map((key) => (
               <TraitBar
                 key={key}
-                label={TRAIT_LABELS[key]}
+                label={t(`onboarding.result.${key}`)}
                 value={traits[key]}
               />
             ))}
@@ -93,14 +87,13 @@ export default function ResultScreen() {
         <View style={styles.blurredSection}>
           <View style={styles.blurredHeader}>
             <Text style={styles.blurredTitle}>
-              {'詳細分析を見る'}
+              {t('onboarding.result.detailedAnalysis')}
             </Text>
-            <Text style={styles.proBadge}>{'Pro限定'}</Text>
+            <Text style={styles.proBadge}>{t('onboarding.result.proBadge')}</Text>
           </View>
           <View style={styles.blurredContent}>
             <Text style={styles.blurredText}>
-              {'コミュニケーションスタイル、強み・弱み、'}{'\n'}
-              {'最適なAIツインの設定が含まれます'}
+              {t('onboarding.result.detailedDescription')}
             </Text>
           </View>
         </View>
@@ -108,7 +101,7 @@ export default function ResultScreen() {
         <View style={styles.ctaSection}>
           <Pressable style={styles.ctaButton} onPress={handleMeetTwin}>
             <Text style={styles.ctaButtonText}>
-              {'AIツインと会う'}
+              {t('onboarding.result.cta')}
             </Text>
           </Pressable>
         </View>

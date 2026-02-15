@@ -14,6 +14,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import FontAwesome from '@expo/vector-icons/FontAwesome';
 import { useRouter } from 'expo-router';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useTranslation } from 'react-i18next';
 
 import { colors, spacing, borderRadius, fontSize } from '@/src/config/theme';
 import { FREE_DAILY_LIMIT, CHAT, APP_NAME } from '@/src/config/constants';
@@ -47,6 +48,7 @@ type DisplayMessage = {
 
 export default function ChatScreen() {
   const router = useRouter();
+  const { t } = useTranslation();
   const isPro = useIsPro();
   const user = useUser((s) => s.user);
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
@@ -106,10 +108,14 @@ export default function ChatScreen() {
           }));
           setMessages(mapped);
         } else {
+          const twinName = user.twinName || APP_NAME;
+          const welcomeContent = user.displayName
+            ? t('chat.welcomeMessage', { name: user.displayName, twinName })
+            : t('chat.welcomeMessageDefault', { twinName });
           setMessages([{
             id: 'welcome',
             role: 'assistant',
-            content: `${user.displayName ? `${user.displayName}さん、` : ''}こんにちは！${user.twinName || APP_NAME}だよ。今日はどんなことがあった？`,
+            content: welcomeContent,
             createdAt: new Date().toISOString(),
           }]);
         }
@@ -284,7 +290,7 @@ export default function ChatScreen() {
           setMessages((prev) => [...prev, {
             id: `error-${Date.now()}`,
             role: 'assistant',
-            content: 'ちょっと待ってね。少し間を置いてからもう一度話しかけて。',
+            content: t('chat.rateLimited'),
             createdAt: new Date().toISOString(),
           }]);
           return;
@@ -357,7 +363,7 @@ export default function ChatScreen() {
       setMessages((prev) => [...prev, {
         id: `error-${Date.now()}`,
         role: 'assistant',
-        content: 'ごめんね、うまく返事ができなかった。もう一度試してみて。',
+        content: t('chat.errorResponse'),
         createdAt: new Date().toISOString(),
       }]);
       setStreamingText('');
@@ -454,7 +460,7 @@ export default function ChatScreen() {
           <Text style={styles.headerTitle}>{user?.twinName || APP_NAME}</Text>
           {isPro && connectionMode === 'websocket' && (
             <View style={styles.modeBadge}>
-              <Text style={styles.modeBadgeText}>Pro</Text>
+              <Text style={styles.modeBadgeText}>{t('chat.proLabel')}</Text>
             </View>
           )}
         </View>
@@ -462,7 +468,7 @@ export default function ChatScreen() {
           <TouchableOpacity
             style={styles.upgradeButton}
             onPress={() => router.push('/(paywall)' as never)}>
-            <Text style={styles.upgradeText}>Pro</Text>
+            <Text style={styles.upgradeText}>{t('chat.proLabel')}</Text>
           </TouchableOpacity>
         )}
       </View>
@@ -471,8 +477,8 @@ export default function ChatScreen() {
         <View style={styles.limitBanner}>
           <Text style={styles.limitText}>
             {isAtLimit
-              ? 'Proにアップグレードして無制限に会話しよう'
-              : `残り${Math.max(0, FREE_DAILY_LIMIT - todayUserCount)}回`}
+              ? t('chat.upgradePrompt')
+              : t('chat.remainingCount', { count: Math.max(0, FREE_DAILY_LIMIT - todayUserCount) })}
           </Text>
         </View>
       )}
@@ -480,14 +486,14 @@ export default function ChatScreen() {
       {!isOnline && (
         <View style={styles.offlineBanner}>
           <FontAwesome name="wifi" size={12} color={colors.error} />
-          <Text style={styles.offlineText}>オフライン</Text>
+          <Text style={styles.offlineText}>{t('chat.offline')}</Text>
         </View>
       )}
 
       {isOnline && isPro && wsStatus === 'reconnecting' && (
         <View style={styles.reconnectBanner}>
           <ActivityIndicator size="small" color={colors.warning} />
-          <Text style={styles.reconnectText}>再接続中...</Text>
+          <Text style={styles.reconnectText}>{t('chat.connectionStatus.reconnecting')}</Text>
         </View>
       )}
 
@@ -503,7 +509,7 @@ export default function ChatScreen() {
       {isLoading && !streamingText && (
         <View style={styles.typingIndicator}>
           <ActivityIndicator size="small" color={colors.primary} />
-          <Text style={styles.typingText}>考え中...</Text>
+          <Text style={styles.typingText}>{t('chat.thinking')}</Text>
         </View>
       )}
 
@@ -515,7 +521,7 @@ export default function ChatScreen() {
             style={styles.textInput}
             value={inputText}
             onChangeText={setInputText}
-            placeholder={isAtLimit ? 'Proにアップグレードして続けよう' : '今日の出来事を教えて...'}
+            placeholder={isAtLimit ? t('chat.inputPlaceholderAtLimit') : t('chat.inputPlaceholderDefault')}
             placeholderTextColor={colors.textTertiary}
             multiline
             maxLength={CHAT.maxMessageLength}

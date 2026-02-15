@@ -6,6 +6,7 @@ import * as SplashScreen from 'expo-splash-screen';
 import { useEffect } from 'react';
 import { useColorScheme } from 'react-native';
 import 'react-native-reanimated';
+import '@/src/shared/i18n';
 
 import { useAuthStore } from '@/src/features/auth/stores/auth-store';
 import { useUser } from '@/src/shared/hooks/use-user';
@@ -139,6 +140,10 @@ function RootLayoutNav() {
         />
         <Stack.Screen
           name="notification-settings"
+          options={{ headerShown: false, presentation: 'modal' }}
+        />
+        <Stack.Screen
+          name="community-create"
           options={{ headerShown: false, presentation: 'modal' }}
         />
       </Stack>

@@ -12,6 +12,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
+import { useTranslation } from 'react-i18next';
 import FontAwesome from '@expo/vector-icons/FontAwesome';
 
 import { colors, spacing, borderRadius, fontSize } from '@/src/config/theme';
@@ -28,6 +29,7 @@ type UsageStats = {
 
 export default function SubscriptionManageScreen() {
   const router = useRouter();
+  const { t } = useTranslation();
   const { entitlement } = useSubscription();
   const user = useUser((s) => s.user);
   const [stats, setStats] = useState<UsageStats | null>(null);
@@ -73,13 +75,14 @@ export default function SubscriptionManageScreen() {
   }, [user?.id, user?.createdAt]);
 
   const handleCancelSubscription = () => {
+    const twinName = user?.twinName || 'AI Twin';
     Alert.alert(
-      '本当に解約しますか？',
-      `${user?.twinName || 'AIツイン'}との${stats?.daysActive ?? 0}日間の思い出が失われます。\n\n解約後も現在の期間終了まではPro機能をご利用いただけます。`,
+      t('subscription.manage.cancelConfirmTitle'),
+      t('subscription.manage.cancelConfirmMessage', { twinName, days: stats?.daysActive ?? 0 }),
       [
-        { text: 'やっぱりやめる', style: 'cancel' },
+        { text: t('subscription.manage.cancelConfirmCancel'), style: 'cancel' },
         {
-          text: '解約手続きへ',
+          text: t('subscription.manage.cancelConfirmProceed'),
           style: 'destructive',
           onPress: openSubscriptionSettings,
         },
@@ -97,21 +100,21 @@ export default function SubscriptionManageScreen() {
 
   const planLabel = (() => {
     switch (entitlement.planType) {
-      case 'monthly': return '月額プラン';
-      case 'annual': return '年額プラン';
-      case 'annual_intro': return '年額プラン（初回特別）';
-      default: return 'Pro プラン';
+      case 'monthly': return t('subscription.manage.planMonthly');
+      case 'annual': return t('subscription.manage.planYearly');
+      case 'annual_intro': return t('subscription.manage.planIntroYearly');
+      default: return t('subscription.manage.proPlan');
     }
   })();
 
   const statusLabel = (() => {
     switch (entitlement.status) {
-      case 'active': return 'アクティブ';
-      case 'trial': return `トライアル中（残り${entitlement.trialDaysRemaining ?? 0}日）`;
-      case 'cancelled': return '解約済み（期間終了まで利用可）';
-      case 'grace_period': return '猶予期間（お支払い更新が必要）';
-      case 'expired': return '期限切れ';
-      default: return 'Free';
+      case 'active': return t('subscription.manage.statusActive');
+      case 'trial': return t('subscription.manage.statusTrial', { days: entitlement.trialDaysRemaining ?? 0 });
+      case 'cancelled': return t('subscription.manage.statusCancelled');
+      case 'grace_period': return t('subscription.manage.statusGracePeriod');
+      case 'expired': return t('subscription.manage.statusExpired');
+      default: return t('subscription.manage.statusFree');
     }
   })();
 
@@ -121,7 +124,7 @@ export default function SubscriptionManageScreen() {
         <Pressable onPress={() => router.back()} hitSlop={12}>
           <FontAwesome name="arrow-left" size={20} color={colors.text} />
         </Pressable>
-        <Text style={styles.headerTitle}>サブスクリプション管理</Text>
+        <Text style={styles.headerTitle}>{t('subscription.manage.title')}</Text>
         <View style={{ width: 20 }} />
       </View>
 
@@ -144,17 +147,16 @@ export default function SubscriptionManageScreen() {
           <ActivityIndicator size="large" color={colors.primary} style={styles.loader} />
         ) : stats && (
           <View style={styles.statsSection}>
-            <Text style={styles.statsTitle}>あなたとAIツインの記録</Text>
+            <Text style={styles.statsTitle}>{t('subscription.manage.statsTitle')}</Text>
             <View style={styles.statsGrid}>
-              <StatCard icon="comments" value={stats.totalMessages} label="チャット" />
-              <StatCard icon="book" value={stats.totalJournals} label="日記" />
-              <StatCard icon="heart" value={stats.totalMoods} label="気分記録" />
-              <StatCard icon="calendar" value={stats.daysActive} label="日間" />
+              <StatCard icon="comments" value={stats.totalMessages} label={t('subscription.manage.statChat')} />
+              <StatCard icon="book" value={stats.totalJournals} label={t('subscription.manage.statJournal')} />
+              <StatCard icon="heart" value={stats.totalMoods} label={t('subscription.manage.statMood')} />
+              <StatCard icon="calendar" value={stats.daysActive} label={t('subscription.manage.statDays')} />
             </View>
             {stats.totalMessages > 0 && (
               <Text style={styles.statsMessage}>
-                {user?.twinName || 'AIツイン'}はあなたのことを{stats.totalMessages}回の会話から学んでいます。
-                解約するとこのデータは保持されますが、新しい会話や分析は利用できなくなります。
+                {t('subscription.manage.statsMessage', { twinName: user?.twinName || 'AI Twin', count: stats.totalMessages })}
               </Text>
             )}
           </View>
@@ -163,17 +165,17 @@ export default function SubscriptionManageScreen() {
         {/* Actions */}
         {entitlement.isPro && entitlement.status !== 'cancelled' && (
           <Pressable style={styles.cancelButton} onPress={handleCancelSubscription}>
-            <Text style={styles.cancelText}>サブスクリプションを解約</Text>
+            <Text style={styles.cancelText}>{t('subscription.manage.cancelSubscription')}</Text>
           </Pressable>
         )}
 
         {entitlement.status === 'cancelled' && (
           <View style={styles.resubscribeSection}>
             <Text style={styles.resubscribeText}>
-              再度Pro機能をご利用いただくには、ストアからサブスクリプションを再開してください。
+              {t('subscription.manage.resubscribeMessage')}
             </Text>
             <Pressable style={styles.resubscribeButton} onPress={openSubscriptionSettings}>
-              <Text style={styles.resubscribeButtonText}>ストアを開く</Text>
+              <Text style={styles.resubscribeButtonText}>{t('subscription.manage.openStore')}</Text>
             </Pressable>
           </View>
         )}
@@ -182,7 +184,7 @@ export default function SubscriptionManageScreen() {
           <Pressable
             style={styles.upgradeButton}
             onPress={() => router.push('/(paywall)' as never)}>
-            <Text style={styles.upgradeText}>Pro にアップグレード</Text>
+            <Text style={styles.upgradeText}>{t('subscription.manage.upgradeButton')}</Text>
           </Pressable>
         )}
       </ScrollView>

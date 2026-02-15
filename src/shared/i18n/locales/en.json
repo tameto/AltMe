@@ -1,0 +1,412 @@
+{
+  "common": {
+    "appName": "AltMe",
+    "next": "Next",
+    "back": "Back",
+    "cancel": "Cancel",
+    "save": "Save",
+    "delete": "Delete",
+    "done": "Done",
+    "close": "Close",
+    "retry": "Retry",
+    "loading": "Loading...",
+    "error": "An error occurred",
+    "networkError": "Unable to connect to the network",
+    "confirm": "Confirm",
+    "start": "Start"
+  },
+  "tabs": {
+    "chat": "Chat",
+    "community": "Community",
+    "myAgent": "My Agent",
+    "myPage": "My Page"
+  },
+  "auth": {
+    "signInWithApple": "Sign in with Apple",
+    "signInWithGoogle": "Sign in with Google",
+    "loginTitle": "Login",
+    "loginSubtitle": "Meet your other self",
+    "termsOfService": "Terms of Service",
+    "privacyPolicy": "Privacy Policy",
+    "agreeToTerms": "By continuing, you agree to our {{terms}} and {{privacy}}",
+    "loginError": "Login failed. Please try again.",
+    "errorTitle": "Error",
+    "legalText": "By continuing, you agree to our Terms of Service and Privacy Policy"
+  },
+  "onboarding": {
+    "welcome": {
+      "headline": "Create Your Other Self",
+      "description": "We'll analyze your personality\nand create a one-of-a-kind\nAI twin just for you",
+      "cta": "Get Started",
+      "timeEstimate": "Takes about 3 minutes"
+    },
+    "quiz": {
+      "title": "Personality Quiz",
+      "progress": "{{current}}/{{total}}",
+      "questionPrefix": "Q{{number}}.",
+      "choiceLabels": {
+        "a": "A",
+        "b": "B",
+        "c": "C",
+        "d": "D"
+      }
+    },
+    "result": {
+      "title": "Your Personality Type",
+      "analyzing": "Analyzing your personality...",
+      "pleaseWait": "Please wait",
+      "bigFiveTitle": "Personality Chart",
+      "openness": "Openness",
+      "conscientiousness": "Conscientiousness",
+      "extraversion": "Extraversion",
+      "agreeableness": "Agreeableness",
+      "neuroticism": "Neuroticism",
+      "summaryTitle": "Your Traits",
+      "detailedAnalysis": "View Detailed Analysis",
+      "proBadge": "Pro Only",
+      "detailedDescription": "Includes communication style, strengths & weaknesses,\nand optimal AI twin settings",
+      "cta": "Meet Your AI Twin"
+    },
+    "avatar": {
+      "title": "Choose Your AI's Look",
+      "step": "5/6",
+      "styles": {
+        "geometric": "Geometric",
+        "cosmic": "Cosmic",
+        "organic": "Organic",
+        "techno": "Techno",
+        "zen": "Zen"
+      },
+      "cta": "Next"
+    },
+    "tone": {
+      "title": "Choose Your AI's Voice",
+      "step": "6/6",
+      "styles": {
+        "polite": "Polite",
+        "casual": "Casual",
+        "intellectual": "Intellectual",
+        "mentor": "Mentor",
+        "tsundere": "Playful"
+      },
+      "samples": {
+        "polite": "Good to see you. How was your day? I'd love to hear about it.",
+        "casual": "Hey! How's it going? Anything fun happen today?",
+        "intellectual": "Fascinating. Shall we explore that thought a bit deeper?",
+        "mentor": "You've got this. Let's think through it together.",
+        "tsundere": "It's not like I was worried about you or anything... So, what happened today?"
+      },
+      "cta": "Next"
+    },
+    "meetTwin": {
+      "title": "Your AI Twin",
+      "subtitle": "First Conversation",
+      "twinLabel": "AI Twin",
+      "typing": "Typing...",
+      "send": "Send",
+      "remaining": "{{count}} remaining",
+      "unlockButton": "Unlock Full Access",
+      "skipButton": "Maybe Later",
+      "nameLabel": "Your AI Twin's Name",
+      "namePlaceholder": "Enter a name",
+      "nameConfirm": "Confirm",
+      "remainingChats": "{{count}}/{{total}} chats remaining",
+      "cta": "Complete Onboarding",
+      "inputPlaceholder": "Type a message..."
+    }
+  },
+  "chat": {
+    "title": "Chat",
+    "inputPlaceholder": "Type a message...",
+    "inputPlaceholderDefault": "Tell me about your day...",
+    "inputPlaceholderAtLimit": "Upgrade to Pro to continue",
+    "send": "Send",
+    "freeLimit": "{{count}}/{{total}} remaining",
+    "freeLimitReached": "You've reached today's free chat limit",
+    "upgradePrompt": "Upgrade to Pro for unlimited chats",
+    "upgradeCta": "Upgrade to Pro",
+    "proLabel": "Pro",
+    "freeLabel": "Free",
+    "typing": "Typing...",
+    "thinking": "Thinking...",
+    "attachFile": "Attach file",
+    "welcomeMessage": "Hi {{name}}! I'm {{twinName}}. How was your day?",
+    "welcomeMessageDefault": "Hi! I'm {{twinName}}. How was your day?",
+    "rateLimited": "Hold on a moment. Please try again in a little bit.",
+    "errorResponse": "Sorry, I couldn't respond properly. Please try again.",
+    "offline": "Offline",
+    "remainingCount": "{{count}} remaining",
+    "connectionStatus": {
+      "connected": "Connected",
+      "connecting": "Connecting...",
+      "disconnected": "Disconnected",
+      "reconnecting": "Reconnecting..."
+    }
+  },
+  "community": {
+    "title": "Community",
+    "subtitle": "Explore everyone's AI twins",
+    "createChannel": "Create Channel",
+    "channels": "Channels",
+    "conversations": "Conversations",
+    "noChannels": "No channels yet",
+    "joinChannel": "Join",
+    "guestBanner": "View only - Sign in to participate",
+    "create": {
+      "title": "Create Community",
+      "channelName": "Channel Name",
+      "channelNamePlaceholder": "Enter channel name",
+      "description": "Description",
+      "descriptionPlaceholder": "Enter channel description",
+      "thumbnail": "Thumbnail",
+      "language": "Language",
+      "languages": {
+        "ja": "Japanese",
+        "en": "English",
+        "ko": "Korean"
+      },
+      "category": "Category",
+      "categories": {
+        "entertainment": "Entertainment",
+        "lifestyle": "Lifestyle",
+        "technology": "Technology",
+        "sports": "Sports",
+        "music": "Music"
+      },
+      "cta": "Create Channel"
+    },
+    "detail": {
+      "title": "Conversation Detail",
+      "communityConversation": "Community Conversation"
+    }
+  },
+  "subscription": {
+    "paywall": {
+      "title": "Upgrade to Pro",
+      "subtitle": "Unlock all AI twin features",
+      "introTimer": "Limited time: {{time}} left",
+      "features": {
+        "unlimitedChat": "Unlimited Chat",
+        "dedicatedAgent": "Dedicated AI Agent",
+        "communityAccess": "Community Access",
+        "insights": "Self-Analysis & Insights",
+        "journal": "Journal & Reflection"
+      },
+      "featuresList": {
+        "dedicatedTwin": "Dedicated AI Twin (Unlimited Chat)",
+        "personalityAnalysis": "Detailed Personality Analysis",
+        "journalReflection": "Journal + AI Reflection",
+        "emotionTracking": "Emotion Tracking",
+        "aiInsights": "AI Insight Reports"
+      },
+      "plans": {
+        "monthly": "Monthly",
+        "yearly": "Yearly",
+        "introYearly": "Intro Offer"
+      },
+      "firstTimeOffer": "FIRST TIME OFFER",
+      "perYear": "/yr",
+      "perMonthParens": "(${{price}}/mo)",
+      "monthlyPrice": "$49.80",
+      "monthlyUnit": "/month",
+      "yearlyPrice": "$398.00",
+      "yearlyUnit": "$33.17/mo (33% OFF)",
+      "introPrice": "$298.00",
+      "introUnit": "$24.83/mo (50% OFF)",
+      "discountOff": "{{percent}}% OFF",
+      "trialLabel": "3-Day Free Trial",
+      "cta": "Start 3-Day Free Trial",
+      "startTrial": "Start Free Trial",
+      "processing": "Processing...",
+      "trialNote": "You will be charged automatically after the 3-day free trial",
+      "restore": "Restore Purchase",
+      "restoring": "Restoring...",
+      "legal": "Terms of Service & Privacy Policy",
+      "termsOfService": "Terms of Service",
+      "privacy": "Privacy",
+      "errorTitle": "Error",
+      "errorLoadPlan": "Failed to load plan. Please try again.",
+      "purchaseErrorTitle": "Purchase Error",
+      "purchaseError": "An error occurred during purchase. Please try again.",
+      "restoreCompleteTitle": "Restore Complete",
+      "restoreComplete": "Your purchase has been restored.",
+      "restoreResultTitle": "Restore Result",
+      "restoreNoResult": "No restorable purchases found.",
+      "restoreError": "An error occurred during restore."
+    },
+    "manage": {
+      "title": "Subscription Management",
+      "currentPlan": "Current Plan",
+      "proPlan": "Pro Plan",
+      "planMonthly": "Monthly Plan",
+      "planYearly": "Yearly Plan",
+      "planIntroYearly": "Yearly Plan (Intro Offer)",
+      "nextRenewal": "Next Renewal",
+      "status": "Status",
+      "statusActive": "Active",
+      "statusTrial": "Trial ({{days}} days remaining)",
+      "statusCancelled": "Cancelled (available until period ends)",
+      "statusGracePeriod": "Grace Period (payment update required)",
+      "statusExpired": "Expired",
+      "statusFree": "Free",
+      "billingHistory": "Billing History",
+      "changePlan": "Change Plan",
+      "paymentMethod": "Payment Method",
+      "cancelSubscription": "Cancel Subscription",
+      "statsTitle": "Your AI Twin Journey",
+      "statChat": "Chats",
+      "statJournal": "Journals",
+      "statMood": "Moods",
+      "statDays": "Days",
+      "statsMessage": "{{twinName}} has learned about you from {{count}} conversations. If you cancel, your data will be preserved but new conversations and analysis will be unavailable.",
+      "cancelConfirmTitle": "Are you sure you want to cancel?",
+      "cancelConfirmMessage": "You'll lose {{days}} days of memories with {{twinName}}.\n\nYou can still use Pro features until the end of the current period.",
+      "cancelConfirmCancel": "Keep Subscription",
+      "cancelConfirmProceed": "Proceed to Cancel",
+      "resubscribeMessage": "To use Pro features again, please reactivate your subscription from the store.",
+      "openStore": "Open Store",
+      "upgradeButton": "Upgrade to Pro"
+    }
+  },
+  "settings": {
+    "title": "My Page",
+    "settingsTitle": "Settings",
+    "guest": "Guest",
+    "twinLabel": "Twin: {{name}}",
+    "proPlan": "Pro Plan",
+    "freePlan": "Free Plan",
+    "planLabel": "Plan:",
+    "planAnnual": "Yearly",
+    "planMonthly": "Monthly",
+    "upgradeToPro": "Upgrade to Pro",
+    "profile": {
+      "title": "Profile",
+      "displayName": "Display Name",
+      "email": "Email",
+      "edit": "Edit Profile",
+      "editTitle": "Edit Profile",
+      "editPrompt": "Enter a new display name",
+      "editEmpty": "Please enter a display name",
+      "editSuccess": "Display name updated",
+      "editError": "Update failed. Please try again."
+    },
+    "twinSettings": {
+      "title": "AI Twin",
+      "name": "Twin Name",
+      "tone": "Voice Style",
+      "avatar": "Appearance",
+      "editName": "Change Twin Name",
+      "editNameTitle": "Change Twin Name",
+      "editNamePrompt": "Enter a new name for your AI twin",
+      "editNameEmpty": "Please enter a name",
+      "editNameSuccess": "Twin name updated",
+      "editNameError": "Update failed. Please try again.",
+      "retakeQuiz": "Retake Personality Quiz",
+      "retakeQuizTitle": "Retake Personality Quiz",
+      "retakeQuizMessage": "Your current results will be reset. Are you sure?",
+      "retakeQuizConfirm": "Retake"
+    },
+    "mbti": {
+      "title": "MBTI Settings",
+      "select": "Select MBTI Type",
+      "subtitle": "Select MBTI type to reflect on your AI twin"
+    },
+    "subscription": "Subscription Management",
+    "notifications": {
+      "title": "Notification Settings",
+      "push": "Push Notifications",
+      "dailyReminder": "Daily Reminder",
+      "subtitle": "Customize notifications",
+      "comingSoon": "Coming soon. Stay tuned for future updates."
+    },
+    "account": {
+      "title": "Account",
+      "logout": "Log Out",
+      "logoutConfirm": "Are you sure you want to log out?",
+      "deleteAccount": "Delete Account"
+    },
+    "support": {
+      "title": "Support",
+      "help": "Help & FAQ",
+      "terms": "Terms of Service",
+      "privacy": "Privacy Policy"
+    },
+    "about": {
+      "version": "Version",
+      "termsOfService": "Terms of Service",
+      "privacyPolicy": "Privacy Policy"
+    },
+    "instance": {
+      "title": "AI Twin Server",
+      "statusProvisioning": "Setting up...",
+      "statusRunning": "Running",
+      "statusStopped": "Stopped",
+      "statusError": "Error",
+      "statusDestroying": "Destroying...",
+      "notFound": "Instance not found",
+      "restart": "Restart",
+      "restarting": "Restarting...",
+      "restartTitle": "Restart Instance",
+      "restartMessage": "Restart the AI twin server? Chat will be temporarily unavailable during restart.",
+      "restartStarted": "Restart Started",
+      "restartStartedMessage": "Instance restart has been initiated. Please wait.",
+      "restartError": "Restart failed. Please try again."
+    },
+    "guestLogin": {
+      "availableFeatures": "Available with login"
+    },
+    "loginError": {
+      "apple": "Failed to sign in with Apple. Please try again.",
+      "google": "Failed to sign in with Google. Please try again."
+    },
+    "deleteConfirm": {
+      "title": "Delete Account",
+      "warning": "Are you sure?",
+      "description": "Deleting your account will permanently remove all your data. This action cannot be undone.",
+      "dataList": {
+        "conversations": "All conversation history with your AI twin",
+        "journal": "Journal and reflection data",
+        "insights": "Personality analysis and insights",
+        "instance": "OpenClaw instance"
+      },
+      "inputLabel": "Type \"{{confirmText}}\" to confirm",
+      "inputMatch": "delete",
+      "cta": "Permanently Delete Account",
+      "cancel": "Cancel",
+      "error": "Failed to delete account. Please try again later.\n\nIf the issue persists, contact support: support@altme.app"
+    }
+  },
+  "twin": {
+    "title": "My Agent",
+    "subtitle": "Your AI twin's information",
+    "status": {
+      "online": "Online",
+      "offline": "Offline",
+      "provisioning": "Setting up..."
+    },
+    "personality": "Personality Analysis",
+    "stats": {
+      "conversations": "Conversations",
+      "journalEntries": "Journal Entries",
+      "daysActive": "Days Active"
+    },
+    "conversationDetail": {
+      "title": "Twin Conversation Detail",
+      "subtitle": "Conversation details and reflection"
+    }
+  },
+  "guest": {
+    "title": "Sign in to Get Started",
+    "subtitle": "Your AI twin is waiting for you",
+    "features": {
+      "chat": "AI Chat",
+      "quiz": "Personality Quiz",
+      "journal": "Journal + AI Reflection",
+      "insights": "Emotion Tracking"
+    }
+  },
+  "tokenPurchase": {
+    "title": "Token Purchase",
+    "subtitle": "Purchase and manage tokens"
+  }
+}

@@ -10,21 +10,23 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import FontAwesome from '@expo/vector-icons/FontAwesome';
+import { useTranslation } from 'react-i18next';
 
 import { colors, spacing, borderRadius, fontSize } from '@/src/config/theme';
 import { useAuthStore } from '@/src/features/auth/stores/auth-store';
 
-const CONFIRM_TEXT = '削除';
-
 export default function AccountDeleteConfirmScreen() {
   const router = useRouter();
+  const { t } = useTranslation();
   const deleteAccount = useAuthStore((s) => s.deleteAccount);
+
+  const confirmText = t('settings.deleteConfirm.inputMatch');
 
   const [input, setInput] = useState('');
   const [isDeleting, setIsDeleting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const isConfirmed = input === CONFIRM_TEXT;
+  const isConfirmed = input === confirmText;
 
   const handleDelete = async () => {
     if (!isConfirmed || isDeleting) return;
@@ -36,9 +38,7 @@ export default function AccountDeleteConfirmScreen() {
       await deleteAccount();
       router.replace('/(auth)/login');
     } catch {
-      setError(
-        'アカウントの削除に失敗しました。時間をおいて再度お試しください。\n\n解決しない場合はサポートまでご連絡ください: support@altme.app',
-      );
+      setError(t('settings.deleteConfirm.error'));
       setIsDeleting(false);
     }
   };
@@ -49,28 +49,28 @@ export default function AccountDeleteConfirmScreen() {
         <Pressable onPress={() => router.back()} hitSlop={12} disabled={isDeleting}>
           <FontAwesome name="arrow-left" size={20} color={isDeleting ? colors.textTertiary : colors.text} />
         </Pressable>
-        <Text style={styles.headerTitle}>アカウント削除</Text>
+        <Text style={styles.headerTitle}>{t('settings.deleteConfirm.title')}</Text>
         <View style={{ width: 20 }} />
       </View>
 
       <View style={styles.content}>
         <View style={styles.warningCard}>
           <FontAwesome name="exclamation-triangle" size={32} color={colors.error} />
-          <Text style={styles.warningTitle}>本当に削除しますか？</Text>
+          <Text style={styles.warningTitle}>{t('settings.deleteConfirm.warning')}</Text>
           <Text style={styles.warningText}>
-            アカウントを削除すると、すべてのデータが完全に削除されます。この操作は取り消せません。
+            {t('settings.deleteConfirm.description')}
           </Text>
         </View>
 
         <View style={styles.confirmSection}>
           <Text style={styles.confirmLabel}>
-            確認のため「{CONFIRM_TEXT}」と入力してください
+            {t('settings.deleteConfirm.inputLabel', { confirmText })}
           </Text>
           <TextInput
             style={styles.input}
             value={input}
             onChangeText={setInput}
-            placeholder={CONFIRM_TEXT}
+            placeholder={confirmText}
             placeholderTextColor={colors.textTertiary}
             editable={!isDeleting}
             autoCapitalize="none"
@@ -78,11 +78,11 @@ export default function AccountDeleteConfirmScreen() {
           />
         </View>
 
-        {error && (
+        {error ? (
           <View style={styles.errorCard}>
             <Text style={styles.errorText}>{error}</Text>
           </View>
-        )}
+        ) : null}
 
         <Pressable
           style={[styles.deleteButton, !isConfirmed && styles.deleteButtonDisabled]}
@@ -93,13 +93,13 @@ export default function AccountDeleteConfirmScreen() {
             <ActivityIndicator color={colors.textInverse} />
           ) : (
             <Text style={[styles.deleteButtonText, !isConfirmed && styles.deleteButtonTextDisabled]}>
-              アカウントを完全に削除
+              {t('settings.deleteConfirm.cta')}
             </Text>
           )}
         </Pressable>
 
         <Pressable style={styles.cancelButton} onPress={() => router.back()} disabled={isDeleting}>
-          <Text style={styles.cancelButtonText}>キャンセル</Text>
+          <Text style={styles.cancelButtonText}>{t('settings.deleteConfirm.cancel')}</Text>
         </Pressable>
       </View>
     </SafeAreaView>

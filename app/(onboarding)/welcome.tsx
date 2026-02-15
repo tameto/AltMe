@@ -1,11 +1,13 @@
 import { StyleSheet, View, Text, Pressable } from 'react-native';
 import { router } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useTranslation } from 'react-i18next';
 import { colors, spacing, fontSize, borderRadius } from '@/src/config/theme';
-import { APP_NAME, APP_TAGLINE } from '@/src/config/constants';
+import { APP_NAME } from '@/src/config/constants';
 import { useOnboardingStore } from '@/src/features/onboarding/stores/onboarding-store';
 
 export default function WelcomeScreen() {
+  const { t } = useTranslation();
   const reset = useOnboardingStore((s) => s.reset);
 
   const handleStart = () => {
@@ -20,23 +22,21 @@ export default function WelcomeScreen() {
           <View style={styles.logoContainer}>
             <Text style={styles.logo}>{APP_NAME}</Text>
           </View>
-          <Text style={styles.tagline}>{APP_TAGLINE}</Text>
+          <Text style={styles.tagline}>{t('auth.loginSubtitle')}</Text>
           <Text style={styles.headline}>
-            {'もう一人の自分と出会おう'}
+            {t('onboarding.welcome.headline')}
           </Text>
           <Text style={styles.description}>
-            {'あなたの性格を分析して、'}{'\n'}
-            {'世界に一つだけのAI分身を'}{'\n'}
-            {'作ります'}
+            {t('onboarding.welcome.description')}
           </Text>
         </View>
 
         <View style={styles.footer}>
           <Pressable style={styles.ctaButton} onPress={handleStart}>
-            <Text style={styles.ctaButtonText}>{'はじめる'}</Text>
+            <Text style={styles.ctaButtonText}>{t('onboarding.welcome.cta')}</Text>
           </Pressable>
           <Text style={styles.timeEstimate}>
-            {'所要時間: 約3分'}
+            {t('onboarding.welcome.timeEstimate')}
           </Text>
         </View>
       </View>

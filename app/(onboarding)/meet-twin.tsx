@@ -12,6 +12,7 @@ import {
 import { useState, useRef, useCallback, useEffect } from 'react';
 import { router } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useTranslation } from 'react-i18next';
 import { colors, spacing, fontSize, borderRadius } from '@/src/config/theme';
 import { useOnboardingStore } from '@/src/features/onboarding/stores/onboarding-store';
 import { useAuthStore } from '@/src/features/auth/stores/auth-store';
@@ -27,6 +28,7 @@ type ChatMessage = {
 };
 
 export default function MeetTwinScreen() {
+  const { t } = useTranslation();
   const personalityResult = useOnboardingStore((s) => s.personalityResult);
   const updateProfile = useAuthStore((s) => s.updateProfile);
   const isPro = useIsPro();
@@ -195,7 +197,7 @@ export default function MeetTwinScreen() {
           ]}
         >
           {isTwin && (
-            <Text style={styles.twinLabel}>{'AI分身'}</Text>
+            <Text style={styles.twinLabel}>{t('onboarding.meetTwin.twinLabel')}</Text>
           )}
           <Text
             style={[
@@ -222,10 +224,10 @@ export default function MeetTwinScreen() {
       >
         <View style={styles.header}>
           <Text style={styles.headerTitle}>
-            {'あなたのAI分身'}
+            {t('onboarding.meetTwin.title')}
           </Text>
           <Text style={styles.headerSubtitle}>
-            {'初めての会話'}
+            {t('onboarding.meetTwin.subtitle')}
           </Text>
         </View>
 
@@ -245,7 +247,7 @@ export default function MeetTwinScreen() {
           <View style={styles.typingIndicator}>
             <ActivityIndicator size="small" color={colors.primary} />
             <Text style={styles.typingText}>
-              {'入力中...'}
+              {t('onboarding.meetTwin.typing')}
             </Text>
           </View>
         )}
@@ -254,12 +256,12 @@ export default function MeetTwinScreen() {
           <View style={styles.endSection}>
             <Pressable style={styles.paywallButton} onPress={handlePaywall}>
               <Text style={styles.paywallButtonText}>
-                {'続きを解除する'}
+                {t('onboarding.meetTwin.unlockButton')}
               </Text>
             </Pressable>
             <Pressable style={styles.skipButton} onPress={handleSkip}>
               <Text style={styles.skipButtonText}>
-                {'もう少し後で'}
+                {t('onboarding.meetTwin.skipButton')}
               </Text>
             </Pressable>
           </View>
@@ -270,7 +272,7 @@ export default function MeetTwinScreen() {
                 style={styles.textInput}
                 value={inputText}
                 onChangeText={setInputText}
-                placeholder={'メッセージを入力...'}
+                placeholder={t('onboarding.meetTwin.inputPlaceholder')}
                 placeholderTextColor={colors.textTertiary}
                 multiline
                 maxLength={500}
@@ -287,11 +289,11 @@ export default function MeetTwinScreen() {
                 onPress={sendMessage}
                 disabled={!inputText.trim() || isLoading}
               >
-                <Text style={styles.sendButtonText}>{'送信'}</Text>
+                <Text style={styles.sendButtonText}>{t('onboarding.meetTwin.send')}</Text>
               </Pressable>
             </View>
             <Text style={styles.messageCounter}>
-              {'残り'} {MAX_FREE_EXCHANGES - userMessageCount} {'回'}
+              {t('onboarding.meetTwin.remaining', { count: MAX_FREE_EXCHANGES - userMessageCount })}
             </Text>
           </SafeAreaView>
         )}

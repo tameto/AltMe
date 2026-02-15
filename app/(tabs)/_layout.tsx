@@ -1,17 +1,20 @@
 import React from 'react';
-import FontAwesome from '@expo/vector-icons/FontAwesome';
+import Feather from '@expo/vector-icons/Feather';
 import { Tabs } from 'expo-router';
+import { useTranslation } from 'react-i18next';
 
 import { colors } from '@/src/config/theme';
 
 function TabBarIcon(props: {
-  name: React.ComponentProps<typeof FontAwesome>['name'];
+  name: React.ComponentProps<typeof Feather>['name'];
   color: string;
 }) {
-  return <FontAwesome size={24} style={{ marginBottom: -3 }} {...props} />;
+  return <Feather size={22} style={{ marginBottom: -3 }} {...props} />;
 }
 
 export default function TabLayout() {
+  const { t } = useTranslation();
+
   return (
     <Tabs
       screenOptions={{
@@ -22,15 +25,15 @@ export default function TabLayout() {
       <Tabs.Screen
         name="index"
         options={{
-          title: 'チャット',
+          title: t('tabs.chat'),
           headerShown: false,
-          tabBarIcon: ({ color }) => <TabBarIcon name="comments" color={color} />,
+          tabBarIcon: ({ color }) => <TabBarIcon name="message-circle" color={color} />,
         }}
       />
       <Tabs.Screen
         name="community"
         options={{
-          title: 'コミュニティ',
+          title: t('tabs.community'),
           headerShown: false,
           tabBarIcon: ({ color }) => <TabBarIcon name="users" color={color} />,
         }}
@@ -38,17 +41,17 @@ export default function TabLayout() {
       <Tabs.Screen
         name="twin"
         options={{
-          title: 'ツイン',
+          title: t('tabs.myAgent'),
           headerShown: false,
-          tabBarIcon: ({ color }) => <TabBarIcon name="user" color={color} />,
+          tabBarIcon: ({ color }) => <TabBarIcon name="cpu" color={color} />,
         }}
       />
       <Tabs.Screen
         name="settings"
         options={{
-          title: '設定',
+          title: t('tabs.myPage'),
           headerShown: false,
-          tabBarIcon: ({ color }) => <TabBarIcon name="cog" color={color} />,
+          tabBarIcon: ({ color }) => <TabBarIcon name="user" color={color} />,
         }}
       />
     </Tabs>

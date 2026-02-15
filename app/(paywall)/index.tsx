@@ -2,6 +2,7 @@ import { StyleSheet, View, Text, Pressable, ScrollView, Alert } from 'react-nati
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useTranslation } from 'react-i18next';
 import type { PurchasesPackage } from 'react-native-purchases';
 import { colors, spacing, fontSize, borderRadius } from '@/src/config/theme';
 import { PRICING } from '@/src/config/constants';
@@ -13,12 +14,12 @@ const INTRO_OFFER_DURATION_MS = PRICING.INTRO_OFFER_HOURS * 60 * 60 * 1000;
 
 type PlanId = 'intro_annual' | 'annual' | 'monthly';
 
-const FEATURES = [
-  { icon: '✨', label: '専用AIツイン（無制限チャット）' },
-  { icon: '🧠', label: '詳細性格分析' },
-  { icon: '📓', label: '日記 + AI振り返り' },
-  { icon: '📈', label: '感情トラッキング' },
-  { icon: '💡', label: 'AI洞察レポート' },
+const FEATURE_KEYS = [
+  { icon: '✨', key: 'subscription.paywall.featuresList.dedicatedTwin' },
+  { icon: '🧠', key: 'subscription.paywall.featuresList.personalityAnalysis' },
+  { icon: '📓', key: 'subscription.paywall.featuresList.journalReflection' },
+  { icon: '📈', key: 'subscription.paywall.featuresList.emotionTracking' },
+  { icon: '💡', key: 'subscription.paywall.featuresList.aiInsights' },
 ] as const;
 
 const formatCountdown = (ms: number): string => {
@@ -32,6 +33,7 @@ const formatCountdown = (ms: number): string => {
 
 export default function PaywallScreen() {
   const router = useRouter();
+  const { t } = useTranslation();
   const { purchase, restore, loadOfferings, offerings, isLoading } = useSubscription();
   const createdAt = useUser((s) => s.user?.createdAt);
 
@@ -126,7 +128,7 @@ export default function PaywallScreen() {
   const handlePurchase = useCallback(async () => {
     const pkg = getSelectedPackage();
     if (!pkg) {
-      Alert.alert('エラー', 'プランの取得に失敗しました。もう一度お試しください。');
+      Alert.alert(t('subscription.paywall.errorTitle'), t('subscription.paywall.errorLoadPlan'));
       return;
     }
 
@@ -137,7 +139,7 @@ export default function PaywallScreen() {
         router.back();
       }
     } catch (error) {
-      Alert.alert('購入エラー', '購入処理中にエラーが発生しました。もう一度お試しください。');
+      Alert.alert(t('subscription.paywall.purchaseErrorTitle'), t('subscription.paywall.purchaseError'));
     } finally {
       setIsPurchasing(false);
     }
@@ -148,14 +150,14 @@ export default function PaywallScreen() {
     try {
       const success = await restore();
       if (success) {
-        Alert.alert('復元完了', '購入情報を復元しました。', [
+        Alert.alert(t('subscription.paywall.restoreCompleteTitle'), t('subscription.paywall.restoreComplete'), [
           { text: 'OK', onPress: () => router.back() },
         ]);
       } else {
-        Alert.alert('復元結果', '復元可能な購入情報が見つかりませんでした。');
+        Alert.alert(t('subscription.paywall.restoreResultTitle'), t('subscription.paywall.restoreNoResult'));
       }
     } catch {
-      Alert.alert('エラー', '復元処理中にエラーが発生しました。');
+      Alert.alert(t('subscription.paywall.errorTitle'), t('subscription.paywall.restoreError'));
     } finally {
       setIsRestoring(false);
     }
@@ -181,14 +183,14 @@ export default function PaywallScreen() {
         showsVerticalScrollIndicator={false}
       >
         {/* Title */}
-        <Text style={styles.title}>✨ AIツインの全機能を解放</Text>
+        <Text style={styles.title}>✨ {t('subscription.paywall.subtitle')}</Text>
 
         {/* Feature list */}
         <View style={styles.featureList}>
-          {FEATURES.map((feature) => (
-            <View key={feature.label} style={styles.featureRow}>
+          {FEATURE_KEYS.map((feature) => (
+            <View key={feature.key} style={styles.featureRow}>
               <Text style={styles.featureIcon}>{feature.icon}</Text>
-              <Text style={styles.featureLabel}>{feature.label}</Text>
+              <Text style={styles.featureLabel}>{t(feature.key)}</Text>
             </View>
           ))}
         </View>
@@ -205,7 +207,7 @@ export default function PaywallScreen() {
               onPress={() => setSelectedPlan('intro_annual')}
             >
               <View style={styles.introBadge}>
-                <Text style={styles.introBadgeText}>FIRST TIME OFFER</Text>
+                <Text style={styles.introBadgeText}>{t('subscription.paywall.firstTimeOffer')}</Text>
               </View>
               <View style={styles.planHeader}>
                 <View style={styles.radioOuter}>
@@ -213,13 +215,13 @@ export default function PaywallScreen() {
                 </View>
                 <View style={styles.planInfo}>
                   <Text style={styles.planPrice}>
-                    ¥{PRICING.ANNUAL_INTRO.toLocaleString()}/年
+                    ¥{PRICING.ANNUAL_INTRO.toLocaleString()}{t('subscription.paywall.perYear')}
                   </Text>
                   <Text style={styles.planPerMonth}>
-                    (¥{Math.round(PRICING.ANNUAL_INTRO / 12).toLocaleString()}/月)
+                    {t('subscription.paywall.perMonthParens', { price: Math.round(PRICING.ANNUAL_INTRO / 12).toLocaleString() })}
                   </Text>
                 </View>
-                <Text style={styles.discountBadge}>{introDiscount}% OFF</Text>
+                <Text style={styles.discountBadge}>{t('subscription.paywall.discountOff', { percent: introDiscount })}</Text>
               </View>
               <View style={styles.countdownRow}>
                 <Text style={styles.countdownIcon}>⏰</Text>
@@ -241,12 +243,12 @@ export default function PaywallScreen() {
                 {selectedPlan === 'annual' && <View style={styles.radioInner} />}
               </View>
               <View style={styles.planInfo}>
-                <Text style={styles.planName}>年額</Text>
+                <Text style={styles.planName}>{t('subscription.paywall.plans.yearly')}</Text>
                 <Text style={styles.planPrice}>
-                  ¥{PRICING.ANNUAL.toLocaleString()}/年
+                  ¥{PRICING.ANNUAL.toLocaleString()}{t('subscription.paywall.perYear')}
                 </Text>
                 <Text style={styles.planPerMonth}>
-                  (¥{Math.round(PRICING.ANNUAL / 12).toLocaleString()}/月)
+                  {t('subscription.paywall.perMonthParens', { price: Math.round(PRICING.ANNUAL / 12).toLocaleString() })}
                 </Text>
               </View>
             </View>
@@ -265,9 +267,9 @@ export default function PaywallScreen() {
                 {selectedPlan === 'monthly' && <View style={styles.radioInner} />}
               </View>
               <View style={styles.planInfo}>
-                <Text style={styles.planName}>月額</Text>
+                <Text style={styles.planName}>{t('subscription.paywall.plans.monthly')}</Text>
                 <Text style={styles.planPrice}>
-                  ¥{PRICING.MONTHLY.toLocaleString()}/月
+                  ¥{PRICING.MONTHLY.toLocaleString()}{t('subscription.paywall.monthlyUnit')}
                 </Text>
               </View>
             </View>
@@ -275,7 +277,7 @@ export default function PaywallScreen() {
         </View>
 
         {/* Trial info */}
-        <Text style={styles.trialInfo}>3日間無料トライアル</Text>
+        <Text style={styles.trialInfo}>{t('subscription.paywall.trialLabel')}</Text>
 
         {/* CTA button */}
         <Pressable
@@ -284,25 +286,25 @@ export default function PaywallScreen() {
           disabled={isPurchasing || isLoading}
         >
           <Text style={styles.ctaButtonText}>
-            {isPurchasing ? '処理中...' : '無料トライアルを開始'}
+            {isPurchasing ? t('subscription.paywall.processing') : t('subscription.paywall.startTrial')}
           </Text>
         </Pressable>
 
         {/* Restore */}
         <Pressable onPress={handleRestore} disabled={isRestoring} style={styles.restoreButton}>
           <Text style={styles.restoreText}>
-            {isRestoring ? '復元中...' : '購入を復元'}
+            {isRestoring ? t('subscription.paywall.restoring') : t('subscription.paywall.restore')}
           </Text>
         </Pressable>
 
         {/* Terms | Privacy */}
         <View style={styles.legalRow}>
           <Pressable>
-            <Text style={styles.legalLink}>利用規約</Text>
+            <Text style={styles.legalLink}>{t('subscription.paywall.termsOfService')}</Text>
           </Pressable>
           <Text style={styles.legalSeparator}>|</Text>
           <Pressable>
-            <Text style={styles.legalLink}>プライバシー</Text>
+            <Text style={styles.legalLink}>{t('subscription.paywall.privacy')}</Text>
           </Pressable>
         </View>
       </ScrollView>

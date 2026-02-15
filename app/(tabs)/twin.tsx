@@ -2,12 +2,14 @@ import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import FontAwesome from '@expo/vector-icons/FontAwesome';
+import { useTranslation } from 'react-i18next';
 
 import { colors, spacing, fontSize } from '@/src/config/theme';
 import { useAuthStore } from '@/src/features/auth/stores/auth-store';
 import { GuestPromptOverlay } from '@/src/shared/components/guest-prompt-overlay';
 
 export default function TwinScreen() {
+  const { t } = useTranslation();
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
 
   if (!isAuthenticated) {
@@ -22,8 +24,8 @@ export default function TwinScreen() {
     <SafeAreaView style={styles.container} edges={['top']}>
       <View style={styles.content}>
         <FontAwesome name="user" size={48} color={colors.primaryLight} />
-        <Text style={styles.title}>Twin Info</Text>
-        <Text style={styles.subtitle}>あなたのAIツインの情報</Text>
+        <Text style={styles.title}>{t('twin.title')}</Text>
+        <Text style={styles.subtitle}>{t('twin.subtitle')}</Text>
       </View>
     </SafeAreaView>
   );

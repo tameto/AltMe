@@ -2,8 +2,9 @@ import { useState } from 'react';
 import { StyleSheet, View, Text, Pressable, ActivityIndicator, Alert, Platform, Image } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import FontAwesome from '@expo/vector-icons/FontAwesome';
+import { useTranslation } from 'react-i18next';
 import { colors, spacing, fontSize, borderRadius } from '@/src/config/theme';
-import { APP_NAME, APP_SUBTITLE } from '@/src/config/constants';
+import { APP_NAME } from '@/src/config/constants';
 import { useAuthStore } from '@/src/features/auth/stores/auth-store';
 
 /** Google brand colors per guidelines */
@@ -16,6 +17,7 @@ const GOOGLE_BUTTON = {
 
 export default function LoginScreen() {
   const { signInWithApple, signInWithGoogle, devLogin } = useAuthStore();
+  const { t } = useTranslation();
   const [isSigningIn, setIsSigningIn] = useState<'apple' | 'google' | null>(null);
 
   const handleAppleSignIn = async () => {
@@ -23,7 +25,7 @@ export default function LoginScreen() {
       setIsSigningIn('apple');
       await signInWithApple();
     } catch {
-      Alert.alert('エラー', 'Apple でのログインに失敗しました。もう一度お試しください。');
+      Alert.alert(t('auth.errorTitle'), t('auth.loginError'));
     } finally {
       setIsSigningIn(null);
     }
@@ -34,7 +36,7 @@ export default function LoginScreen() {
       setIsSigningIn('google');
       await signInWithGoogle();
     } catch {
-      Alert.alert('エラー', 'Google でのログインに失敗しました。もう一度お試しください。');
+      Alert.alert(t('auth.errorTitle'), t('auth.loginError'));
     } finally {
       setIsSigningIn(null);
     }
@@ -45,7 +47,7 @@ export default function LoginScreen() {
       <View style={styles.content}>
         <View style={styles.header}>
           <Text style={styles.logo}>{APP_NAME}</Text>
-          <Text style={styles.tagline}>{APP_SUBTITLE}</Text>
+          <Text style={styles.tagline}>{t('auth.loginSubtitle')}</Text>
         </View>
 
         <View style={styles.buttons}>
@@ -59,7 +61,7 @@ export default function LoginScreen() {
               ) : (
                 <Text style={styles.appleButtonText}>
                   <FontAwesome name="apple" size={16} color="#FFFFFF" />
-                  {'  Appleでサインイン'}
+                  {'  '}{t('auth.signInWithApple')}
                 </Text>
               )}
             </Pressable>
@@ -77,14 +79,14 @@ export default function LoginScreen() {
                   source={require('@/assets/images/google-g-icon.png')}
                   style={styles.googleIcon}
                 />
-                <Text style={styles.googleButtonText}>Googleでサインイン</Text>
+                <Text style={styles.googleButtonText}>{t('auth.signInWithGoogle')}</Text>
               </View>
             )}
           </Pressable>
         </View>
 
         <Text style={styles.legal}>
-          続行することで、利用規約とプライバシーポリシーに同意します
+          {t('auth.legalText')}
         </Text>
 
         {__DEV__ && (
@@ -92,12 +94,12 @@ export default function LoginScreen() {
             <Pressable
               style={styles.devButton}
               onPress={() => devLogin(false)}>
-              <Text style={styles.devButtonText}>Dev Login (オンボーディングから)</Text>
+              <Text style={styles.devButtonText}>Dev Login (Onboarding)</Text>
             </Pressable>
             <Pressable
               style={styles.devButton}
               onPress={() => devLogin(true)}>
-              <Text style={styles.devButtonText}>Dev Login (ホームへ直接)</Text>
+              <Text style={styles.devButtonText}>Dev Login (Home)</Text>
             </Pressable>
           </View>
         )}

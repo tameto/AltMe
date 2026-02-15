@@ -9,18 +9,20 @@ import {
   Platform,
 } from 'react-native';
 import FontAwesome from '@expo/vector-icons/FontAwesome';
+import { useTranslation } from 'react-i18next';
 
 import { colors, spacing, fontSize, borderRadius } from '@/src/config/theme';
 import { useAuthStore } from '@/src/features/auth/stores/auth-store';
 
-const FEATURES = [
-  { icon: 'comments' as const, label: 'AIチャット' },
-  { icon: 'user' as const, label: '性格診断' },
-  { icon: 'book' as const, label: '日記+AI振り返り' },
-  { icon: 'line-chart' as const, label: '感情トラッキング' },
+const FEATURE_KEYS = [
+  { icon: 'comments' as const, key: 'guest.features.chat' },
+  { icon: 'user' as const, key: 'guest.features.quiz' },
+  { icon: 'book' as const, key: 'guest.features.journal' },
+  { icon: 'line-chart' as const, key: 'guest.features.insights' },
 ];
 
 export function GuestPromptOverlay() {
+  const { t } = useTranslation();
   const signInWithApple = useAuthStore((s) => s.signInWithApple);
   const signInWithGoogle = useAuthStore((s) => s.signInWithGoogle);
   const [isSigningIn, setIsSigningIn] = useState<'apple' | 'google' | null>(null);
@@ -30,7 +32,7 @@ export function GuestPromptOverlay() {
       setIsSigningIn('apple');
       await signInWithApple();
     } catch {
-      Alert.alert('エラー', 'Apple でのログインに失敗しました。もう一度お試しください。');
+      Alert.alert(t('auth.errorTitle'), t('auth.loginError'));
     } finally {
       setIsSigningIn(null);
     }
@@ -41,7 +43,7 @@ export function GuestPromptOverlay() {
       setIsSigningIn('google');
       await signInWithGoogle();
     } catch {
-      Alert.alert('エラー', 'Google でのログインに失敗しました。もう一度お試しください。');
+      Alert.alert(t('auth.errorTitle'), t('auth.loginError'));
     } finally {
       setIsSigningIn(null);
     }
@@ -51,19 +53,19 @@ export function GuestPromptOverlay() {
     <View style={styles.container}>
       <View style={styles.content}>
         <View style={styles.header}>
-          <Text style={styles.title}>ログインして始めよう</Text>
-          <Text style={styles.subtitle}>AIツインがあなたを待っています</Text>
+          <Text style={styles.title}>{t('guest.title')}</Text>
+          <Text style={styles.subtitle}>{t('guest.subtitle')}</Text>
         </View>
 
         <View style={styles.featureList}>
-          {FEATURES.map((feature) => (
-            <View key={feature.label} style={styles.featureRow}>
+          {FEATURE_KEYS.map((feature) => (
+            <View key={feature.key} style={styles.featureRow}>
               <FontAwesome
                 name={feature.icon}
                 size={16}
                 color={colors.textTertiary}
               />
-              <Text style={styles.featureLabel}>{feature.label}</Text>
+              <Text style={styles.featureLabel}>{t(feature.key)}</Text>
             </View>
           ))}
         </View>
@@ -79,7 +81,7 @@ export function GuestPromptOverlay() {
               ) : (
                 <Text style={styles.appleButtonText}>
                   <FontAwesome name="apple" size={16} color="#FFFFFF" />
-                  {'  Appleでサインイン'}
+                  {'  '}{t('auth.signInWithApple')}
                 </Text>
               )}
             </Pressable>
@@ -94,7 +96,7 @@ export function GuestPromptOverlay() {
             ) : (
               <Text style={styles.googleButtonText}>
                 <FontAwesome name="google" size={16} color={colors.text} />
-                {'  Googleでサインイン'}
+                {'  '}{t('auth.signInWithGoogle')}
               </Text>
             )}
           </Pressable>

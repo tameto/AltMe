@@ -2,6 +2,7 @@ import { StyleSheet, View, Text, Pressable, Animated } from 'react-native';
 import { useRef, useCallback } from 'react';
 import { router } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useTranslation } from 'react-i18next';
 import { colors, spacing, fontSize, borderRadius } from '@/src/config/theme';
 import { ONBOARDING_QUESTION_COUNT } from '@/src/config/constants';
 import {
@@ -11,6 +12,7 @@ import {
 import { supabase } from '@/src/services/supabase/client';
 
 export default function PersonalityQuizScreen() {
+  const { t } = useTranslation();
   const {
     currentStep,
     answers,
@@ -146,7 +148,7 @@ export default function PersonalityQuizScreen() {
                 isFirstQuestion && styles.backButtonDisabled,
               ]}
             >
-              {'\u2190 戻る'}
+              {'\u2190 '}{t('common.back')}
             </Text>
           </Pressable>
           <Text style={styles.counter}>

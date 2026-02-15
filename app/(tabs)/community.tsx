@@ -2,24 +2,26 @@ import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import FontAwesome from '@expo/vector-icons/FontAwesome';
+import { useTranslation } from 'react-i18next';
 
 import { colors, spacing, fontSize, borderRadius } from '@/src/config/theme';
 import { useAuthStore } from '@/src/features/auth/stores/auth-store';
 
 export default function CommunityScreen() {
+  const { t } = useTranslation();
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
       <View style={styles.content}>
         <FontAwesome name="users" size={48} color={colors.primaryLight} />
-        <Text style={styles.title}>Community</Text>
-        <Text style={styles.subtitle}>みんなのAIツインを見てみよう</Text>
+        <Text style={styles.title}>{t('community.title')}</Text>
+        <Text style={styles.subtitle}>{t('community.subtitle')}</Text>
         {!isAuthenticated && (
           <View style={styles.guestBanner}>
             <FontAwesome name="eye" size={14} color={colors.textSecondary} />
             <Text style={styles.guestBannerText}>
-              閲覧のみ - ログインして参加しよう
+              {t('community.guestBanner')}
             </Text>
           </View>
         )}

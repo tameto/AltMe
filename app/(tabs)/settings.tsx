@@ -4,6 +4,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import FontAwesome from '@expo/vector-icons/FontAwesome';
 import { useRouter } from 'expo-router';
 import Constants from 'expo-constants';
+import { useTranslation } from 'react-i18next';
 
 import { colors, spacing, borderRadius, fontSize } from '@/src/config/theme';
 import { useSubscription, useIsPro } from '@/src/shared/hooks/use-subscription';
@@ -23,22 +24,23 @@ const HELP_URL = 'https://altme.app/help';
 const TERMS_URL = 'https://altme.app/terms';
 const PRIVACY_URL = 'https://altme.app/privacy';
 
-const STATUS_CONFIG: Record<OpenClawStatus, { label: string; color: string; icon: React.ComponentProps<typeof FontAwesome>['name'] }> = {
-  provisioning: { label: 'セットアップ中...', color: colors.warning, icon: 'clock-o' },
-  running: { label: '稼働中', color: colors.success, icon: 'check-circle' },
-  stopped: { label: '停止中', color: colors.textTertiary, icon: 'stop-circle' },
-  error: { label: 'エラー', color: colors.error, icon: 'exclamation-circle' },
-  destroying: { label: '削除中...', color: colors.warning, icon: 'clock-o' },
+const STATUS_ICON_CONFIG: Record<OpenClawStatus, { labelKey: string; color: string; icon: React.ComponentProps<typeof FontAwesome>['name'] }> = {
+  provisioning: { labelKey: 'settings.instance.statusProvisioning', color: colors.warning, icon: 'clock-o' },
+  running: { labelKey: 'settings.instance.statusRunning', color: colors.success, icon: 'check-circle' },
+  stopped: { labelKey: 'settings.instance.statusStopped', color: colors.textTertiary, icon: 'stop-circle' },
+  error: { labelKey: 'settings.instance.statusError', color: colors.error, icon: 'exclamation-circle' },
+  destroying: { labelKey: 'settings.instance.statusDestroying', color: colors.warning, icon: 'clock-o' },
 };
 
-const GUEST_FEATURES = [
-  { icon: 'comments' as const, label: 'AIチャット' },
-  { icon: 'user' as const, label: '性格診断' },
-  { icon: 'book' as const, label: '日記+AI振り返り' },
-  { icon: 'line-chart' as const, label: '感情トラッキング' },
+const GUEST_FEATURE_KEYS = [
+  { icon: 'comments' as const, key: 'guest.features.chat' },
+  { icon: 'user' as const, key: 'guest.features.quiz' },
+  { icon: 'book' as const, key: 'guest.features.journal' },
+  { icon: 'line-chart' as const, key: 'guest.features.insights' },
 ];
 
 function GuestSettingsScreen() {
+  const { t } = useTranslation();
   const signInWithApple = useAuthStore((s) => s.signInWithApple);
   const signInWithGoogle = useAuthStore((s) => s.signInWithGoogle);
   const appVersion = Constants.expoConfig?.version ?? '1.0.0';
@@ -49,7 +51,7 @@ function GuestSettingsScreen() {
       setIsSigningIn('apple');
       await signInWithApple();
     } catch {
-      Alert.alert('エラー', 'Apple でのログインに失敗しました。もう一度お試しください。');
+      Alert.alert(t('common.error'), t('settings.loginError.apple'));
     } finally {
       setIsSigningIn(null);
     }
@@ -60,7 +62,7 @@ function GuestSettingsScreen() {
       setIsSigningIn('google');
       await signInWithGoogle();
     } catch {
-      Alert.alert('エラー', 'Google でのログインに失敗しました。もう一度お試しください。');
+      Alert.alert(t('common.error'), t('settings.loginError.google'));
     } finally {
       setIsSigningIn(null);
     }
@@ -69,11 +71,11 @@ function GuestSettingsScreen() {
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
       <ScrollView contentContainerStyle={styles.content}>
-        <Text style={styles.title}>設定</Text>
+        <Text style={styles.title}>{t('settings.settingsTitle')}</Text>
 
         <View style={styles.guestLoginCard}>
-          <Text style={styles.guestLoginTitle}>ログインして始めよう</Text>
-          <Text style={styles.guestLoginSubtitle}>AIツインがあなたを待っています</Text>
+          <Text style={styles.guestLoginTitle}>{t('guest.title')}</Text>
+          <Text style={styles.guestLoginSubtitle}>{t('guest.subtitle')}</Text>
 
           <View style={styles.guestButtons}>
             {Platform.OS === 'ios' && (
@@ -86,7 +88,7 @@ function GuestSettingsScreen() {
                 ) : (
                   <Text style={styles.guestAppleButtonText}>
                     <FontAwesome name="apple" size={16} color="#FFFFFF" />
-                    {'  Appleでサインイン'}
+                    {'  '}{t('auth.signInWithApple')}
                   </Text>
                 )}
               </Pressable>
@@ -101,7 +103,7 @@ function GuestSettingsScreen() {
               ) : (
                 <Text style={styles.guestGoogleButtonText}>
                   <FontAwesome name="google" size={16} color={colors.text} />
-                  {'  Googleでサインイン'}
+                  {'  '}{t('auth.signInWithGoogle')}
                 </Text>
               )}
             </Pressable>
@@ -109,20 +111,20 @@ function GuestSettingsScreen() {
         </View>
 
         <View style={styles.guestFeatureSection}>
-          <Text style={styles.sectionTitle}>ログインで利用可能</Text>
-          {GUEST_FEATURES.map((feature) => (
-            <View key={feature.label} style={styles.guestFeatureRow}>
+          <Text style={styles.sectionTitle}>{t('settings.guestLogin.availableFeatures')}</Text>
+          {GUEST_FEATURE_KEYS.map((feature) => (
+            <View key={feature.key} style={styles.guestFeatureRow}>
               <FontAwesome name={feature.icon} size={18} color={colors.textTertiary} />
-              <Text style={styles.guestFeatureLabel}>{feature.label}</Text>
+              <Text style={styles.guestFeatureLabel}>{t(feature.key)}</Text>
             </View>
           ))}
         </View>
 
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>サポート</Text>
-          <SettingRow icon="question-circle" label="ヘルプ・FAQ" onPress={() => Linking.openURL('https://altme.app/help')} />
-          <SettingRow icon="file-text" label="利用規約" onPress={() => Linking.openURL('https://altme.app/terms')} />
-          <SettingRow icon="lock" label="プライバシーポリシー" onPress={() => Linking.openURL('https://altme.app/privacy')} />
+          <Text style={styles.sectionTitle}>{t('settings.support.title')}</Text>
+          <SettingRow icon="question-circle" label={t('settings.support.help')} onPress={() => Linking.openURL(HELP_URL)} />
+          <SettingRow icon="file-text" label={t('settings.support.terms')} onPress={() => Linking.openURL(TERMS_URL)} />
+          <SettingRow icon="lock" label={t('settings.support.privacy')} onPress={() => Linking.openURL(PRIVACY_URL)} />
         </View>
 
         <Text style={styles.version}>{APP_NAME} v{appVersion}</Text>
@@ -132,6 +134,7 @@ function GuestSettingsScreen() {
 }
 
 export default function SettingsScreen() {
+  const { t } = useTranslation();
   const router = useRouter();
   const isPro = useIsPro();
   const user = useUser((s) => s.user);
@@ -183,12 +186,12 @@ export default function SettingsScreen() {
 
   const handleEditProfile = () => {
     Alert.prompt(
-      'プロフィール編集',
-      '新しい表示名を入力してください',
+      t('settings.profile.editTitle'),
+      t('settings.profile.editPrompt'),
       async (newName: string) => {
         const trimmed = newName.trim();
         if (!trimmed) {
-          Alert.alert('エラー', '表示名を入力してください');
+          Alert.alert(t('common.error'), t('settings.profile.editEmpty'));
           return;
         }
         if (!user) return;
@@ -198,9 +201,9 @@ export default function SettingsScreen() {
             .update({ display_name: trimmed })
             .eq('id', user.id);
           updateUser({ displayName: trimmed });
-          Alert.alert('完了', '表示名を更新しました');
+          Alert.alert(t('common.done'), t('settings.profile.editSuccess'));
         } catch {
-          Alert.alert('エラー', '更新に失敗しました。もう一度お試しください。');
+          Alert.alert(t('common.error'), t('settings.profile.editError'));
         }
       },
       'plain-text',
@@ -210,12 +213,12 @@ export default function SettingsScreen() {
 
   const handleEditTwinName = () => {
     Alert.prompt(
-      'ツインの名前を変更',
-      'AIツインの新しい名前を入力してください',
+      t('settings.twinSettings.editNameTitle'),
+      t('settings.twinSettings.editNamePrompt'),
       async (newName: string) => {
         const trimmed = newName.trim();
         if (!trimmed) {
-          Alert.alert('エラー', '名前を入力してください');
+          Alert.alert(t('common.error'), t('settings.twinSettings.editNameEmpty'));
           return;
         }
         if (!user) return;
@@ -233,9 +236,9 @@ export default function SettingsScreen() {
             );
           }
 
-          Alert.alert('完了', 'ツインの名前を更新しました');
+          Alert.alert(t('common.done'), t('settings.twinSettings.editNameSuccess'));
         } catch {
-          Alert.alert('エラー', '更新に失敗しました。もう一度お試しください。');
+          Alert.alert(t('common.error'), t('settings.twinSettings.editNameError'));
         }
       },
       'plain-text',
@@ -245,12 +248,12 @@ export default function SettingsScreen() {
 
   const handleRetakePersonalityQuiz = () => {
     Alert.alert(
-      '性格診断をやり直す',
-      '現在の診断結果はリセットされます。よろしいですか？',
+      t('settings.twinSettings.retakeQuizTitle'),
+      t('settings.twinSettings.retakeQuizMessage'),
       [
-        { text: 'キャンセル', style: 'cancel' },
+        { text: t('common.cancel'), style: 'cancel' },
         {
-          text: 'やり直す',
+          text: t('settings.twinSettings.retakeQuizConfirm'),
           style: 'destructive',
           onPress: () => {
             router.push('/(onboarding)/personality-quiz');
@@ -265,28 +268,28 @@ export default function SettingsScreen() {
   };
 
   const handleNotificationSettings = () => {
-    Alert.alert('通知設定', '現在準備中です。今後のアップデートをお待ちください。');
+    Alert.alert(t('settings.notifications.title'), t('settings.notifications.comingSoon'));
   };
 
   const handleRestartInstance = useCallback(async () => {
     Alert.alert(
-      'インスタンスを再起動',
-      'AIツインのサーバーを再起動しますか？再起動中はチャットが一時的に利用できなくなります。',
+      t('settings.instance.restartTitle'),
+      t('settings.instance.restartMessage'),
       [
-        { text: 'キャンセル', style: 'cancel' },
+        { text: t('common.cancel'), style: 'cancel' },
         {
-          text: '再起動',
+          text: t('settings.instance.restart'),
           onPress: async () => {
             setIsRestarting(true);
             try {
               const result = await restartInstance();
               if (result.success) {
-                Alert.alert('再起動開始', 'インスタンスの再起動を開始しました。しばらくお待ちください。');
+                Alert.alert(t('settings.instance.restartStarted'), t('settings.instance.restartStartedMessage'));
               } else {
-                Alert.alert('エラー', result.error || '再起動に失敗しました。');
+                Alert.alert(t('common.error'), result.error || t('settings.instance.restartError'));
               }
             } catch {
-              Alert.alert('エラー', '再起動に失敗しました。もう一度お試しください。');
+              Alert.alert(t('common.error'), t('settings.instance.restartError'));
             } finally {
               setIsRestarting(false);
             }
@@ -294,13 +297,13 @@ export default function SettingsScreen() {
         },
       ],
     );
-  }, []);
+  }, [t]);
 
   const handleSignOut = () => {
-    Alert.alert('ログアウト', '本当にログアウトしますか？', [
-      { text: 'キャンセル', style: 'cancel' },
+    Alert.alert(t('settings.account.logout'), t('settings.account.logoutConfirm'), [
+      { text: t('common.cancel'), style: 'cancel' },
       {
-        text: 'ログアウト',
+        text: t('settings.account.logout'),
         style: 'destructive',
         onPress: async () => {
           await signOut();
@@ -325,23 +328,23 @@ export default function SettingsScreen() {
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
       <ScrollView contentContainerStyle={styles.content}>
-        <Text style={styles.title}>設定</Text>
+        <Text style={styles.title}>{t('settings.settingsTitle')}</Text>
 
         <View style={styles.profileCard}>
           <View style={styles.avatar}>
             <FontAwesome name="user" size={24} color={colors.primary} />
           </View>
           <View style={styles.profileInfo}>
-            <Text style={styles.profileName}>{user?.displayName || 'ゲスト'}</Text>
-            {user?.twinName && (
-              <Text style={styles.twinNameLabel}>ツイン: {user.twinName}</Text>
-            )}
+            <Text style={styles.profileName}>{user?.displayName || t('settings.guest')}</Text>
+            {user?.twinName ? (
+              <Text style={styles.twinNameLabel}>{t('settings.twinLabel', { name: user.twinName })}</Text>
+            ) : null}
           </View>
         </View>
 
         <View style={styles.subscriptionCard}>
           <View style={styles.subscriptionHeader}>
-            <Text style={styles.subscriptionTitle}>{isPro ? 'Pro プラン' : 'Free プラン'}</Text>
+            <Text style={styles.subscriptionTitle}>{isPro ? t('settings.proPlan') : t('settings.freePlan')}</Text>
             {isPro && (
               <View style={styles.proBadge}>
                 <Text style={styles.proBadgeText}>PRO</Text>
@@ -350,14 +353,14 @@ export default function SettingsScreen() {
           </View>
           {isPro ? (
             <View style={styles.creditsRow}>
-              <Text style={styles.creditsLabel}>プラン：</Text>
-              <Text style={styles.creditsValue}>{entitlement.planType === 'annual' ? '年額' : '月額'}</Text>
+              <Text style={styles.creditsLabel}>{t('settings.planLabel')}</Text>
+              <Text style={styles.creditsValue}>{entitlement.planType === 'annual' ? t('settings.planAnnual') : t('settings.planMonthly')}</Text>
             </View>
           ) : (
             <TouchableOpacity
               style={styles.upgradeButton}
               onPress={() => router.push('/(paywall)' as never)}>
-              <Text style={styles.upgradeText}>Pro にアップグレード</Text>
+              <Text style={styles.upgradeText}>{t('settings.upgradeToPro')}</Text>
             </TouchableOpacity>
           )}
         </View>
@@ -366,7 +369,7 @@ export default function SettingsScreen() {
         {isPro && (
           <View style={styles.instanceCard}>
             <View style={styles.instanceHeader}>
-              <Text style={styles.instanceTitle}>AIツインサーバー</Text>
+              <Text style={styles.instanceTitle}>{t('settings.instance.title')}</Text>
               {isLoadingInstance && (
                 <ActivityIndicator size="small" color={colors.textSecondary} />
               )}
@@ -375,12 +378,12 @@ export default function SettingsScreen() {
               <>
                 <View style={styles.instanceStatusRow}>
                   <FontAwesome
-                    name={STATUS_CONFIG[instance.status].icon}
+                    name={STATUS_ICON_CONFIG[instance.status].icon}
                     size={16}
-                    color={STATUS_CONFIG[instance.status].color}
+                    color={STATUS_ICON_CONFIG[instance.status].color}
                   />
-                  <Text style={[styles.instanceStatusText, { color: STATUS_CONFIG[instance.status].color }]}>
-                    {STATUS_CONFIG[instance.status].label}
+                  <Text style={[styles.instanceStatusText, { color: STATUS_ICON_CONFIG[instance.status].color }]}>
+                    {t(STATUS_ICON_CONFIG[instance.status].labelKey)}
                   </Text>
                   {instance.status === 'provisioning' && (
                     <ActivityIndicator size="small" color={colors.warning} style={{ marginLeft: spacing.xs }} />
@@ -396,43 +399,43 @@ export default function SettingsScreen() {
                     disabled={isRestarting}>
                     <FontAwesome name="refresh" size={14} color={colors.textInverse} />
                     <Text style={styles.restartButtonText}>
-                      {isRestarting ? '再起動中...' : '再起動'}
+                      {isRestarting ? t('settings.instance.restarting') : t('settings.instance.restart')}
                     </Text>
                   </TouchableOpacity>
                 )}
               </>
             ) : (
               !isLoadingInstance && (
-                <Text style={styles.instanceNotFound}>インスタンスが見つかりません</Text>
+                <Text style={styles.instanceNotFound}>{t('settings.instance.notFound')}</Text>
               )
             )}
           </View>
         )}
 
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>アカウント</Text>
-          <SettingRow icon="user" label="プロフィール編集" onPress={handleEditProfile} />
+          <Text style={styles.sectionTitle}>{t('settings.account.title')}</Text>
+          <SettingRow icon="user" label={t('settings.profile.edit')} onPress={handleEditProfile} />
           {isPro && (
-            <SettingRow icon="credit-card" label="サブスクリプション管理" onPress={handleSubscriptionManage} />
+            <SettingRow icon="credit-card" label={t('settings.subscription')} onPress={handleSubscriptionManage} />
           )}
-          <SettingRow icon="bell" label="通知設定" onPress={handleNotificationSettings} />
+          <SettingRow icon="bell" label={t('settings.notifications.title')} onPress={handleNotificationSettings} />
         </View>
 
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>AIツイン</Text>
-          <SettingRow icon="refresh" label="性格診断をやり直す" onPress={handleRetakePersonalityQuiz} />
-          <SettingRow icon="edit" label="ツインの名前を変更" onPress={handleEditTwinName} />
+          <Text style={styles.sectionTitle}>{t('settings.twinSettings.title')}</Text>
+          <SettingRow icon="refresh" label={t('settings.twinSettings.retakeQuiz')} onPress={handleRetakePersonalityQuiz} />
+          <SettingRow icon="edit" label={t('settings.twinSettings.editName')} onPress={handleEditTwinName} />
         </View>
 
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>サポート</Text>
-          <SettingRow icon="question-circle" label="ヘルプ・FAQ" onPress={handleOpenHelp} />
-          <SettingRow icon="file-text" label="利用規約" onPress={handleOpenTerms} />
-          <SettingRow icon="lock" label="プライバシーポリシー" onPress={handleOpenPrivacy} />
+          <Text style={styles.sectionTitle}>{t('settings.support.title')}</Text>
+          <SettingRow icon="question-circle" label={t('settings.support.help')} onPress={handleOpenHelp} />
+          <SettingRow icon="file-text" label={t('settings.support.terms')} onPress={handleOpenTerms} />
+          <SettingRow icon="lock" label={t('settings.support.privacy')} onPress={handleOpenPrivacy} />
         </View>
 
         <TouchableOpacity style={styles.signOutButton} onPress={handleSignOut}>
-          <Text style={styles.signOutText}>ログアウト</Text>
+          <Text style={styles.signOutText}>{t('settings.account.logout')}</Text>
         </TouchableOpacity>
 
         <Text style={styles.version}>{APP_NAME} v{appVersion}</Text>

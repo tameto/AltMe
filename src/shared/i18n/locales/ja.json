@@ -1,0 +1,412 @@
+{
+  "common": {
+    "appName": "AltMe",
+    "next": "次へ",
+    "back": "戻る",
+    "cancel": "キャンセル",
+    "save": "保存",
+    "delete": "削除",
+    "done": "完了",
+    "close": "閉じる",
+    "retry": "再試行",
+    "loading": "読み込み中...",
+    "error": "エラーが発生しました",
+    "networkError": "ネットワークに接続できません",
+    "confirm": "確認",
+    "start": "始める"
+  },
+  "tabs": {
+    "chat": "チャット",
+    "community": "コミュニティ",
+    "myAgent": "マイエージェント",
+    "myPage": "マイページ"
+  },
+  "auth": {
+    "signInWithApple": "Appleでサインイン",
+    "signInWithGoogle": "Googleでサインイン",
+    "loginTitle": "ログイン",
+    "loginSubtitle": "もう一人の自分と出会おう",
+    "termsOfService": "利用規約",
+    "privacyPolicy": "プライバシーポリシー",
+    "agreeToTerms": "続行することで{{terms}}と{{privacy}}に同意します",
+    "loginError": "ログインに失敗しました。もう一度お試しください。",
+    "errorTitle": "エラー",
+    "legalText": "続行することで、利用規約とプライバシーポリシーに同意します"
+  },
+  "onboarding": {
+    "welcome": {
+      "headline": "もう一人の自分を作ろう",
+      "description": "あなたの性格を分析して、\n世界に一つだけのAI分身を\n作ります",
+      "cta": "始める",
+      "timeEstimate": "所要時間: 約3分"
+    },
+    "quiz": {
+      "title": "性格診断",
+      "progress": "{{current}}/{{total}}",
+      "questionPrefix": "Q{{number}}.",
+      "choiceLabels": {
+        "a": "A",
+        "b": "B",
+        "c": "C",
+        "d": "D"
+      }
+    },
+    "result": {
+      "title": "あなたの性格タイプ",
+      "analyzing": "あなたの性格を分析中...",
+      "pleaseWait": "少々お待ちください",
+      "bigFiveTitle": "パーソナリティチャート",
+      "openness": "開放性",
+      "conscientiousness": "誠実性",
+      "extraversion": "外向性",
+      "agreeableness": "協調性",
+      "neuroticism": "神経質傾向",
+      "summaryTitle": "あなたの特徴",
+      "detailedAnalysis": "詳細分析を見る",
+      "proBadge": "Pro限定",
+      "detailedDescription": "コミュニケーションスタイル、強み・弱み、\n最適なAIツインの設定が含まれます",
+      "cta": "AIツインと会う"
+    },
+    "avatar": {
+      "title": "AIの見た目を選ぼう",
+      "step": "5/6",
+      "styles": {
+        "geometric": "幾何学",
+        "cosmic": "宇宙",
+        "organic": "有機的",
+        "techno": "テクノ",
+        "zen": "禅"
+      },
+      "cta": "次へ"
+    },
+    "tone": {
+      "title": "AIの話し方を選ぼう",
+      "step": "6/6",
+      "styles": {
+        "polite": "丁寧",
+        "casual": "カジュアル",
+        "intellectual": "知的",
+        "mentor": "メンター",
+        "tsundere": "ツンデレ"
+      },
+      "samples": {
+        "polite": "お疲れ様です。今日はどんな一日でしたか？お話を聞かせてください。",
+        "casual": "やっほー！今日どうだった？なんか面白いことあった？",
+        "intellectual": "興味深いですね。その考えをもう少し掘り下げてみましょうか。",
+        "mentor": "大丈夫、あなたならできる。一緒に考えてみよう。",
+        "tsundere": "べ、別にあなたのこと心配してるわけじゃないんだからね…で、今日は何があったの？"
+      },
+      "cta": "次へ"
+    },
+    "meetTwin": {
+      "title": "あなたのAI分身",
+      "subtitle": "初めての会話",
+      "twinLabel": "AI分身",
+      "typing": "入力中...",
+      "send": "送信",
+      "remaining": "残り {{count}} 回",
+      "unlockButton": "続きを解除する",
+      "skipButton": "もう少し後で",
+      "nameLabel": "AIツインの名前",
+      "namePlaceholder": "名前を入力",
+      "nameConfirm": "決定",
+      "remainingChats": "残り {{count}}/{{total}} 回の会話",
+      "cta": "オンボーディング完了",
+      "inputPlaceholder": "メッセージを入力..."
+    }
+  },
+  "chat": {
+    "title": "チャット",
+    "inputPlaceholder": "メッセージを入力...",
+    "inputPlaceholderDefault": "今日の出来事を教えて...",
+    "inputPlaceholderAtLimit": "Proにアップグレードして続けよう",
+    "send": "送信",
+    "freeLimit": "残り {{count}}/{{total}} 回",
+    "freeLimitReached": "本日の無料チャット回数に達しました",
+    "upgradePrompt": "Proにアップグレードして無制限に会話しよう",
+    "upgradeCta": "Proにアップグレード",
+    "proLabel": "Pro",
+    "freeLabel": "Free",
+    "typing": "入力中...",
+    "thinking": "考え中...",
+    "attachFile": "ファイルを添付",
+    "welcomeMessage": "{{name}}さん、こんにちは！{{twinName}}だよ。今日はどんなことがあった？",
+    "welcomeMessageDefault": "こんにちは！{{twinName}}だよ。今日はどんなことがあった？",
+    "rateLimited": "ちょっと待ってね。少し間を置いてからもう一度話しかけて。",
+    "errorResponse": "ごめんね、うまく返事ができなかった。もう一度試してみて。",
+    "offline": "オフライン",
+    "remainingCount": "残り{{count}}回",
+    "connectionStatus": {
+      "connected": "接続済み",
+      "connecting": "接続中...",
+      "disconnected": "切断されました",
+      "reconnecting": "再接続中..."
+    }
+  },
+  "community": {
+    "title": "コミュニティ",
+    "subtitle": "みんなのAIツインを見てみよう",
+    "createChannel": "チャンネルを作成",
+    "channels": "チャンネル",
+    "conversations": "会話",
+    "noChannels": "チャンネルがありません",
+    "joinChannel": "参加する",
+    "guestBanner": "閲覧のみ - ログインして参加しよう",
+    "create": {
+      "title": "コミュニティ作成",
+      "channelName": "チャンネル名",
+      "channelNamePlaceholder": "チャンネル名を入力",
+      "description": "説明",
+      "descriptionPlaceholder": "チャンネルの説明を入力",
+      "thumbnail": "サムネイル",
+      "language": "言語",
+      "languages": {
+        "ja": "日本語",
+        "en": "English",
+        "ko": "한국어"
+      },
+      "category": "カテゴリ",
+      "categories": {
+        "entertainment": "エンタメ",
+        "lifestyle": "ライフスタイル",
+        "technology": "テクノロジー",
+        "sports": "スポーツ",
+        "music": "音楽"
+      },
+      "cta": "チャンネルを作成"
+    },
+    "detail": {
+      "title": "会話詳細",
+      "communityConversation": "コミュニティ会話"
+    }
+  },
+  "subscription": {
+    "paywall": {
+      "title": "Proにアップグレード",
+      "subtitle": "AIツインの全機能を解放",
+      "introTimer": "初回限定: 残り {{time}}",
+      "features": {
+        "unlimitedChat": "チャット無制限",
+        "dedicatedAgent": "専用AIエージェント",
+        "communityAccess": "コミュニティアクセス",
+        "insights": "自己分析・インサイト",
+        "journal": "日記・振り返り"
+      },
+      "featuresList": {
+        "dedicatedTwin": "専用AIツイン（無制限チャット）",
+        "personalityAnalysis": "詳細性格分析",
+        "journalReflection": "日記 + AI振り返り",
+        "emotionTracking": "感情トラッキング",
+        "aiInsights": "AI洞察レポート"
+      },
+      "plans": {
+        "monthly": "月額",
+        "yearly": "年額",
+        "introYearly": "初回限定"
+      },
+      "firstTimeOffer": "FIRST TIME OFFER",
+      "perYear": "/年",
+      "perMonthParens": "(¥{{price}}/月)",
+      "monthlyPrice": "¥4,980",
+      "monthlyUnit": "/月",
+      "yearlyPrice": "¥39,800",
+      "yearlyUnit": "¥3,317/月 (33%OFF)",
+      "introPrice": "¥29,800",
+      "introUnit": "¥2,483/月 (50%OFF)",
+      "discountOff": "{{percent}}% OFF",
+      "trialLabel": "3日間無料トライアル",
+      "cta": "3日間無料で始める",
+      "startTrial": "無料トライアルを開始",
+      "processing": "処理中...",
+      "trialNote": "3日間の無料トライアル後、自動的に課金されます",
+      "restore": "購入を復元",
+      "restoring": "復元中...",
+      "legal": "利用規約 ・ プライバシーポリシー",
+      "termsOfService": "利用規約",
+      "privacy": "プライバシー",
+      "errorTitle": "エラー",
+      "errorLoadPlan": "プランの取得に失敗しました。もう一度お試しください。",
+      "purchaseErrorTitle": "購入エラー",
+      "purchaseError": "購入処理中にエラーが発生しました。もう一度お試しください。",
+      "restoreCompleteTitle": "復元完了",
+      "restoreComplete": "購入情報を復元しました。",
+      "restoreResultTitle": "復元結果",
+      "restoreNoResult": "復元可能な購入情報が見つかりませんでした。",
+      "restoreError": "復元処理中にエラーが発生しました。"
+    },
+    "manage": {
+      "title": "サブスクリプション管理",
+      "currentPlan": "現在のプラン",
+      "proPlan": "Pro プラン",
+      "planMonthly": "月額プラン",
+      "planYearly": "年額プラン",
+      "planIntroYearly": "年額プラン（初回特別）",
+      "nextRenewal": "次回更新日",
+      "status": "ステータス",
+      "statusActive": "アクティブ",
+      "statusTrial": "トライアル中（残り{{days}}日）",
+      "statusCancelled": "解約済み（期間終了まで利用可）",
+      "statusGracePeriod": "猶予期間（お支払い更新が必要）",
+      "statusExpired": "期限切れ",
+      "statusFree": "Free",
+      "billingHistory": "請求履歴",
+      "changePlan": "プラン変更",
+      "paymentMethod": "お支払い方法",
+      "cancelSubscription": "サブスクリプションを解約",
+      "statsTitle": "あなたとAIツインの記録",
+      "statChat": "チャット",
+      "statJournal": "日記",
+      "statMood": "気分記録",
+      "statDays": "日間",
+      "statsMessage": "{{twinName}}はあなたのことを{{count}}回の会話から学んでいます。解約するとこのデータは保持されますが、新しい会話や分析は利用できなくなります。",
+      "cancelConfirmTitle": "本当に解約しますか？",
+      "cancelConfirmMessage": "{{twinName}}との{{days}}日間の思い出が失われます。\n\n解約後も現在の期間終了まではPro機能をご利用いただけます。",
+      "cancelConfirmCancel": "やっぱりやめる",
+      "cancelConfirmProceed": "解約手続きへ",
+      "resubscribeMessage": "再度Pro機能をご利用いただくには、ストアからサブスクリプションを再開してください。",
+      "openStore": "ストアを開く",
+      "upgradeButton": "Pro にアップグレード"
+    }
+  },
+  "settings": {
+    "title": "マイページ",
+    "settingsTitle": "設定",
+    "guest": "ゲスト",
+    "twinLabel": "ツイン: {{name}}",
+    "proPlan": "Pro プラン",
+    "freePlan": "Free プラン",
+    "planLabel": "プラン：",
+    "planAnnual": "年額",
+    "planMonthly": "月額",
+    "upgradeToPro": "Pro にアップグレード",
+    "profile": {
+      "title": "プロフィール",
+      "displayName": "表示名",
+      "email": "メール",
+      "edit": "プロフィール編集",
+      "editTitle": "プロフィール編集",
+      "editPrompt": "新しい表示名を入力してください",
+      "editEmpty": "表示名を入力してください",
+      "editSuccess": "表示名を更新しました",
+      "editError": "更新に失敗しました。もう一度お試しください。"
+    },
+    "twinSettings": {
+      "title": "AIツイン",
+      "name": "ツイン名",
+      "tone": "話し方",
+      "avatar": "見た目",
+      "editName": "ツインの名前を変更",
+      "editNameTitle": "ツインの名前を変更",
+      "editNamePrompt": "AIツインの新しい名前を入力してください",
+      "editNameEmpty": "名前を入力してください",
+      "editNameSuccess": "ツインの名前を更新しました",
+      "editNameError": "更新に失敗しました。もう一度お試しください。",
+      "retakeQuiz": "性格診断をやり直す",
+      "retakeQuizTitle": "性格診断をやり直す",
+      "retakeQuizMessage": "現在の診断結果はリセットされます。よろしいですか？",
+      "retakeQuizConfirm": "やり直す"
+    },
+    "mbti": {
+      "title": "MBTI設定",
+      "select": "MBTIタイプを選択",
+      "subtitle": "MBTIタイプを選択してAIツインに反映"
+    },
+    "subscription": "サブスクリプション管理",
+    "notifications": {
+      "title": "通知設定",
+      "push": "プッシュ通知",
+      "dailyReminder": "デイリーリマインダー",
+      "subtitle": "通知のカスタマイズ",
+      "comingSoon": "現在準備中です。今後のアップデートをお待ちください。"
+    },
+    "account": {
+      "title": "アカウント",
+      "logout": "ログアウト",
+      "logoutConfirm": "本当にログアウトしますか？",
+      "deleteAccount": "アカウント削除"
+    },
+    "support": {
+      "title": "サポート",
+      "help": "ヘルプ・FAQ",
+      "terms": "利用規約",
+      "privacy": "プライバシーポリシー"
+    },
+    "about": {
+      "version": "バージョン",
+      "termsOfService": "利用規約",
+      "privacyPolicy": "プライバシーポリシー"
+    },
+    "instance": {
+      "title": "AIツインサーバー",
+      "statusProvisioning": "セットアップ中...",
+      "statusRunning": "稼働中",
+      "statusStopped": "停止中",
+      "statusError": "エラー",
+      "statusDestroying": "削除中...",
+      "notFound": "インスタンスが見つかりません",
+      "restart": "再起動",
+      "restarting": "再起動中...",
+      "restartTitle": "インスタンスを再起動",
+      "restartMessage": "AIツインのサーバーを再起動しますか？再起動中はチャットが一時的に利用できなくなります。",
+      "restartStarted": "再起動開始",
+      "restartStartedMessage": "インスタンスの再起動を開始しました。しばらくお待ちください。",
+      "restartError": "再起動に失敗しました。もう一度お試しください。"
+    },
+    "guestLogin": {
+      "availableFeatures": "ログインで利用可能"
+    },
+    "loginError": {
+      "apple": "Apple でのログインに失敗しました。もう一度お試しください。",
+      "google": "Google でのログインに失敗しました。もう一度お試しください。"
+    },
+    "deleteConfirm": {
+      "title": "アカウント削除",
+      "warning": "本当に削除しますか？",
+      "description": "アカウントを削除すると、すべてのデータが完全に削除されます。この操作は取り消せません。",
+      "dataList": {
+        "conversations": "AIツインとの全会話履歴",
+        "journal": "日記・振り返りデータ",
+        "insights": "性格分析・インサイト",
+        "instance": "OpenClawインスタンス"
+      },
+      "inputLabel": "確認のため「{{confirmText}}」と入力してください",
+      "inputMatch": "削除",
+      "cta": "アカウントを完全に削除",
+      "cancel": "キャンセル",
+      "error": "アカウントの削除に失敗しました。時間をおいて再度お試しください。\n\n解決しない場合はサポートまでご連絡ください: support@altme.app"
+    }
+  },
+  "twin": {
+    "title": "マイエージェント",
+    "subtitle": "あなたのAIツインの情報",
+    "status": {
+      "online": "オンライン",
+      "offline": "オフライン",
+      "provisioning": "準備中..."
+    },
+    "personality": "性格分析",
+    "stats": {
+      "conversations": "会話数",
+      "journalEntries": "日記数",
+      "daysActive": "利用日数"
+    },
+    "conversationDetail": {
+      "title": "ツイン会話詳細",
+      "subtitle": "会話の詳細と振り返り"
+    }
+  },
+  "guest": {
+    "title": "ログインして始めよう",
+    "subtitle": "AIツインがあなたを待っています",
+    "features": {
+      "chat": "AIチャット",
+      "quiz": "性格診断",
+      "journal": "日記+AI振り返り",
+      "insights": "感情トラッキング"
+    }
+  },
+  "tokenPurchase": {
+    "title": "トークン購入",
+    "subtitle": "トークンの購入と管理"
+  }
+}

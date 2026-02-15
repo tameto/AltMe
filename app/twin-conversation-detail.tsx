@@ -2,22 +2,24 @@ import React from 'react';
 import { View, Text, StyleSheet, Pressable } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
+import { useTranslation } from 'react-i18next';
 
 import { colors, spacing, fontSize } from '@/src/config/theme';
 
 export default function TwinConversationDetailModal() {
   const router = useRouter();
+  const { t } = useTranslation();
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
       <View style={styles.header}>
         <Pressable onPress={() => router.back()}>
-          <Text style={styles.closeText}>閉じる</Text>
+          <Text style={styles.closeText}>{t('common.close')}</Text>
         </Pressable>
       </View>
       <View style={styles.content}>
-        <Text style={styles.title}>ツイン会話詳細</Text>
-        <Text style={styles.subtitle}>会話の詳細と振り返り</Text>
+        <Text style={styles.title}>{t('twin.conversationDetail.title')}</Text>
+        <Text style={styles.subtitle}>{t('twin.conversationDetail.subtitle')}</Text>
       </View>
     </SafeAreaView>
   );
