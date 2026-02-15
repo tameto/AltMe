@@ -17,11 +17,11 @@
 | # | 画面 | パス | 説明 |
 |---|------|------|------|
 | 1 | ログイン | (auth)/login.tsx | Apple/Google Sign-In |
-| 2 | ゲスト促進 | (auth)/guest-prompt.tsx | ゲストユーザーのログイン促進画面 |
 
 **ゲストブラウズモード:** 未認証ユーザーでもアプリの一部にアクセス可能。
 - アクセス可能: コミュニティ一覧、コミュニティ詳細（閲覧のみ）
-- アクセス不可: チャット、日記、洞察、設定 → ゲスト促進画面（guest-prompt）を表示
+- アクセス不可: チャット、ツイン情報 → `GuestPromptOverlay` コンポーネント表示（`src/shared/components/guest-prompt-overlay.tsx`）
+- 設定タブ: ゲスト専用マイページ（ログインボタン + グレーアウト設定一覧）
 
 ### 1.2 認証後（オンボーディング未完了）
 | # | 画面 | パス | 説明 |
@@ -59,7 +59,7 @@
 | 1 | ペイウォール | (paywall)/index.tsx | モーダル | Pro課金誘導画面 |
 | 2 | サブスク管理 | subscription-manage.tsx | モーダル | サブスクリプション管理 |
 | 3 | ツイン会話詳細 | twin-conversation-detail.tsx | モーダル | AIツイン同士の会話詳細 |
-| 4 | アカウント削除確認 | account-delete-confirm.tsx | モーダル | アカウント削除の最終確認 |
+| 4 | **アカウント削除確認** | **account-delete-confirm.tsx** | モーダル | アカウント削除の最終確認（`app/account-delete-confirm.tsx`） |
 
 ---
 
@@ -70,16 +70,22 @@
 Root Layout（app/_layout.tsx）で以下の条件分岐を実装する。
 
 ```
-認証チェック
-├── 未認証（ゲスト）
-│   ├── コミュニティタブ → アクセス可能（閲覧のみ）
-│   ├── その他のタブ → (auth)/guest-prompt にリダイレクト
-│   └── ログインボタン → (auth)/login
-└── 認証済み
-    ├── onboardingCompleted === false → (onboarding)/welcome にリダイレクト
-    └── onboardingCompleted === true → (tabs) にルーティング
-        └── Pro機能 → subscriber チェック
+認証チェック（app/_layout.tsx）
+├── 未認証かつゲストでない → (auth)/login へ
+├── 未認証かつゲストモード → (tabs) へ
+│   ├── コミュニティ: 閲覧可（いいね/コメント非表示）
+│   ├── チャット: GuestPromptOverlay 表示
+│   ├── ツイン: GuestPromptOverlay 表示
+│   └── 設定: ゲスト専用マイページ（ログインボタン + グレーアウト設定一覧）
+├── 認証済みかつオンボーディング未完了 → (onboarding)/welcome へ
+└── 認証済みかつオンボーディング完了 → (tabs) へ
+    └── Pro機能 → subscriber チェック
 ```
+
+**ゲストモード実装詳細:**
+- `auth-store` に `isGuest: boolean` と `enterGuestMode()` 追加
+- タブ各画面内で `isAuthenticated` 判定して条件分岐表示
+- `GuestPromptOverlay` は専用コンポーネント（画面ではなくオーバーレイ）
 
 ### 2.2 アクセスレベル
 
@@ -243,3 +249,4 @@ Root Layout（app/_layout.tsx）で以下の条件分岐を実装する。
 | 2026-02-14 | メインタブを3タブから4タブに変更（Chat/Community/Twin Info/Settings）<br>history.tsx → community.tsx + twin.tsx に変更<br>コミュニティタブにPro制限を追加<br>ツイン会話詳細モーダル追加<br>アカウント削除確認モーダル追加<br>ディープリンク更新（altme://community, altme://twin 追加、altme://history 削除） | Reconcile: 製品方針の変更に伴うナビゲーション構造更新 | — |
 | 2026-02-15 | オンボーディング: 4画面→6画面に変更<br>新画面追加: choose-avatar.tsx (4/6), choose-tone.tsx (5/6)<br>ツイン対面を #6に変更<br>画面遷移図更新 | V3 Liquid Glass: オンボーディングにアイコン・口調選択を追加 | — |
 | 2026-02-15 | ゲストブラウズモード追加（未認証でもコミュニティ閲覧可能）<br>ゲスト促進画面（guest-prompt.tsx）追加<br>設定サブ画面3つ追加: notifications, mbti, twin-name<br>コミュニティ作成画面追加: community/create<br>ルーティングガード更新（guest/authenticated/subscriberの3レベル）<br>画面数: 14→19に更新 | 新機能対応: ゲストブラウズ、通知設定、MBTI、コミュニティ作成 | — |
+| 2026-02-16 | ゲストブラウズモード実装詳細を更新:<br>`guest-prompt.tsx` 画面を削除 → `GuestPromptOverlay` コンポーネント（オーバーレイ形式）に変更<br>タブ各画面内で `isAuthenticated` 判定して条件分岐表示<br>`auth-store` に `isGuest: boolean` と `enterGuestMode()` 追加<br>ルーティングガード詳細を追記（未認証かつゲストでない/ゲストモード/認証済み） | Reconcile: Auth SDD 実装完了後の仕様書同期 | T042-T052 |

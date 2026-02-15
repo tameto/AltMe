@@ -35,11 +35,17 @@ Apple/Google Sign-Inを通じてSupabase Authと連携し、ユーザーの認�
 - Given: 未認証のユーザーがログイン画面を表示している
 - When: 「Googleでサインイン」ボタンをタップし、Google認証フローを完了する
 - Then:
+  - **Native SDK方式**: `@react-native-google-signin/google-signin` パッケージを使用
+  - `GoogleSignin.signIn()` → `idToken` 取得 → `supabase.auth.signInWithIdToken({ provider: 'google', token: idToken })`
+  - ブラウザ遷移なし、ネイティブUI表示
   - Supabase Authにユーザーが作成される（初回）またはセッションが開始される（2回目以降）
   - アクセストークンとリフレッシュトークンがSecureStoreに保存される
   - 初回の場合はオンボーディング画面へ、2回目以降はメインタブへ遷移する
+- 実装詳細:
+  - `src/config/env.ts` に `googleWebClientId` 設定追加
+  - `app.json` plugins に `@react-native-google-signin/google-signin` 追加
 - エッジケース:
-  - Google認証をキャンセルした場合、ログイン画面に戻りエラーは表示しない
+  - Google認証をキャンセルした場合（SIGN_IN_CANCELLED）、ログイン画面に戻りエラーは表示しない
   - 同一メールでApple/Google両方でサインインした場合、アカウントがリンクされる
   - Google Play Services未インストール環境（Android）でエラーメッセージを表示
 
@@ -60,13 +66,17 @@ Apple/Google Sign-Inを通じてSupabase Authと連携し、ユーザーの認�
 - Given: 認証済みのユーザーがアプリを使用している
 - When: アクセストークンの有効期限が近づく（期限の5分前）
 - Then:
-  - リフレッシュトークンを使ってSupabase Authから新しいアクセストークンを取得する
-  - 新しいトークンがSecureStoreに保存される
+  - Supabase SDK が自動的にリフレッシュトークンを使って新しいアクセストークンを取得する
+  - 新しいトークンがSecureStoreに保存される（SecureStore adapter使用）
   - ユーザー操作は中断されない
+- 実装詳細:
+  - **SecureStore adapter**: `expo-secure-store` の `getItemAsync`/`setItemAsync`/`deleteItemAsync` を使用
+  - `supabase.createClient` の `auth.storage` に SecureStoreAdapter 設定（`src/services/supabase/client.ts`）
+  - **AppState listener**: フォアグラウンド復帰時 `startAutoRefresh()`、バックグラウンド移行時 `stopAutoRefresh()`
 - エッジケース:
   - リフレッシュトークン自体が期限切れの場合、ログイン画面にリダイレクトされる
   - リフレッシュ中にネットワークエラーが発生した場合、オフラインバナーを表示し再接続時にリトライ
-  - バックグラウンドからフォアグラウンドに復帰した際にもトークンチェックが行われる
+  - バックグラウンドからフォアグラウンドに復帰した際にトークンチェックが行われる
 
 ### AC-5: 初回ログイン時にprofileが自動作成される（Supabaseトリガー）
 - Given: ユーザーがAppleまたはGoogleで初回サインインを完了した
@@ -87,8 +97,12 @@ Apple/Google Sign-Inを通じてSupabase Authと連携し、ユーザーの認�
 - Then:
   - コミュニティ一覧（`(tabs)/community.tsx`）が閲覧できる（閲覧のみ、いいね・コメント不可）
   - コミュニティ詳細が閲覧できる（閲覧のみ）
-  - チャット、ツイン情報タブにはログイン促進UIが表示される
+  - チャット、ツイン情報タブには `GuestPromptOverlay` コンポーネントが表示される
   - 設定タブにはゲスト専用マイページ（ログインボタン + グレーアウト機能一覧）が表示される
+- 実装詳細:
+  - **GuestPromptOverlay**: 専用コンポーネント（`src/shared/components/guest-prompt-overlay.tsx`）
+  - 各タブ画面内で `isAuthenticated` 判定して条件分岐表示（専用画面 `guest-prompt.tsx` ではない）
+  - `auth-store` に `isGuest: boolean` と `enterGuestMode()` 追加
 - エッジケース:
   - ゲスト状態でログイン後、通常の画面に切り替わること
   - ゲストがアクセス不可の機能をディープリンクで開こうとした場合、ログイン促進UIが表示されること
@@ -220,3 +234,11 @@ AppleのHuman Interface Guidelinesに準拠（既存実装通り）。
 - [ ] UIテスト: ダークモードでGoogleボタンのダークバリアントが表示される
 - [ ] セキュリティテスト: クライアントアプリにOpenAI/DigitalOcean/Stripe APIキーが含まれていない
 - [ ] セキュリティテスト: 外部APIコールが全てEdge Function経由で行われる
+
+---
+
+## 変更履歴
+
+| 日付 | 変更内容 | 理由 | 関連タスク |
+|------|---------|------|-----------|
+| 2026-02-16 | AC-2: Google Sign-In 実装方式を「Native SDK」に更新（`@react-native-google-signin/google-signin` 使用）<br>AC-4: SecureStore adapter + AppState listener 実装詳細を追記<br>AC-6: GuestPromptOverlay コンポーネント実装詳細を追記（`guest-prompt.tsx` 画面ではなくオーバーレイ形式） | Reconcile: Auth SDD 実装完了後の仕様書同期 | T042-T052 |

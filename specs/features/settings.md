@@ -156,21 +156,28 @@
 
 ### AC-7: ユーザーがアカウントを削除できる
 - Given: 認証済みのユーザーが設定画面を表示している
-- When: 「アカウント削除」をタップする
+- When: 設定一覧の最下部「アカウントを削除」ボタンをタップする
 - Then:
-  - 確認ダイアログが表示される（「アカウントを削除すると、すべてのデータが完全に削除されます。この操作は取り消せません。」）
+  - `account-delete-confirm.tsx` モーダル（`app/account-delete-confirm.tsx`）が表示される
+  - モーダル内で確認ダイアログが表示される（「アカウントを削除すると、すべてのデータが完全に削除されます。この操作は取り消せません。」）
   - 確認テキスト入力を求める（「削除」と入力）
   - 「削除を確定」をタップすると:
-    - OpenClawインスタンスが存在する場合、destroy-openclawが呼び出される
-    - RevenueCatのサブスクリプションがキャンセルされる
-    - Supabase上の全ユーザーデータがCASCADE削除される
-    - Supabase Authからユーザーが削除される
+    - Edge Function `delete-account` 呼び出し:
+      1. OpenClawインスタンスが存在する場合、`destroy-openclaw` で削除
+      2. RevenueCatのサブスクリプションがキャンセルされる
+      3. `auth.admin.deleteUser` でSupabase Authからユーザー削除
+      4. Supabase上の全ユーザーデータがCASCADE削除される
     - アプリがログイン画面にリダイレクトされる
+- 実装詳細:
+  - モーダル画面: `app/account-delete-confirm.tsx`
+  - Edge Function: `supabase/functions/delete-account/index.ts`
+  - Store: `auth-store` に `deleteAccount()` メソッド追加
 - エッジケース:
   - 削除処理中にネットワークエラーが発生した場合、リトライまたはサポート連絡を案内
-  - OpenClawインスタンスの削除が失敗した場合でも、ユーザーアカウントの削除は続行
+  - OpenClawインスタンスの削除が失敗した場合でも、ユーザーアカウントの削除は続行（ログ記録のみ）
+  - RevenueCat削除が失敗した場合でも、ユーザーアカウントの削除は続行（ログ記録のみ）
   - トライアル中のユーザーの場合、RevenueCatでキャンセルも実行
-  - Apple審査基準: 削除ボタンは設定画面内で容易に見つかる位置に配置
+  - Apple審査基準: 削除ボタンは設定画面内で容易に見つかる位置に配置（設定一覧の最下部）
 - テスト観点:
   - 正常系: アカウント削除後に全データが削除されていること
   - 正常系: ログイン画面にリダイレクトされること
@@ -242,7 +249,7 @@
   - インスタンス再起動 → Edge Function呼出
   - 通知カテゴリ ON/OFF → notification_settings テーブル更新
   - 日記リマインダー時刻変更 → notification_settings.journal_reminder_time 更新
-  - アカウント削除 → 確認ダイアログ → テキスト入力確認 → 全データ削除
+  - アカウント削除 → `account-delete-confirm.tsx` モーダル遷移 → 確認テキスト入力 → Edge Function `delete-account` 呼び出し → 全データ削除
   - ログアウト → 確認ダイアログ → セッション破棄
   - ヘルプ/FAQ → WebView or 外部ブラウザ
   - 利用規約/プライバシーポリシー → WebView or 外部ブラウザ
@@ -286,6 +293,7 @@
   - Supabase Edge Function: `update-soul-md`（ツイン名・MBTI変更時）
   - Supabase Edge Function: `send-push-notification`（プッシュ通知送信）
   - Supabase Edge Function: `restart-openclaw`（インスタンス再起動）
+  - **Supabase Edge Function: `delete-account`（アカウント削除: OpenClaw→RevenueCat→auth.admin.deleteUser）**
   - RevenueCat SDK: `getCustomerInfo`（サブスクリプション情報取得）
   - Supabase Auth: `signOut`（ログアウト）
   - Supabase Realtime: `openclaw_instances` テーブルサブスクリプション（ステータス監視）
@@ -351,3 +359,4 @@
 | 2026-02-14 | trialing → trial（全箇所） | RevenueCat用語統一（Clarify Phase） | - |
 | 2026-02-15 | AC-2をAIツイン設定（名前・アイコン・口調）に拡張<br>AIアイコン変更・口調変更機能追加<br>SOUL.md再生成トリガー明記<br>テスト観点・表示テストに追加 | V3 Liquid Glass: AIアイコン・口調カスタマイズ機能追加 | — |
 | 2026-02-15 | AC-2にMBTI入力（AC-2.4）追加<br>AC-8（プッシュ通知実装）、AC-9（通知設定メニュー）追加<br>notification_settings/push_tokensテーブル仕様追加<br>send-push-notification Edge Function追加<br>profiles.mbti_type カラム追加 | MBTI入力・プッシュ通知実装・通知設定メニュー追加 | — |
+| 2026-02-16 | AC-7: アカウント削除の画面パスを明記（`app/account-delete-confirm.tsx` モーダル）<br>削除処理の実装詳細を追記（Edge Function `delete-account`、削除順序: OpenClaw→RevenueCat→auth.admin.deleteUser）<br>設定画面からのアカウント削除導線を追記（設定一覧の最下部）<br>データ仕様に `delete-account` Edge Function 追加 | Reconcile: Auth SDD 実装完了後の仕様書同期 | T042-T052 |
