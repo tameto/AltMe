@@ -9,7 +9,6 @@ import {
   StyleSheet,
   ActivityIndicator,
   Pressable,
-  ScrollView,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Feather, MaterialCommunityIcons } from '@expo/vector-icons';
@@ -135,7 +134,7 @@ export default function ChatScreen() {
       }
     };
     loadHistory();
-  }, [user?.id, user?.displayName, user?.twinName, user?.timezone, isPro]);
+  }, [user?.id, user?.displayName, user?.twinName, user?.timezone, isPro, t]);
 
   // Connect to OpenClaw WebSocket for Pro users
   const connectToWebSocket = useCallback(async (cancelled: { current: boolean }) => {
@@ -363,7 +362,7 @@ export default function ChatScreen() {
       }]);
       setStreamingText('');
     }
-  }, [router, isPro]);
+  }, [router, isPro, t]);
 
   const handleSend = useCallback(async () => {
     const text = inputText.trim();

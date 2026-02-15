@@ -18,7 +18,7 @@ export type CommunicationStyle = {
 export type PersonalityResult = {
   id: string;
   userId: string;
-  rawAnswers: Array<{ questionId: string; answer: string }>;
+  rawAnswers: { questionId: string; answer: string }[];
   personalityTraits: PersonalityTraits;
   summary: string;
   communicationStyle: CommunicationStyle | null;

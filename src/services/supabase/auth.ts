@@ -1,7 +1,7 @@
 import { supabase } from './client';
 import * as AppleAuthentication from 'expo-apple-authentication';
 import * as Crypto from 'expo-crypto';
-import { GoogleSignin, statusCodes as GoogleStatusCodes } from '@react-native-google-signin/google-signin';
+import { GoogleSignin } from '@react-native-google-signin/google-signin';
 import { identifyUser, logOutRevenueCat } from '../revenuecat/client';
 import { env } from '@/src/config/env';
 import type { UserProfile } from '@/src/shared/types/user';

@@ -15,7 +15,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
 import { CosmicBackground } from '@/src/shared/components/cosmic-background';
 import { GoldButton } from '@/src/shared/components/gold-button';
-import { colors, spacing, fontFamily, borderRadius, glassmorphism } from '@/src/config/theme';
+import { spacing, fontFamily, borderRadius, glassmorphism } from '@/src/config/theme';
 import { useOnboardingStore } from '@/src/features/onboarding/stores/onboarding-store';
 import { useAuthStore } from '@/src/features/auth/stores/auth-store';
 import { useIsPro } from '@/src/shared/hooks/use-subscription';

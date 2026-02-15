@@ -2,10 +2,9 @@ import { StyleSheet, View, Text, Pressable, Animated } from 'react-native';
 import { useRef, useCallback } from 'react';
 import { router } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useTranslation } from 'react-i18next';
 import Feather from '@expo/vector-icons/Feather';
 import { CosmicBackground } from '@/src/shared/components/cosmic-background';
-import { colors, spacing, fontFamily, borderRadius } from '@/src/config/theme';
+import { spacing, fontFamily } from '@/src/config/theme';
 import { ONBOARDING_QUESTION_COUNT } from '@/src/config/constants';
 import {
   useOnboardingStore,
@@ -14,7 +13,6 @@ import {
 import { supabase } from '@/src/services/supabase/client';
 
 export default function PersonalityQuizScreen() {
-  const { t } = useTranslation();
   const {
     currentStep,
     answers,

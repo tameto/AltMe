@@ -5,7 +5,7 @@ import Feather from '@expo/vector-icons/Feather';
 import { useTranslation } from 'react-i18next';
 import { CosmicBackground } from '@/src/shared/components/cosmic-background';
 import { GoldButton } from '@/src/shared/components/gold-button';
-import { colors, spacing, fontFamily, borderRadius, glassmorphism } from '@/src/config/theme';
+import { spacing, fontFamily, borderRadius, glassmorphism } from '@/src/config/theme';
 import {
   useOnboardingStore,
   type ToneStyle,

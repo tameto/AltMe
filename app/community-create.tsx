@@ -14,7 +14,7 @@ import { useTranslation } from 'react-i18next';
 
 import { CosmicBackground } from '@/src/shared/components/cosmic-background';
 import { GoldButton } from '@/src/shared/components/gold-button';
-import { colors, spacing, borderRadius, fontSize, fontFamily, glassmorphism } from '@/src/config/theme';
+import { spacing, borderRadius, fontSize, fontFamily, glassmorphism } from '@/src/config/theme';
 
 type LanguageCode = 'ja' | 'en' | 'ko';
 type CategoryKey = 'entertainment' | 'lifestyle' | 'technology' | 'sports' | 'music';

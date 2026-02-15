@@ -1,15 +1,15 @@
-import { StyleSheet, View, Text, Pressable, ActivityIndicator, ScrollView } from 'react-native';
+import { StyleSheet, View, Text, ActivityIndicator, ScrollView } from 'react-native';
 import { router } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
 import { CosmicBackground } from '@/src/shared/components/cosmic-background';
 import { GlassCard } from '@/src/shared/components/glass-card';
 import { GoldButton } from '@/src/shared/components/gold-button';
-import { colors, spacing, fontFamily, borderRadius, glassmorphism } from '@/src/config/theme';
+import { spacing, fontFamily, borderRadius, glassmorphism } from '@/src/config/theme';
 import { useOnboardingStore } from '@/src/features/onboarding/stores/onboarding-store';
 import type { PersonalityTraits } from '@/src/shared/types/user';
 
-const TRAIT_ORDER: Array<keyof PersonalityTraits> = [
+const TRAIT_ORDER: (keyof PersonalityTraits)[] = [
   'openness',
   'conscientiousness',
   'extraversion',

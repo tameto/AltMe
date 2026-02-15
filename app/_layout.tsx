@@ -84,7 +84,7 @@ function RootLayoutNav() {
     });
 
     return () => subscription.remove();
-  }, [isAuthenticated, user?.id, user?.onboardingCompleted]);
+  }, [isAuthenticated, user?.id, user?.onboardingCompleted, router]);
 
   // Routing guard
   useEffect(() => {
@@ -115,7 +115,7 @@ function RootLayoutNav() {
         router.replace('/(tabs)');
       }
     }
-  }, [isAuthenticated, isGuest, authLoading, user?.onboardingCompleted, segments]);
+  }, [isAuthenticated, isGuest, authLoading, user?.onboardingCompleted, segments, router]);
 
   return (
     <ThemeProvider value={DarkTheme}>

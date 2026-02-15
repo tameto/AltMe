@@ -5,7 +5,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
 import type { PurchasesPackage } from 'react-native-purchases';
 import Feather from '@expo/vector-icons/Feather';
-import { colors, spacing, fontSize, borderRadius, fontFamily } from '@/src/config/theme';
+import { spacing, fontSize, fontFamily } from '@/src/config/theme';
 import { PRICING } from '@/src/config/constants';
 import { useSubscription } from '@/src/shared/hooks/use-subscription';
 import { useUser } from '@/src/shared/hooks/use-user';
@@ -142,12 +142,12 @@ export default function PaywallScreen() {
       if (success) {
         router.back();
       }
-    } catch (error) {
+    } catch {
       Alert.alert(t('subscription.paywall.purchaseErrorTitle'), t('subscription.paywall.purchaseError'));
     } finally {
       setIsPurchasing(false);
     }
-  }, [getSelectedPackage, purchase, router]);
+  }, [getSelectedPackage, purchase, router, t]);
 
   const handleRestore = useCallback(async () => {
     setIsRestoring(true);
@@ -165,7 +165,7 @@ export default function PaywallScreen() {
     } finally {
       setIsRestoring(false);
     }
-  }, [restore, router]);
+  }, [restore, router, t]);
 
   const handleClose = useCallback(() => {
     router.back();

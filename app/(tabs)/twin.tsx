@@ -5,7 +5,7 @@ import Feather from '@expo/vector-icons/Feather';
 import { useTranslation } from 'react-i18next';
 
 import { CosmicBackground } from '@/src/shared/components/cosmic-background';
-import { colors, spacing, fontSize, fontFamily, borderRadius } from '@/src/config/theme';
+import { colors, spacing, fontSize, fontFamily } from '@/src/config/theme';
 import { useAuthStore } from '@/src/features/auth/stores/auth-store';
 import { useUser } from '@/src/shared/hooks/use-user';
 import { GuestPromptOverlay } from '@/src/shared/components/guest-prompt-overlay';

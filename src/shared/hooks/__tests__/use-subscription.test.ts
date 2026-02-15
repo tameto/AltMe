@@ -1,4 +1,10 @@
-import { useSubscription, useIsPro } from '../use-subscription';
+import { useSubscription } from '../use-subscription';
+import {
+  checkSubscriptionStatus,
+  getOfferings,
+  purchasePackage,
+  restorePurchases,
+} from '@/src/services/revenuecat/client';
 
 // Mock the revenuecat client
 jest.mock('@/src/services/revenuecat/client', () => ({
@@ -7,13 +13,6 @@ jest.mock('@/src/services/revenuecat/client', () => ({
   purchasePackage: jest.fn(),
   restorePurchases: jest.fn(),
 }));
-
-const {
-  checkSubscriptionStatus,
-  getOfferings,
-  purchasePackage,
-  restorePurchases,
-} = require('@/src/services/revenuecat/client');
 
 describe('useSubscription store', () => {
   beforeEach(() => {

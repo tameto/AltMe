@@ -7,7 +7,7 @@ import { useTranslation } from 'react-i18next';
 import { CosmicBackground } from '@/src/shared/components/cosmic-background';
 import { GlassCard } from '@/src/shared/components/glass-card';
 import { GoldButton } from '@/src/shared/components/gold-button';
-import { fontFamily, spacing, fontSize } from '@/src/config/theme';
+import { fontFamily, spacing } from '@/src/config/theme';
 import { APP_NAME } from '@/src/config/constants';
 import { useAuthStore } from '@/src/features/auth/stores/auth-store';
 

@@ -8,7 +8,7 @@ import { useTranslation } from 'react-i18next';
 
 import { CosmicBackground } from '@/src/shared/components/cosmic-background';
 import { colors, spacing, borderRadius, fontSize, fontFamily } from '@/src/config/theme';
-import { useSubscription, useIsPro } from '@/src/shared/hooks/use-subscription';
+import { useIsPro } from '@/src/shared/hooks/use-subscription';
 import { useUser } from '@/src/shared/hooks/use-user';
 import { useAuthStore } from '@/src/features/auth/stores/auth-store';
 import { supabase } from '@/src/services/supabase/client';
@@ -19,19 +19,11 @@ import {
   updateSoulMd,
   subscribeToInstanceChanges,
 } from '@/src/services/openclaw/client';
-import type { OpenClawInstance, OpenClawStatus } from '@/src/shared/types/openclaw';
+import type { OpenClawInstance } from '@/src/shared/types/openclaw';
 
 const HELP_URL = 'https://altme.app/help';
 const TERMS_URL = 'https://altme.app/terms';
 const PRIVACY_URL = 'https://altme.app/privacy';
-
-const STATUS_ICON_CONFIG: Record<OpenClawStatus, { labelKey: string; color: string; icon: React.ComponentProps<typeof Feather>['name'] }> = {
-  provisioning: { labelKey: 'settings.instance.statusProvisioning', color: colors.warning, icon: 'clock' },
-  running: { labelKey: 'settings.instance.statusRunning', color: colors.success, icon: 'check-circle' },
-  stopped: { labelKey: 'settings.instance.statusStopped', color: colors.textTertiary, icon: 'stop-circle' },
-  error: { labelKey: 'settings.instance.statusError', color: colors.error, icon: 'alert-circle' },
-  destroying: { labelKey: 'settings.instance.statusDestroying', color: colors.warning, icon: 'clock' },
-};
 
 const GUEST_FEATURE_KEYS = [
   { icon: 'message-circle' as const, key: 'guest.features.chat' },
@@ -147,13 +139,15 @@ export default function SettingsScreen() {
   const updateUser = useUser((s) => s.updateUser);
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
   const signOut = useAuthStore((s) => s.signOut);
-  const entitlement = useSubscription((s) => s.entitlement);
 
   const appVersion = Constants.expoConfig?.version ?? '1.0.0';
 
   // OpenClaw instance state (must be before any conditional returns)
+  // Note: These will be used when full OpenClaw settings UI is built
   const [instance, setInstance] = useState<OpenClawInstance | null>(null);
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [isLoadingInstance, setIsLoadingInstance] = useState(false);
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [isRestarting, setIsRestarting] = useState(false);
 
   // Load OpenClaw instance for Pro users
@@ -186,6 +180,8 @@ export default function SettingsScreen() {
     };
   }, [isPro, user?.id]);
 
+  // Note: This will be used when full OpenClaw settings UI is built
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const handleRestartInstance = useCallback(async () => {
     Alert.alert(
       t('settings.instance.restartTitle'),
@@ -217,33 +213,6 @@ export default function SettingsScreen() {
   if (!isAuthenticated) {
     return <GuestSettingsScreen />;
   }
-
-  const handleEditProfile = () => {
-    Alert.prompt(
-      t('settings.profile.editTitle'),
-      t('settings.profile.editPrompt'),
-      async (newName: string) => {
-        const trimmed = newName.trim();
-        if (!trimmed) {
-          Alert.alert(t('common.error'), t('settings.profile.editEmpty'));
-          return;
-        }
-        if (!user) return;
-        try {
-          await supabase
-            .from('profiles')
-            .update({ display_name: trimmed })
-            .eq('id', user.id);
-          updateUser({ displayName: trimmed });
-          Alert.alert(t('common.done'), t('settings.profile.editSuccess'));
-        } catch {
-          Alert.alert(t('common.error'), t('settings.profile.editError'));
-        }
-      },
-      'plain-text',
-      user?.displayName ?? '',
-    );
-  };
 
   const handleEditTwinName = () => {
     Alert.prompt(
@@ -280,27 +249,6 @@ export default function SettingsScreen() {
     );
   };
 
-  const handleRetakePersonalityQuiz = () => {
-    Alert.alert(
-      t('settings.twinSettings.retakeQuizTitle'),
-      t('settings.twinSettings.retakeQuizMessage'),
-      [
-        { text: t('common.cancel'), style: 'cancel' },
-        {
-          text: t('settings.twinSettings.retakeQuizConfirm'),
-          style: 'destructive',
-          onPress: () => {
-            router.push('/(onboarding)/personality-quiz');
-          },
-        },
-      ],
-    );
-  };
-
-  const handleSubscriptionManage = () => {
-    router.push('/subscription-manage' as never);
-  };
-
   const handleNotificationSettings = () => {
     Alert.alert(t('settings.notifications.title'), t('settings.notifications.comingSoon'));
   };
@@ -321,10 +269,6 @@ export default function SettingsScreen() {
 
   const handleOpenHelp = () => {
     Linking.openURL(HELP_URL);
-  };
-
-  const handleOpenTerms = () => {
-    Linking.openURL(TERMS_URL);
   };
 
   const handleOpenPrivacy = () => {
