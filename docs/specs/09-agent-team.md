@@ -1,178 +1,116 @@
-# 09 — AgentTeam構成・分担仕様
+# 09 --- AgentTeam構成・SDD・ワークフロー
 
-## ステータス: DRAFT
+## ステータス: DRAFT v2
 - 作成日: 2026-02-14
-- 最終更新: 2026-02-14
+- 最終更新: 2026-02-15
 - 承認状態: 未承認
 - 担当: 全体
 
 ---
 
-## 1. チーム構成
+## 1. 開発チーム構成
 
-### 1.1 Agent一覧
+### 1.1 実装Agent（4体）
 
-| Agent ID | 名称 | 役割 | 担当範囲 |
-|---------|------|------|---------|
-| **A** | Foundation | 基盤構築 | shared/, services/, config/, auth, レイアウト |
-| **B** | Subscription | 課金担当 | subscription/, (paywall)/, RevenueCat全般 |
-| **C** | Core AI | AIコア機能 | chat/, onboarding/, openai/, Edge Functions(chat, personality) |
-| **D** | Engagement | エンゲージメント | journal/, insights/, 通知, Edge Functions(journal, insight, notification) |
+| Agent ID | 名称 | 担当範囲 |
+|---------|------|---------|
+| **A** | Foundation | shared/, services/, config/, auth, レイアウト, DBマイグレーション, OpenClawサービスクライアント |
+| **B** | Subscription | subscription/, (paywall)/, RevenueCat全般, Webhook, 課金→プロビジョニング連携 |
+| **C** | Core AI | chat/, onboarding/, openclaw/, Edge Functions(chat, provision, destroy, health-check, update-soul-md, restart), WebSocketクライアント |
+| **D** | Engagement | journal/, insights/, settings/(OpenClawインスタンス管理UI含む), 通知 |
 
-### 1.2 依存関係図
+### 1.2 Claude Code エージェント（16体）
 
-```
-Phase 0 (Day 1-2)
-┌─────────┐
-│ Agent A  │ ← 全体の基盤を構築（他Agent全員がブロック）
-│Foundation│
-└────┬─────┘
-     │
-Phase 1 (Day 3-7)
-     ├──────────────────┐
-     ▼                  ▼
-┌──────────┐     ┌──────────┐
-│ Agent B   │     │ Agent C   │  ← 並列開始
-│Subscription│    │ Core AI   │
-└────┬──────┘     └────┬──────┘
-     │                  │
-Phase 2 (Day 8-18)      │
-     │                  ├──────────────┐
-     │                  │              ▼
-     │                  │       ┌──────────┐
-     │                  │       │ Agent D   │  ← Agent C完了後に開始
-     │                  │       │Engagement │
-     │                  │       └──────────┘
-     │                  │
-Phase 3 (Day 19-28)     │
-     └──────────┬───────┘
-                ▼
-         統合テスト・リリース準備
-```
+Claude Code Agent Teamsの全エージェント構成:
 
----
+#### 計画・設計（Opus, Read-only）
 
-## 2. 各Agentの詳細仕様
+| Agent | 用途 | Tools |
+|-------|------|-------|
+| planner | 実装計画。複雑な機能実装前に使用 | R/G/Gl |
+| architect | アーキテクチャ設計・技術選定 | R/G/Gl |
 
-### 2.1 Agent A: Foundation
+#### 実装（Sonnet, Write権限あり）
 
-#### 担当ファイル
-```
-src/shared/                    # 全ファイル（作成・管理）
-src/services/supabase/         # Supabase接続
-src/services/analytics/        # アナリティクス
-src/config/                    # 全ファイル
-app/_layout.tsx                # Root Layout
-app/+not-found.tsx
-app/(auth)/                    # 全ファイル
-supabase/migrations/           # DBマイグレーション
-CLAUDE.md
-```
+| Agent | 用途 | 搭載スキル |
+|-------|------|-----------|
+| rn-mobile-dev | React Native/Expo 開発 | rn-mobile-dev |
+| supabase-backend | DB/Edge Functions/RLS | supabase-backend |
+| digitalocean-infra | DigitalOcean/Docker/ネットワーク | digitalocean-infra |
+| openclaw-specialist | SOUL.md設計、Gateway API連携、パーソナリティ | openclaw |
+| billing-specialist | RevenueCat 課金・ペイウォール | revenuecat |
+| screen-designer | 画面設計・UI | ui-designer + pencil-design |
+| brand-designer | ブランドアイデンティティ設計 | brand-identity + pencil-design + ui-designer |
+| twin-interviewer | 性格診断・SOUL.md 生成 | - |
 
-#### 責務
-1. Expoプロジェクト初期化
-2. ディレクトリ構成構築
-3. 共通型定義（types/）— **Agent間契約の管理者**
-4. 共通hooks（useSubscription, useUser）の空実装
-5. Supabase Auth + DB設定
-6. 認証画面
-7. ルーティングガード（_layout.tsx）
-8. DBマイグレーション
+#### レビュー・監査（Sonnet, Read-only+Bash）
 
-#### 成果物（他Agentへの提供物）
-- `src/shared/types/*.ts` — 全型定義
-- `src/shared/hooks/use-subscription.ts` — Entitlementチェックインターフェース
-- `src/shared/hooks/use-user.ts` — ユーザー情報取得インターフェース
-- `src/services/supabase/client.ts` — Supabaseクライアント
-- `src/config/env.ts` — 環境変数
+| Agent | 用途 | 搭載スキル |
+|-------|------|-----------|
+| code-reviewer | コードレビュー | rn-mobile-dev |
+| security-auditor | OWASP Mobile Top 10 + RLS 監査 | security-audit |
+| qa-debugger | バグ検出・テスト（Write権限あり） | qa-debug |
+| design-reviewer | デザインレビュー | design-review + pencil-design + ui-designer |
 
-### 2.2 Agent B: Subscription
+#### ドキュメント（Haiku, 低コスト）
 
-#### 担当ファイル
-```
-src/features/subscription/     # 全ファイル
-src/services/revenuecat/       # 全ファイル
-app/(paywall)/                 # 全ファイル
-supabase/functions/webhook-revenuecat/
-```
-
-#### 責務
-1. RevenueCat SDK初期化
-2. Offering取得・表示
-3. ペイウォール画面実装
-4. useSubscription hookの本実装
-5. 初回限定オファーロジック
-6. カウントダウンタイマー
-7. Webhook Edge Function
-8. 解約防止フロー
-9. クレジットパック購入
-10. 課金イベントトラッキング
-
-#### 依存関係
-- Agent A: `shared/types/subscription.ts`, `shared/hooks/use-subscription.ts`（インターフェース）
-- Agent A: `services/supabase/client.ts`
-
-### 2.3 Agent C: Core AI
-
-#### 担当ファイル
-```
-src/features/chat/             # 全ファイル
-src/features/onboarding/       # 全ファイル
-src/services/openai/           # 全ファイル
-app/(onboarding)/              # 全ファイル
-app/(tabs)/index.tsx           # チャット画面
-supabase/functions/chat/
-supabase/functions/personality-analyze/
-supabase/functions/_shared/openai.ts
-```
-
-#### 責務
-1. オンボーディングフロー全画面
-2. 性格診断ロジック
-3. AI性格分析Edge Function
-4. AIチャット画面
-5. チャットEdge Function（ストリーミング）
-6. システムプロンプト設計
-7. チャット上限管理
-8. コンテキスト構築ロジック
-
-#### 依存関係
-- Agent A: `shared/types/`, `shared/hooks/`, `services/supabase/`
-- Agent B: `shared/hooks/use-subscription.ts`（Entitlementチェック、本実装）
-
-### 2.4 Agent D: Engagement
-
-#### 担当ファイル
-```
-src/features/journal/          # 全ファイル
-src/features/insights/         # 全ファイル
-src/features/settings/         # 全ファイル
-app/(tabs)/journal.tsx
-app/(tabs)/insights.tsx
-app/(tabs)/settings.tsx
-supabase/functions/journal-reflect/
-supabase/functions/generate-insight/
-supabase/functions/daily-notification/
-```
-
-#### 責務
-1. 日記機能（CRUD + AI振り返り）
-2. 感情トラッキング（mood_records）
-3. 洞察タブ（気分グラフ、デイリー洞察、トピック分析）
-4. 月次レポート生成（クレジット消費）
-5. 設定画面
-6. プッシュ通知Edge Function
-
-#### 依存関係
-- Agent A: `shared/types/`, `shared/hooks/`, `services/supabase/`
-- Agent B: `shared/hooks/use-subscription.ts`（Entitlementチェック）
-- Agent C: `services/openai/client.ts`（共有OpenAI設定）
+| Agent | 用途 | 搭載スキル |
+|-------|------|-----------|
+| doc-updater | 仕様書・ドキュメント更新 | - |
+| task-refiner | タスク粒度・仕様整合性 | task-refinement |
 
 ---
 
-## 3. Agent間のルール
+## 2. スキル一覧（15個）
 
-### 3.1 コード所有権
+### 企画〜仕様パイプライン
+
+| スキル | 内容 | ファイル数 |
+|--------|------|-----------|
+| monetize-app-plan | マネタイズ設計 | 4 |
+| agent-team-design | チーム設計 | 2 |
+| spec-driven-dev | 仕様駆動開発 9ステップパイプライン | 7 |
+
+### 技術スキル
+
+| スキル | ソース | ルール数 |
+|--------|--------|---------|
+| rn-mobile-dev | vercel-react-native-skills | 36 |
+| supabase-backend | supabase/agent-skills | 28 |
+| digitalocean-infra | do-app-platform-skills | 6カテゴリ |
+| openclaw | openclaw/openclaw | 4カテゴリ |
+| revenuecat | jeiting/revenuecat | SDK+API+Webhook |
+
+### デザイン・品質
+
+| スキル | 内容 | ファイル数 |
+|--------|------|-----------|
+| ui-designer | mae616 + frontend-design + ui-ux-pro-max + ux-research + design-review 統合 | 11 |
+| pencil-design | Pencil デザインツール統合（.pen, MCP, コンポーネント） | 4 |
+| design-review | 12+1視点デザインレビュー、Phase 0-4 ワークフロー | 5 |
+| brand-identity | ブランドアイデンティティ設計 4フェーズパイプライン | 7 |
+| task-refinement | タスク精査（INVEST基準） | 2 |
+| security-audit | OWASP Mobile Top 10 セキュリティ監査 | 2 |
+| qa-debug | QA・デバッグ | 2 |
+
+---
+
+## 3. ファイル所有権ルール
+
+### 3.1 Agent別担当ファイル
+
+| Agent | 変更可能な範囲 |
+|-------|-------------|
+| rn-mobile-dev | `app/`, `src/features/*/components/`, `src/shared/components/` |
+| supabase-backend | `supabase/`, `src/services/supabase/`, `src/shared/types/` |
+| digitalocean-infra | `src/services/digitalocean/`, `src/services/openclaw/` |
+| billing-specialist | `src/features/subscription/`, `src/services/revenuecat/`, `app/(paywall)/` |
+| screen-designer | `app/`, `src/features/*/components/`, `src/config/theme.ts` |
+| twin-interviewer | `app/(onboarding)/`, `src/features/onboarding/`, `src/features/chat/` |
+| qa-debugger | すべて（テスト・修正目的） |
+| doc-updater | `specs/`, `docs/`, `CLAUDE.md` |
+
+### 3.2 コード所有権ルール
 
 | ルール | 説明 |
 |--------|------|
@@ -180,8 +118,9 @@ supabase/functions/daily-notification/
 | shared/ の変更はAgent Aが管理 | 他AgentはPR/提案としてAgent Aに依頼 |
 | services/ は担当APIのみ | Agent Bが services/openai/ を触ってはいけない |
 | 型定義の変更は全Agent合意 | shared/types/ の変更は全Agentに影響するため事前確認 |
+| Edge Functionsは担当機能のみ | supabase/functions/ は機能単位で所有権分離 |
 
-### 3.2 共有リソースの変更プロトコル
+### 3.3 共有リソースの変更プロトコル
 
 ```
 1. 変更が必要なAgentが変更提案を記述
@@ -191,7 +130,205 @@ supabase/functions/daily-notification/
 5. 全Agentに変更を通知
 ```
 
-### 3.3 インターフェース凍結タイミング
+---
+
+## 4. 仕様駆動開発（SDD）ワークフロー
+
+### 4.1 原則
+
+- **仕様書が正（Single Source of Truth）** --- 実装は仕様書に従う。仕様にないものは作らない
+- **型が契約（Contract）** --- `src/shared/types/` の型定義がAgent間の契約
+- **仕様変更は仕様書から** --- コードだけ変えず、まず仕様書を更新してから実装
+- **テストは仕様の検証** --- テストケースは仕様書の受け入れ条件から導出
+
+### 4.2 SDDパイプライン（9ステップ）
+
+```
+Step 1: Constitution --- 指針策定（specs/constitution.md）
+Step 2: Specify --- 仕様書生成（specs/features/*.md）
+Step 3: Clarify --- 曖昧点解消（9カテゴリ自動スキャン → 質問 → specs更新）
+Step 4: Plan --- 実装計画（specs/plan.md）
+Step 5: Design --- Pencil .pen デザイン作成 + 画面仕様書生成
+Step 6: Tasks --- TaskCreate API でタスク登録 + 粒度チェック
+Step 7: Implement --- Agent Team で並列実装
+Step 8: Review --- コードレビュー + セキュリティ監査 + QA
+Step 9: Reconcile --- 仕様書 + デザインを実装に同期（doc-updater担当）
+```
+
+### 4.3 Step別Agent対応
+
+| Step | 担当Agent |
+|------|----------|
+| 1 Constitution | planner / architect |
+| 2 Specify | planner |
+| 3 Clarify | planner + ユーザー |
+| 4 Plan | planner / architect |
+| 5 Design | screen-designer + design-reviewer |
+| 6 Tasks | task-refiner |
+| 7 Implement | rn-mobile-dev, supabase-backend, billing-specialist, etc. |
+| 8 Review | code-reviewer, security-auditor, qa-debugger |
+| 9 Reconcile | doc-updater |
+
+### 4.4 SDD適用基準
+
+| 基準 | 質問 |
+|------|------|
+| 1 | 新しい Supabase テーブル / マイグレーションが必要か？ |
+| 2 | 3ファイル以上の新規作成が必要か？ |
+| 3 | 複数 Agent で並行作業する可能性があるか？ |
+| 4 | ビジネスルールの確認・仕様整理が必要か？ |
+| 5 | QA やステークホルダーのレビューが必要か？ |
+
+- **0個該当 -> S**: 直接修正
+- **1個該当 -> M**: ブランチ + PR
+- **2個以上 -> L**: `/sdd-specify` で SDD フロー開始
+
+### 4.5 specs/ と .sdd/specs/ の関係
+
+- `specs/` = **Single Source of Truth**（永続的な仕様書）
+- `.sdd/specs/` = **作業用アーティファクト**（機能開発中の一時的な設計文書）
+- 実装完了後、Step 9 Reconcile で `specs/` を同期更新
+
+---
+
+## 5. ワークフロー一覧（6パターン）
+
+### 5.1 新機能開発
+
+```
+Leader -> planner（計画） -> 承認
+  |
+並列実行:
+  +-- rn-mobile-dev（フロント実装）
+  +-- supabase-backend（バックエンド実装）
+  +-- screen-designer（画面設計）
+  |
+統合後:
+  +-- code-reviewer（レビュー）
+  +-- security-auditor（監査）
+  +-- qa-debugger（テスト）
+  |
+doc-updater（仕様書更新）
+```
+
+### 5.2 バグ修正
+
+```
+Leader -> qa-debugger（原因特定）
+  |
+修正Agent（バグ箇所に応じて選択）:
+  +-- rn-mobile-dev（フロントバグ）
+  +-- supabase-backend（バックエンドバグ）
+  +-- billing-specialist（課金バグ）
+  |
+qa-debugger（修正検証）
+```
+
+### 5.3 画面実装
+
+```
+Leader -> screen-designer（画面設計）
+  |
+rn-mobile-dev（コンポーネント実装）
+  |
+billing-specialist（課金ゲート追加、必要な場合）
+  |
+code-reviewer（レビュー）
+```
+
+### 5.4 オンボーディング改善
+
+```
+Leader -> twin-interviewer（質問設計・SOUL.md改善）
+  |
+並列:
+  +-- screen-designer（UI改善）
+  +-- supabase-backend（データモデル調整）
+  |
+billing-specialist（ペイウォール導線最適化）
+  |
+qa-debugger（フロー全体テスト）
+```
+
+### 5.5 インフラデプロイ
+
+```
+Leader -> architect（設計レビュー）
+  |
+digitalocean-infra（プロビジョニング実装）
+  |
+supabase-backend（Edge Function連携）
+  |
+security-auditor（セキュリティ確認）
+  |
+qa-debugger（E2Eテスト）
+```
+
+### 5.6 リリース前チェック
+
+```
+Leader -> 全チーム並列:
+  +-- code-reviewer（全体レビュー）
+  +-- security-auditor（セキュリティ監査）
+  +-- qa-debugger（E2Eテスト）
+  +-- task-refiner（仕様カバレッジ確認）
+  |
+doc-updater（リリースノート作成）
+```
+
+---
+
+## 6. Hooks（プロジェクトレベル、9個）
+
+### PreToolUse --- 実行前チェック（6個）
+
+| Hook | 対象Tool | 内容 |
+|------|---------|------|
+| protect-files.sh | Write/Edit | `.env`, `package-lock.json` 変更ブロック |
+| secret-detect.sh | Write/Edit | APIキー/トークン/JWT ハードコード検出 -> ブロック |
+| shared-guard.sh | Write/Edit | shared/types/, hooks/, components/, config/ 変更警告 |
+| file-naming.sh | Write | 新規ファイルの kebab-case 命名規約チェック -> ブロック |
+| spec-check.sh | Write | src/features/ 新規ファイル作成時の仕様書存在確認 -> 警告 |
+| bash-guard.sh | Bash | `rm -rf /`, `git push --force main` 等ブロック |
+
+### PostToolUse --- 実行後チェック（3個）
+
+| Hook | 対象Tool | 内容 |
+|------|---------|------|
+| format-on-save.sh | Write/Edit | prettier 自動フォーマット |
+| export-default-check.sh | Write/Edit | export default 検出 -> 警告（app/ は例外） |
+| task-size-check.sh | TaskCreate | タスク粒度チェック（文字数/ファイル数/アクション数/複合名） -> 警告 |
+
+---
+
+## 7. タスク粒度ガイド
+
+| サイズ | 目安時間 | 例 |
+|--------|---------|-----|
+| S | 1-2h | 型定義追加、hook作成、小さなUI修正 |
+| M | 2-4h | 画面1つ実装、Edge Function作成、テスト追加 |
+| L | 4-8h | 機能一式実装、DB設計+マイグレーション |
+| XL | 8h+ | 分割が必要。L以下に分解する |
+
+---
+
+## 8. 開発フェーズとAgent稼働
+
+### 8.1 フェーズ構成
+
+```
+Phase 0: 基盤（Agent A）
+  |
+Phase 1: 認証 + 課金基盤（Agent A + B + C 並列）
+  |
+Phase 2: コア機能MVP（Agent C + D 並列）
+  |
+Phase 3: OpenClaw統合（全Agent）
+  |
+Phase 4: 課金最適化 + リリース準備
+```
+
+### 8.2 インターフェース凍結タイミング
 
 | フェーズ | 凍結対象 |
 |---------|---------|
@@ -199,96 +336,24 @@ supabase/functions/daily-notification/
 | Phase 1 中盤 | shared/hooks/ インターフェース |
 | Phase 2 開始時 | Edge Function のリクエスト/レスポンス型 |
 
----
-
-## 4. 開発フェーズとAgent稼働
-
-### 4.1 ガントチャート
-
-```
-         Day1-2    Day3-7    Day8-14    Day15-18   Day19-24   Day25-28
-Agent A  ████████  ████████  ░░░░░░░░   ░░░░░░░░   ████████   ████████
-Agent B            ████████  ████████   ████████   ████████   ████████
-Agent C            ████████  ████████   ████████   ░░░░░░░░   ████████
-Agent D                      ████████   ████████   ████████   ████████
-
-████ = アクティブ  ░░░░ = サポート/レビュー
-```
-
-### 4.2 各フェーズの完了条件
+### 8.3 各フェーズの完了条件
 
 | フェーズ | 完了条件 |
 |---------|---------|
 | Phase 0 | 型定義・空hookが定義済み、Expo起動成功 |
 | Phase 1 | 認証動作、ペイウォール表示、Entitlementチェック動作 |
-| Phase 2 | オンボーディング→チャット→日記→洞察の一連フロー動作 |
-| Phase 3 | 課金最適化、E2Eテスト通過、ストア申請準備完了 |
+| Phase 2 | オンボーディング -> チャット -> 日記 -> 洞察の一連フロー動作 |
+| Phase 3 | OpenClawプロビジョニング -> WebSocketチャット -> ヘルスチェックのE2E動作 |
+| Phase 4 | 課金最適化、E2Eテスト通過、ストア申請準備完了 |
 
 ---
 
-## 5. タスク一覧（tasksコマンド変換用）
-
-### Phase 0: プロジェクト基盤（Day 1-2）
-
-| ID | タスク | Agent | サイズ | ブロッカー | 完了条件 |
-|----|-------|-------|--------|----------|---------|
-| T001 | Expoプロジェクト初期化 + Router設定 | A | S | - | expo start成功 |
-| T002 | ディレクトリ構成セットアップ | A | S | T001 | 全ディレクトリ作成済み |
-| T003 | 共通型定義 | A | M | T002 | types/配下の全型定義完了 |
-| T004 | shared hooks インターフェース定義 | A | M | T003 | useSubscription, useUser空実装 |
-| T005 | CLAUDE.md配置 | A | S | T002 | ファイル配置済み |
-| T006 | テーマ・定数・環境変数設定 | A | S | T002 | config/配下完了 |
-
-### Phase 1: 認証 + 課金基盤（Day 3-7）
-
-| ID | タスク | Agent | サイズ | ブロッカー | 完了条件 |
-|----|-------|-------|--------|----------|---------|
-| T007 | Supabase プロジェクト作成 + マイグレーション | A | M | T003 | 全テーブル作成済み |
-| T008 | Supabase Auth + 認証画面 | A | M | T007 | ソーシャルログイン動作 |
-| T009 | ルーティングガード実装 | A | M | T008 | 認証状態による画面制御動作 |
-| T010 | RevenueCat SDK導入 + 初期化 | B | M | T004 | SDK初期化成功 |
-| T011 | useSubscription 本実装 | B | M | T010 | Entitlement状態取得動作 |
-| T012 | ペイウォール画面実装 | B | L | T011 | フルスクリーンペイウォール動作 |
-| T013 | 初回限定オファー + カウントダウン | B | M | T012 | 24時間タイマー動作 |
-
-### Phase 2: コア機能MVP（Day 8-18）
-
-| ID | タスク | Agent | サイズ | ブロッカー | 完了条件 |
-|----|-------|-------|--------|----------|---------|
-| T014 | OpenAI API共通設定 | C | S | T004 | Edge Function共通設定完了 |
-| T015 | 性格診断Edge Function | C | M | T014 | API正常レスポンス |
-| T016 | オンボーディング全画面 | C | L | T015, T009 | 4画面遷移動作 |
-| T017 | チャットEdge Function（ストリーミング） | C | L | T014 | SSEストリーミング動作 |
-| T018 | チャット画面 | C | L | T017, T011 | チャットUI + 上限制御動作 |
-| T019 | システムプロンプト設計 | C | M | T015 | パーソナライズ応答確認 |
-| T020 | オンボーディング→ペイウォール統合 | B+C | M | T012, T016 | 一連フロー動作 |
-| T021 | 日記機能（CRUD + AI振り返り） | D | L | T014, T011 | 日記作成→AI振り返り表示 |
-| T022 | 感情トラッキング | D | M | T021 | 気分記録→グラフ表示 |
-| T023 | 洞察タブ（気分グラフ + デイリー洞察） | D | L | T022 | 洞察表示動作 |
-| T024 | 設定画面 | D | M | T011 | プロフィール・サブスク情報表示 |
-| T025 | プッシュ通知（朝の挨拶） | D | M | T008 | 通知受信確認 |
-
-### Phase 3: 課金最適化 + リリース（Day 19-28）
-
-| ID | タスク | Agent | サイズ | ブロッカー | 完了条件 |
-|----|-------|-------|--------|----------|---------|
-| T026 | ペイウォールUI最適化 | B | M | T020 | 比較表・タイマー実装 |
-| T027 | RevenueCat Experiments設定 | B | S | T026 | A/Bテスト設定完了 |
-| T028 | 課金イベントトラッキング | B | M | T026 | 全イベント計測可能 |
-| T029 | Webhook Edge Function | B | M | T011 | イベント→DB反映動作 |
-| T030 | 解約防止フロー | B | M | T011 | ダイアログ表示動作 |
-| T031 | 月次レポート（クレジット消費） | D | M | T023 | レポート生成 + クレジット減算 |
-| T032 | E2Eテスト（課金フロー） | 全 | L | T020 | 自動テスト通過 |
-| T033 | E2Eテスト（コア機能） | 全 | M | T018, T021 | 自動テスト通過 |
-| T034 | App Store申請準備 | A | M | T032 | 素材準備完了 |
-| T035 | ASO基本設定 | A | S | T034 | キーワード・スクショ最適化 |
-
----
-
-## 6. 検証条件
+## 9. 検証条件
 
 - [ ] 全Agentが担当ファイル以外を変更していないこと
 - [ ] shared/types/ の型定義がPhase 0で凍結されていること
 - [ ] Agent間の依存関係が正しく管理されていること
 - [ ] 各Phaseの完了条件が満たされていること
+- [ ] SDDパイプラインの各ステップが正しく実行されること
+- [ ] Hooksが意図通りに動作すること（ブロック/警告）
 - [ ] 統合テストで全機能が連携動作すること
