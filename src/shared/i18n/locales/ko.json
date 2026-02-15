@@ -1,0 +1,412 @@
+{
+  "common": {
+    "appName": "AltMe",
+    "next": "다음",
+    "back": "뒤로",
+    "cancel": "취소",
+    "save": "저장",
+    "delete": "삭제",
+    "done": "완료",
+    "close": "닫기",
+    "retry": "재시도",
+    "loading": "로딩 중...",
+    "error": "오류가 발생했습니다",
+    "networkError": "네트워크에 연결할 수 없습니다",
+    "confirm": "확인",
+    "start": "시작"
+  },
+  "tabs": {
+    "chat": "채팅",
+    "community": "커뮤니티",
+    "myAgent": "마이 에이전트",
+    "myPage": "마이페이지"
+  },
+  "auth": {
+    "signInWithApple": "Apple로 로그인",
+    "signInWithGoogle": "Google로 로그인",
+    "loginTitle": "로그인",
+    "loginSubtitle": "또 다른 나를 만나보세요",
+    "termsOfService": "이용약관",
+    "privacyPolicy": "개인정보처리방침",
+    "agreeToTerms": "계속하면 {{terms}}과 {{privacy}}에 동의하게 됩니다",
+    "loginError": "로그인에 실패했습니다. 다시 시도해주세요.",
+    "errorTitle": "오류",
+    "legalText": "계속하면 이용약관과 개인정보처리방침에 동의하게 됩니다"
+  },
+  "onboarding": {
+    "welcome": {
+      "headline": "또 다른 나를 만들어보세요",
+      "description": "당신의 성격을 분석하여\n세상에 단 하나뿐인\nAI 분신을 만들어드립니다",
+      "cta": "시작하기",
+      "timeEstimate": "소요 시간: 약 3분"
+    },
+    "quiz": {
+      "title": "성격 진단",
+      "progress": "{{current}}/{{total}}",
+      "questionPrefix": "Q{{number}}.",
+      "choiceLabels": {
+        "a": "A",
+        "b": "B",
+        "c": "C",
+        "d": "D"
+      }
+    },
+    "result": {
+      "title": "당신의 성격 유형",
+      "analyzing": "당신의 성격을 분석 중...",
+      "pleaseWait": "잠시만 기다려주세요",
+      "bigFiveTitle": "성격 차트",
+      "openness": "개방성",
+      "conscientiousness": "성실성",
+      "extraversion": "외향성",
+      "agreeableness": "친화성",
+      "neuroticism": "신경성",
+      "summaryTitle": "당신의 특성",
+      "detailedAnalysis": "상세 분석 보기",
+      "proBadge": "Pro 전용",
+      "detailedDescription": "커뮤니케이션 스타일, 강점과 약점,\n최적의 AI 트윈 설정이 포함됩니다",
+      "cta": "AI 트윈 만나기"
+    },
+    "avatar": {
+      "title": "AI의 외모를 선택하세요",
+      "step": "5/6",
+      "styles": {
+        "geometric": "기하학",
+        "cosmic": "우주",
+        "organic": "유기적",
+        "techno": "테크노",
+        "zen": "젠"
+      },
+      "cta": "다음"
+    },
+    "tone": {
+      "title": "AI의 말투를 선택하세요",
+      "step": "6/6",
+      "styles": {
+        "polite": "정중",
+        "casual": "캐주얼",
+        "intellectual": "지적",
+        "mentor": "멘토",
+        "tsundere": "츤데레"
+      },
+      "samples": {
+        "polite": "수고하셨어요. 오늘 하루 어떠셨나요? 이야기 들려주세요.",
+        "casual": "안녕! 오늘 어땠어? 재밌는 일 있었어?",
+        "intellectual": "흥미롭군요. 그 생각을 좀 더 깊이 탐구해볼까요?",
+        "mentor": "괜찮아, 넌 할 수 있어. 같이 생각해보자.",
+        "tsundere": "별, 별로 걱정한 건 아니야... 그래서, 오늘 무슨 일 있었어?"
+      },
+      "cta": "다음"
+    },
+    "meetTwin": {
+      "title": "당신의 AI 분신",
+      "subtitle": "첫 번째 대화",
+      "twinLabel": "AI 분신",
+      "typing": "입력 중...",
+      "send": "보내기",
+      "remaining": "{{count}}회 남음",
+      "unlockButton": "전체 액세스 잠금해제",
+      "skipButton": "나중에",
+      "nameLabel": "AI 트윈의 이름",
+      "namePlaceholder": "이름을 입력하세요",
+      "nameConfirm": "확인",
+      "remainingChats": "{{count}}/{{total}}회 대화 남음",
+      "cta": "온보딩 완료",
+      "inputPlaceholder": "메시지를 입력하세요..."
+    }
+  },
+  "chat": {
+    "title": "채팅",
+    "inputPlaceholder": "메시지를 입력하세요...",
+    "inputPlaceholderDefault": "오늘 있었던 일을 이야기해주세요...",
+    "inputPlaceholderAtLimit": "Pro로 업그레이드하여 계속하세요",
+    "send": "보내기",
+    "freeLimit": "{{count}}/{{total}}회 남음",
+    "freeLimitReached": "오늘의 무료 채팅 횟수를 모두 사용했습니다",
+    "upgradePrompt": "Pro로 업그레이드하여 무제한 대화를 즐기세요",
+    "upgradeCta": "Pro로 업그레이드",
+    "proLabel": "Pro",
+    "freeLabel": "Free",
+    "typing": "입력 중...",
+    "thinking": "생각 중...",
+    "attachFile": "파일 첨부",
+    "welcomeMessage": "{{name}}님, 안녕하세요! {{twinName}}입니다. 오늘 어떤 일이 있었나요?",
+    "welcomeMessageDefault": "안녕하세요! {{twinName}}입니다. 오늘 어떤 일이 있었나요?",
+    "rateLimited": "잠시만요. 잠시 후에 다시 말해주세요.",
+    "errorResponse": "죄송해요, 제대로 답하지 못했어요. 다시 시도해주세요.",
+    "offline": "오프라인",
+    "remainingCount": "{{count}}회 남음",
+    "connectionStatus": {
+      "connected": "연결됨",
+      "connecting": "연결 중...",
+      "disconnected": "연결 끊김",
+      "reconnecting": "재연결 중..."
+    }
+  },
+  "community": {
+    "title": "커뮤니티",
+    "subtitle": "모두의 AI 트윈을 구경해보세요",
+    "createChannel": "채널 만들기",
+    "channels": "채널",
+    "conversations": "대화",
+    "noChannels": "채널이 없습니다",
+    "joinChannel": "참여하기",
+    "guestBanner": "읽기 전용 - 로그인하여 참여하세요",
+    "create": {
+      "title": "커뮤니티 만들기",
+      "channelName": "채널 이름",
+      "channelNamePlaceholder": "채널 이름을 입력하세요",
+      "description": "설명",
+      "descriptionPlaceholder": "채널 설명을 입력하세요",
+      "thumbnail": "썸네일",
+      "language": "언어",
+      "languages": {
+        "ja": "日本語",
+        "en": "English",
+        "ko": "한국어"
+      },
+      "category": "카테고리",
+      "categories": {
+        "entertainment": "엔터테인먼트",
+        "lifestyle": "라이프스타일",
+        "technology": "테크놀로지",
+        "sports": "스포츠",
+        "music": "음악"
+      },
+      "cta": "채널 만들기"
+    },
+    "detail": {
+      "title": "대화 상세",
+      "communityConversation": "커뮤니티 대화"
+    }
+  },
+  "subscription": {
+    "paywall": {
+      "title": "Pro로 업그레이드",
+      "subtitle": "AI 트윈의 모든 기능을 해제",
+      "introTimer": "첫 구매 한정: {{time}} 남음",
+      "features": {
+        "unlimitedChat": "무제한 채팅",
+        "dedicatedAgent": "전용 AI 에이전트",
+        "communityAccess": "커뮤니티 이용",
+        "insights": "자기분석 & 인사이트",
+        "journal": "일기 & 리플렉션"
+      },
+      "featuresList": {
+        "dedicatedTwin": "전용 AI 트윈 (무제한 채팅)",
+        "personalityAnalysis": "상세 성격 분석",
+        "journalReflection": "일기 + AI 리플렉션",
+        "emotionTracking": "감정 트래킹",
+        "aiInsights": "AI 인사이트 리포트"
+      },
+      "plans": {
+        "monthly": "월간",
+        "yearly": "연간",
+        "introYearly": "첫 구매 특가"
+      },
+      "firstTimeOffer": "FIRST TIME OFFER",
+      "perYear": "/년",
+      "perMonthParens": "(₩{{price}}/월)",
+      "monthlyPrice": "₩49,800",
+      "monthlyUnit": "/월",
+      "yearlyPrice": "₩398,000",
+      "yearlyUnit": "₩33,167/월 (33% OFF)",
+      "introPrice": "₩298,000",
+      "introUnit": "₩24,833/월 (50% OFF)",
+      "discountOff": "{{percent}}% OFF",
+      "trialLabel": "3일 무료 체험",
+      "cta": "3일 무료 체험 시작",
+      "startTrial": "무료 체험 시작",
+      "processing": "처리 중...",
+      "trialNote": "3일 무료 체험 후 자동으로 결제됩니다",
+      "restore": "구매 복원",
+      "restoring": "복원 중...",
+      "legal": "이용약관 & 개인정보처리방침",
+      "termsOfService": "이용약관",
+      "privacy": "개인정보",
+      "errorTitle": "오류",
+      "errorLoadPlan": "플랜을 불러올 수 없습니다. 다시 시도해주세요.",
+      "purchaseErrorTitle": "구매 오류",
+      "purchaseError": "구매 중 오류가 발생했습니다. 다시 시도해주세요.",
+      "restoreCompleteTitle": "복원 완료",
+      "restoreComplete": "구매가 복원되었습니다.",
+      "restoreResultTitle": "복원 결과",
+      "restoreNoResult": "복원 가능한 구매 내역이 없습니다.",
+      "restoreError": "복원 중 오류가 발생했습니다."
+    },
+    "manage": {
+      "title": "구독 관리",
+      "currentPlan": "현재 플랜",
+      "proPlan": "Pro 플랜",
+      "planMonthly": "월간 플랜",
+      "planYearly": "연간 플랜",
+      "planIntroYearly": "연간 플랜 (첫 구매 특가)",
+      "nextRenewal": "다음 갱신일",
+      "status": "상태",
+      "statusActive": "활성",
+      "statusTrial": "체험 중 ({{days}}일 남음)",
+      "statusCancelled": "해지됨 (기간 만료까지 이용 가능)",
+      "statusGracePeriod": "유예 기간 (결제 수단 업데이트 필요)",
+      "statusExpired": "만료됨",
+      "statusFree": "Free",
+      "billingHistory": "결제 내역",
+      "changePlan": "플랜 변경",
+      "paymentMethod": "결제 수단",
+      "cancelSubscription": "구독 해지",
+      "statsTitle": "나와 AI 트윈의 여정",
+      "statChat": "채팅",
+      "statJournal": "일기",
+      "statMood": "기분 기록",
+      "statDays": "일",
+      "statsMessage": "{{twinName}}은(는) {{count}}번의 대화를 통해 당신에 대해 배웠습니다. 해지하면 데이터는 보존되지만 새로운 대화와 분석은 이용할 수 없게 됩니다.",
+      "cancelConfirmTitle": "정말 해지하시겠습니까?",
+      "cancelConfirmMessage": "{{twinName}}와의 {{days}}일간의 추억이 사라집니다.\n\n해지 후에도 현재 기간이 끝날 때까지 Pro 기능을 이용하실 수 있습니다.",
+      "cancelConfirmCancel": "구독 유지",
+      "cancelConfirmProceed": "해지 진행",
+      "resubscribeMessage": "다시 Pro 기능을 이용하시려면 스토어에서 구독을 재개해주세요.",
+      "openStore": "스토어 열기",
+      "upgradeButton": "Pro로 업그레이드"
+    }
+  },
+  "settings": {
+    "title": "마이페이지",
+    "settingsTitle": "설정",
+    "guest": "게스트",
+    "twinLabel": "트윈: {{name}}",
+    "proPlan": "Pro 플랜",
+    "freePlan": "Free 플랜",
+    "planLabel": "플랜:",
+    "planAnnual": "연간",
+    "planMonthly": "월간",
+    "upgradeToPro": "Pro로 업그레이드",
+    "profile": {
+      "title": "프로필",
+      "displayName": "표시 이름",
+      "email": "이메일",
+      "edit": "프로필 편집",
+      "editTitle": "프로필 편집",
+      "editPrompt": "새로운 표시 이름을 입력해주세요",
+      "editEmpty": "표시 이름을 입력해주세요",
+      "editSuccess": "표시 이름이 업데이트되었습니다",
+      "editError": "업데이트에 실패했습니다. 다시 시도해주세요."
+    },
+    "twinSettings": {
+      "title": "AI 트윈",
+      "name": "트윈 이름",
+      "tone": "말투",
+      "avatar": "외모",
+      "editName": "트윈 이름 변경",
+      "editNameTitle": "트윈 이름 변경",
+      "editNamePrompt": "AI 트윈의 새 이름을 입력해주세요",
+      "editNameEmpty": "이름을 입력해주세요",
+      "editNameSuccess": "트윈 이름이 업데이트되었습니다",
+      "editNameError": "업데이트에 실패했습니다. 다시 시도해주세요.",
+      "retakeQuiz": "성격 진단 다시하기",
+      "retakeQuizTitle": "성격 진단 다시하기",
+      "retakeQuizMessage": "현재 진단 결과가 초기화됩니다. 계속하시겠습니까?",
+      "retakeQuizConfirm": "다시하기"
+    },
+    "mbti": {
+      "title": "MBTI 설정",
+      "select": "MBTI 유형 선택",
+      "subtitle": "MBTI 유형을 선택하여 AI 트윈에 반영"
+    },
+    "subscription": "구독 관리",
+    "notifications": {
+      "title": "알림 설정",
+      "push": "푸시 알림",
+      "dailyReminder": "매일 리마인더",
+      "subtitle": "알림 맞춤 설정",
+      "comingSoon": "준비 중입니다. 향후 업데이트를 기다려주세요."
+    },
+    "account": {
+      "title": "계정",
+      "logout": "로그아웃",
+      "logoutConfirm": "정말 로그아웃하시겠습니까?",
+      "deleteAccount": "계정 삭제"
+    },
+    "support": {
+      "title": "지원",
+      "help": "도움말 & FAQ",
+      "terms": "이용약관",
+      "privacy": "개인정보처리방침"
+    },
+    "about": {
+      "version": "버전",
+      "termsOfService": "이용약관",
+      "privacyPolicy": "개인정보처리방침"
+    },
+    "instance": {
+      "title": "AI 트윈 서버",
+      "statusProvisioning": "설정 중...",
+      "statusRunning": "실행 중",
+      "statusStopped": "중지됨",
+      "statusError": "오류",
+      "statusDestroying": "삭제 중...",
+      "notFound": "인스턴스를 찾을 수 없습니다",
+      "restart": "재시작",
+      "restarting": "재시작 중...",
+      "restartTitle": "인스턴스 재시작",
+      "restartMessage": "AI 트윈 서버를 재시작하시겠습니까? 재시작 중에는 채팅을 일시적으로 이용할 수 없습니다.",
+      "restartStarted": "재시작 시작",
+      "restartStartedMessage": "인스턴스 재시작이 시작되었습니다. 잠시만 기다려주세요.",
+      "restartError": "재시작에 실패했습니다. 다시 시도해주세요."
+    },
+    "guestLogin": {
+      "availableFeatures": "로그인으로 이용 가능"
+    },
+    "loginError": {
+      "apple": "Apple 로그인에 실패했습니다. 다시 시도해주세요.",
+      "google": "Google 로그인에 실패했습니다. 다시 시도해주세요."
+    },
+    "deleteConfirm": {
+      "title": "계정 삭제",
+      "warning": "정말 삭제하시겠습니까?",
+      "description": "계정을 삭제하면 모든 데이터가 영구적으로 삭제됩니다. 이 작업은 되돌릴 수 없습니다.",
+      "dataList": {
+        "conversations": "AI 트윈과의 전체 대화 기록",
+        "journal": "일기 및 리플렉션 데이터",
+        "insights": "성격 분석 및 인사이트",
+        "instance": "OpenClaw 인스턴스"
+      },
+      "inputLabel": "확인을 위해 \"{{confirmText}}\"을 입력해주세요",
+      "inputMatch": "삭제",
+      "cta": "계정 영구 삭제",
+      "cancel": "취소",
+      "error": "계정 삭제에 실패했습니다. 시간을 두고 다시 시도해주세요.\n\n문제가 지속되면 지원팀에 문의해주세요: support@altme.app"
+    }
+  },
+  "twin": {
+    "title": "마이 에이전트",
+    "subtitle": "당신의 AI 트윈 정보",
+    "status": {
+      "online": "온라인",
+      "offline": "오프라인",
+      "provisioning": "준비 중..."
+    },
+    "personality": "성격 분석",
+    "stats": {
+      "conversations": "대화 수",
+      "journalEntries": "일기 수",
+      "daysActive": "이용 일수"
+    },
+    "conversationDetail": {
+      "title": "트윈 대화 상세",
+      "subtitle": "대화 상세 및 리플렉션"
+    }
+  },
+  "guest": {
+    "title": "로그인하여 시작하세요",
+    "subtitle": "AI 트윈이 당신을 기다리고 있습니다",
+    "features": {
+      "chat": "AI 채팅",
+      "quiz": "성격 진단",
+      "journal": "일기 + AI 리플렉션",
+      "insights": "감정 트래킹"
+    }
+  },
+  "tokenPurchase": {
+    "title": "토큰 구매",
+    "subtitle": "토큰 구매 및 관리"
+  }
+}
