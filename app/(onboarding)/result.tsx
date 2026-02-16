@@ -1,19 +1,15 @@
-import { StyleSheet, View, Text, Pressable, ActivityIndicator, ScrollView } from 'react-native';
+import { StyleSheet, View, Text, ActivityIndicator, ScrollView } from 'react-native';
 import { router } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { colors, spacing, fontSize, borderRadius } from '@/src/config/theme';
+import { useTranslation } from 'react-i18next';
+import { CosmicBackground } from '@/src/shared/components/cosmic-background';
+import { GlassCard } from '@/src/shared/components/glass-card';
+import { GoldButton } from '@/src/shared/components/gold-button';
+import { spacing, fontFamily, borderRadius, glassmorphism } from '@/src/config/theme';
 import { useOnboardingStore } from '@/src/features/onboarding/stores/onboarding-store';
 import type { PersonalityTraits } from '@/src/shared/types/user';
 
-const TRAIT_LABELS: Record<keyof PersonalityTraits, string> = {
-  openness: '開放性',
-  conscientiousness: '誠実性',
-  extraversion: '外向性',
-  agreeableness: '協調性',
-  neuroticism: '神経質傾向',
-};
-
-const TRAIT_ORDER: Array<keyof PersonalityTraits> = [
+const TRAIT_ORDER: (keyof PersonalityTraits)[] = [
   'openness',
   'conscientiousness',
   'extraversion',
@@ -36,124 +32,141 @@ function TraitBar({ label, value }: { label: string; value: number }) {
 }
 
 export default function ResultScreen() {
+  const { t } = useTranslation();
   const { personalityResult, isAnalyzing } = useOnboardingStore();
 
   const handleMeetTwin = () => {
-    router.push('/(onboarding)/meet-twin');
+    router.push('/(onboarding)/choose-avatar');
   };
 
   if (isAnalyzing || !personalityResult) {
     return (
-      <SafeAreaView style={styles.container}>
-        <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color={colors.primary} />
-          <Text style={styles.loadingText}>
-            {'あなたの性格を分析中...'}
-          </Text>
-          <Text style={styles.loadingSubtext}>
-            {'少々お待ちください'}
-          </Text>
-        </View>
-      </SafeAreaView>
+      <CosmicBackground>
+        <SafeAreaView style={styles.container}>
+          <View style={styles.loadingContainer}>
+            <ActivityIndicator size="large" color="#7DD3FC" />
+            <Text style={styles.loadingText}>
+              {t('onboarding.result.analyzing')}
+            </Text>
+            <Text style={styles.loadingSubtext}>
+              {t('onboarding.result.pleaseWait')}
+            </Text>
+          </View>
+        </SafeAreaView>
+      </CosmicBackground>
     );
   }
 
   const traits = personalityResult.personalityTraits;
 
   return (
-    <SafeAreaView style={styles.container}>
-      <ScrollView
-        style={styles.scrollView}
-        contentContainerStyle={styles.scrollContent}
-        showsVerticalScrollIndicator={false}
-      >
-        <Text style={styles.title}>
-          {'あなたの性格タイプ'}
-        </Text>
+    <CosmicBackground>
+      <SafeAreaView style={styles.container}>
+        <ScrollView
+          style={styles.scrollView}
+          contentContainerStyle={styles.scrollContent}
+          showsVerticalScrollIndicator={false}
+          contentInsetAdjustmentBehavior="automatic"
+        >
+          <Text style={styles.title}>
+            {t('onboarding.result.title')}
+          </Text>
 
-        <View style={styles.summaryCard}>
-          <Text style={styles.summaryText}>{personalityResult.summary}</Text>
-        </View>
+          <GlassCard style={styles.summaryCard}>
+            <Text style={styles.summaryText}>{personalityResult.summary}</Text>
+          </GlassCard>
 
-        {traits && (
-          <View style={styles.traitsCard}>
-            <Text style={styles.traitsTitle}>
-              {'パーソナリティチャート'}
-            </Text>
-            {TRAIT_ORDER.map((key) => (
-              <TraitBar
-                key={key}
-                label={TRAIT_LABELS[key]}
-                value={traits[key]}
-              />
-            ))}
+          {traits ? (
+            <GlassCard style={styles.traitsCard}>
+              <Text style={styles.traitsTitle}>
+                {t('onboarding.result.bigFiveTitle')}
+              </Text>
+              {TRAIT_ORDER.map((key) => (
+                <TraitBar
+                  key={key}
+                  label={t(`onboarding.result.${key}`)}
+                  value={traits[key]}
+                />
+              ))}
+            </GlassCard>
+          ) : null}
+
+          {personalityResult.communicationStyle ? (
+            <GlassCard style={styles.commStyleCard}>
+              <Text style={styles.commStyleLabel}>
+                {t('onboarding.result.communicationStyle')}
+              </Text>
+              <Text style={styles.commStyleValue}>
+                {personalityResult.communicationStyle.tone}
+              </Text>
+              <Text style={styles.commStyleDetail}>
+                {personalityResult.communicationStyle.formality} · {personalityResult.communicationStyle.response_length}
+              </Text>
+            </GlassCard>
+          ) : null}
+
+          <View style={styles.blurredSection}>
+            <View style={styles.blurredHeader}>
+              <Text style={styles.blurredTitle}>
+                {t('onboarding.result.detailedAnalysis')}
+              </Text>
+              <Text style={styles.proBadge}>{t('onboarding.result.proBadge')}</Text>
+            </View>
+            <View style={styles.blurredContent}>
+              <Text style={styles.blurredText}>
+                {t('onboarding.result.detailedDescription')}
+              </Text>
+            </View>
           </View>
-        )}
 
-        <View style={styles.blurredSection}>
-          <View style={styles.blurredHeader}>
-            <Text style={styles.blurredTitle}>
-              {'詳細分析を見る'}
-            </Text>
-            <Text style={styles.proBadge}>{'Pro限定'}</Text>
+          <View style={styles.ctaSection}>
+            <GoldButton
+              title={t('onboarding.result.cta')}
+              onPress={handleMeetTwin}
+            />
           </View>
-          <View style={styles.blurredContent}>
-            <Text style={styles.blurredText}>
-              {'コミュニケーションスタイル、強み・弱み、'}{'\n'}
-              {'最適なAIツインの設定が含まれます'}
-            </Text>
-          </View>
-        </View>
-
-        <View style={styles.ctaSection}>
-          <Pressable style={styles.ctaButton} onPress={handleMeetTwin}>
-            <Text style={styles.ctaButtonText}>
-              {'AIツインと会う'}
-            </Text>
-          </Pressable>
-        </View>
-      </ScrollView>
-    </SafeAreaView>
+        </ScrollView>
+      </SafeAreaView>
+    </CosmicBackground>
   );
 }
 
 const traitStyles = StyleSheet.create({
   container: {
-    marginBottom: spacing.md,
+    marginBottom: spacing.lg,
   },
   labelRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: spacing.xs,
+    marginBottom: spacing.sm,
   },
   label: {
-    fontSize: fontSize.sm,
-    color: colors.text,
-    fontWeight: '500',
+    fontFamily: fontFamily.medium,
+    fontSize: 14,
+    color: '#F8FAFC',
   },
   value: {
-    fontSize: fontSize.sm,
-    color: colors.textSecondary,
-    fontWeight: '600',
+    fontFamily: fontFamily.semiBold,
+    fontSize: 14,
+    color: '#7DD3FC',
   },
   barBackground: {
     height: 8,
-    backgroundColor: colors.border,
-    borderRadius: 4,
+    backgroundColor: '#FFFFFF15',
+    borderRadius: 9999,
     overflow: 'hidden',
   },
   barFill: {
     height: '100%',
-    backgroundColor: colors.primary,
-    borderRadius: 4,
+    backgroundColor: '#7DD3FC',
+    borderRadius: 9999,
   },
 });
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.background,
   },
   loadingContainer: {
     flex: 1,
@@ -162,14 +175,15 @@ const styles = StyleSheet.create({
     padding: spacing.xl,
   },
   loadingText: {
-    fontSize: fontSize.lg,
-    fontWeight: '600',
-    color: colors.text,
+    fontFamily: fontFamily.semiBold,
+    fontSize: 18,
+    color: '#F8FAFC',
     marginTop: spacing.lg,
   },
   loadingSubtext: {
-    fontSize: fontSize.sm,
-    color: colors.textSecondary,
+    fontFamily: fontFamily.regular,
+    fontSize: 14,
+    color: '#94A3B8',
     marginTop: spacing.sm,
   },
   scrollView: {
@@ -180,47 +194,62 @@ const styles = StyleSheet.create({
     paddingBottom: spacing.xxl,
   },
   title: {
-    fontSize: fontSize.xxl,
-    fontWeight: '700',
-    color: colors.text,
+    fontFamily: fontFamily.bold,
+    fontSize: 28,
+    color: '#F8FAFC',
     textAlign: 'center',
-    marginTop: spacing.xl,
+    marginTop: spacing.lg,
     marginBottom: spacing.xl,
   },
   summaryCard: {
-    backgroundColor: colors.surface,
-    borderRadius: borderRadius.lg,
     padding: spacing.xl,
-    marginBottom: spacing.xl,
-    borderWidth: 1,
-    borderColor: colors.border,
+    marginBottom: spacing.lg,
   },
   summaryText: {
-    fontSize: fontSize.md,
-    color: colors.text,
+    fontFamily: fontFamily.regular,
+    fontSize: 16,
+    color: '#F8FAFC',
     lineHeight: 26,
   },
   traitsCard: {
-    backgroundColor: colors.surface,
-    borderRadius: borderRadius.lg,
     padding: spacing.xl,
-    marginBottom: spacing.xl,
-    borderWidth: 1,
-    borderColor: colors.border,
-  },
-  traitsTitle: {
-    fontSize: fontSize.lg,
-    fontWeight: '600',
-    color: colors.text,
     marginBottom: spacing.lg,
   },
+  traitsTitle: {
+    fontFamily: fontFamily.semiBold,
+    fontSize: 18,
+    color: '#F8FAFC',
+    marginBottom: spacing.lg,
+  },
+  commStyleCard: {
+    padding: spacing.xl,
+    marginBottom: spacing.lg,
+    alignItems: 'center',
+  },
+  commStyleLabel: {
+    fontFamily: fontFamily.medium,
+    fontSize: 14,
+    color: '#94A3B8',
+    marginBottom: spacing.sm,
+  },
+  commStyleValue: {
+    fontFamily: fontFamily.bold,
+    fontSize: 24,
+    color: '#7DD3FC',
+    marginBottom: spacing.xs,
+  },
+  commStyleDetail: {
+    fontFamily: fontFamily.regular,
+    fontSize: 14,
+    color: '#94A3B8',
+  },
   blurredSection: {
-    backgroundColor: colors.surface,
+    backgroundColor: glassmorphism.card.bg,
     borderRadius: borderRadius.lg,
     padding: spacing.xl,
     marginBottom: spacing.xl,
     borderWidth: 1,
-    borderColor: colors.border,
+    borderColor: glassmorphism.card.border,
     overflow: 'hidden',
   },
   blurredHeader: {
@@ -230,16 +259,16 @@ const styles = StyleSheet.create({
     gap: spacing.sm,
   },
   blurredTitle: {
-    fontSize: fontSize.lg,
-    fontWeight: '600',
-    color: colors.text,
+    fontFamily: fontFamily.semiBold,
+    fontSize: 16,
+    color: '#F8FAFC',
     flex: 1,
   },
   proBadge: {
-    fontSize: fontSize.xs,
-    fontWeight: '700',
-    color: colors.textInverse,
-    backgroundColor: colors.primary,
+    fontFamily: fontFamily.bold,
+    fontSize: 11,
+    color: '#0F172A',
+    backgroundColor: '#7DD3FC',
     paddingHorizontal: spacing.sm,
     paddingVertical: spacing.xs / 2,
     borderRadius: borderRadius.sm,
@@ -251,23 +280,13 @@ const styles = StyleSheet.create({
     paddingVertical: spacing.md,
   },
   blurredText: {
-    fontSize: fontSize.md,
-    color: colors.textSecondary,
+    fontFamily: fontFamily.regular,
+    fontSize: 14,
+    color: '#94A3B8',
     textAlign: 'center',
     lineHeight: 22,
   },
   ctaSection: {
     paddingTop: spacing.md,
-  },
-  ctaButton: {
-    backgroundColor: colors.primary,
-    borderRadius: borderRadius.lg,
-    paddingVertical: spacing.lg,
-    alignItems: 'center',
-  },
-  ctaButtonText: {
-    color: colors.textInverse,
-    fontSize: fontSize.lg,
-    fontWeight: '700',
   },
 });

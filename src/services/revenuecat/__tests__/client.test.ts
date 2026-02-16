@@ -29,9 +29,9 @@ describe('mapCustomerInfo', () => {
 
     expect(result.isPro).toBe(false);
     expect(result.status).toBe('free');
-    expect(result.planType).toBeNull();
+    expect(result.planType).toBe('free');
     expect(result.trialDaysRemaining).toBeNull();
-    expect(result.credits).toBe(0);
+    expect(result.trialDaysRemaining).toBeNull();
   });
 
   it('returns active pro for monthly subscription', () => {
@@ -133,7 +133,7 @@ describe('mapCustomerInfo', () => {
     const result = mapCustomerInfo(info);
 
     expect(result.isPro).toBe(true);
-    expect(result.planType).toBe('intro_annual');
+    expect(result.planType).toBe('annual_intro');
   });
 
   it('returns trial status with remaining days', () => {

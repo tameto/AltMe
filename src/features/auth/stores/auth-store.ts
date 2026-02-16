@@ -6,14 +6,18 @@ import {
   signOut as authSignOut,
   getCurrentProfile,
   updateProfile as authUpdateProfile,
+  deleteAccount as authDeleteAccount,
 } from '@/src/services/supabase/auth';
+import { statusCodes as GoogleStatusCodes } from '@react-native-google-signin/google-signin';
 import { initializeRevenueCat, checkSubscriptionStatus, addCustomerInfoListener } from '@/src/services/revenuecat/client';
+import { disconnectOpenClaw } from '@/src/services/openclaw/connection-manager';
 import { useUser } from '@/src/shared/hooks/use-user';
 import { useSubscription } from '@/src/shared/hooks/use-subscription';
-import type { UserProfile } from '@/src/shared/types/user';
+import type { UserProfile, AgeRange } from '@/src/shared/types/user';
 
 type AuthStore = {
   isAuthenticated: boolean;
+  isGuest: boolean;
   isLoading: boolean;
   error: string | null;
 
@@ -21,13 +25,16 @@ type AuthStore = {
   signInWithApple: () => Promise<void>;
   signInWithGoogle: () => Promise<void>;
   signOut: () => Promise<void>;
+  deleteAccount: () => Promise<void>;
+  enterGuestMode: () => void;
   updateProfile: (updates: Partial<UserProfile>) => Promise<void>;
   clearError: () => void;
-  devLogin: (skipOnboarding?: boolean) => void;
+  devLogin: (skipOnboarding?: boolean) => Promise<void>;
 };
 
 export const useAuthStore = create<AuthStore>((set) => ({
   isAuthenticated: false,
+  isGuest: false,
   isLoading: true,
   error: null,
 
@@ -95,10 +102,18 @@ export const useAuthStore = create<AuthStore>((set) => ({
         useSubscription.getState().setEntitlement(info);
       });
 
-      set({ isAuthenticated: true });
+      set({ isAuthenticated: true, isGuest: false });
     } catch (error: unknown) {
+      // Silent handling for Apple user cancellation (AC-1 edge case)
+      if (
+        error != null &&
+        typeof error === 'object' &&
+        'code' in error &&
+        (error as { code: string }).code === 'ERR_REQUEST_CANCELED'
+      ) {
+        return;
+      }
       const message = error instanceof Error ? error.message : 'ログインに失敗しました';
-      // Don't show error for user cancellation
       if (message.includes('cancelled') || message.includes('ERR_CANCELED')) return;
       set({ error: message });
       throw error;
@@ -119,8 +134,17 @@ export const useAuthStore = create<AuthStore>((set) => ({
         useSubscription.getState().setEntitlement(info);
       });
 
-      set({ isAuthenticated: true });
+      set({ isAuthenticated: true, isGuest: false });
     } catch (error: unknown) {
+      // Silent handling for user cancellation (Native SDK status codes)
+      if (
+        error != null &&
+        typeof error === 'object' &&
+        'code' in error &&
+        (error as { code: string }).code === GoogleStatusCodes.SIGN_IN_CANCELLED
+      ) {
+        return;
+      }
       const message = error instanceof Error ? error.message : 'ログインに失敗しました';
       if (message.includes('cancelled') || message.includes('ERR_CANCELED')) return;
       set({ error: message });
@@ -130,13 +154,42 @@ export const useAuthStore = create<AuthStore>((set) => ({
 
   signOut: async () => {
     try {
+      // 1. Disconnect OpenClaw WebSocket (AC-3)
+      disconnectOpenClaw();
+
+      // 2. Sign out from Supabase + RevenueCat
       await authSignOut();
-      useUser.getState().reset();
-      useSubscription.getState().reset();
-      set({ isAuthenticated: false });
     } catch (error) {
       console.error('Sign out error:', error);
+    } finally {
+      // 3. Always reset local state (even on network error per AC-3 edge case)
+      useUser.getState().reset();
+      useSubscription.getState().reset();
+      set({ isAuthenticated: false, error: null });
     }
+  },
+
+  deleteAccount: async () => {
+    try {
+      // 1. Disconnect OpenClaw WebSocket
+      disconnectOpenClaw();
+
+      // 2. Call delete-account Edge Function (handles OpenClaw destroy + RevenueCat + auth deletion)
+      await authDeleteAccount();
+
+      // 3. Reset local state only on success
+      useUser.getState().reset();
+      useSubscription.getState().reset();
+      set({ isAuthenticated: false, isGuest: false, error: null });
+    } catch (error) {
+      console.error('Account deletion error:', error);
+      set({ error: error instanceof Error ? error.message : 'Account deletion failed' });
+      throw error;
+    }
+  },
+
+  enterGuestMode: () => {
+    set({ isAuthenticated: false, isGuest: true, isLoading: false });
   },
 
   updateProfile: async (updates) => {
@@ -149,26 +202,75 @@ export const useAuthStore = create<AuthStore>((set) => ({
 
   clearError: () => set({ error: null }),
 
-  devLogin: (skipOnboarding = false) => {
+  devLogin: async (skipOnboarding = false) => {
     if (!__DEV__) return;
+
+    const devEmail = 'dev@altme.test';
+    const devPassword = 'devpassword123';
+
+    // Try sign in first, then sign up if not exists
+    let session: { user: { id: string } } | null = null;
+    const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({
+      email: devEmail,
+      password: devPassword,
+    });
+
+    if (signInError) {
+      // User doesn't exist yet, create
+      const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
+        email: devEmail,
+        password: devPassword,
+      });
+      if (signUpError) {
+        console.error('Dev sign up failed:', signUpError);
+        return;
+      }
+      session = signUpData.session;
+    } else {
+      session = signInData.session;
+    }
+
+    if (!session?.user) {
+      console.error('Dev login: no session');
+      return;
+    }
+
+    // Fetch or update profile
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('*')
+      .eq('id', session.user.id)
+      .single();
+
+    const profileData = profile as Record<string, unknown> | null;
+    const str = (v: unknown): string | null => (typeof v === 'string' ? v : null);
+    const bool = (v: unknown, fb = false): boolean => (typeof v === 'boolean' ? v : fb);
     const devUser: UserProfile = {
-      id: 'dev-user-001',
-      displayName: 'テストユーザー',
-      ageRange: '25-34',
-      locale: 'ja',
-      timezone: 'Asia/Tokyo',
-      onboardingCompleted: skipOnboarding,
-      twinName: skipOnboarding ? 'AltMe' : null,
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
+      id: session.user.id,
+      displayName: str(profileData?.display_name) ?? 'テストユーザー',
+      avatarUrl: str(profileData?.avatar_url),
+      email: str(profileData?.email) ?? str((session.user as Record<string, unknown>).email),
+      ageRange: (['18-24', '25-34', '35-44', '45+'].includes(str(profileData?.age_range) ?? '')
+        ? str(profileData?.age_range) as AgeRange : '25-34'),
+      locale: str(profileData?.locale) ?? 'ja',
+      timezone: str(profileData?.timezone) ?? 'Asia/Tokyo',
+      onboardingCompleted: skipOnboarding || bool(profileData?.onboarding_completed),
+      twinName: str(profileData?.twin_name) ?? (skipOnboarding ? 'AltMe' : null),
+      avatarIcon: (str(profileData?.avatar_icon) as UserProfile['avatarIcon']) ?? 'default',
+      speechTone: (str(profileData?.speech_tone) as UserProfile['speechTone']) ?? 'friendly',
+      mbtiType: str(profileData?.mbti_type),
+      createdAt: str(profileData?.created_at) ?? new Date().toISOString(),
+      updatedAt: str(profileData?.updated_at) ?? new Date().toISOString(),
     };
+
     useUser.getState().setUser(devUser);
     useSubscription.getState().setEntitlement({
       isPro: false,
+      isTrialing: false,
       status: 'free',
-      planType: null,
+      planType: 'free',
+      expiresAt: null,
       trialDaysRemaining: null,
-      credits: 0,
     });
     useSubscription.getState().setLoading(false);
     set({ isAuthenticated: true, isLoading: false });

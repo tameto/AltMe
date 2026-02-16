@@ -2,23 +2,28 @@ import { StyleSheet, View, Text, Pressable, ScrollView, Alert } from 'react-nati
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useTranslation } from 'react-i18next';
 import type { PurchasesPackage } from 'react-native-purchases';
-import { colors, spacing, fontSize, borderRadius } from '@/src/config/theme';
+import Feather from '@expo/vector-icons/Feather';
+import { spacing, fontSize, fontFamily } from '@/src/config/theme';
 import { PRICING } from '@/src/config/constants';
 import { useSubscription } from '@/src/shared/hooks/use-subscription';
+import { useUser } from '@/src/shared/hooks/use-user';
+import { hasNeverPurchased } from '@/src/services/revenuecat/client';
+import { CosmicBackground } from '@/src/shared/components/cosmic-background';
+import { GoldButton } from '@/src/shared/components/gold-button';
 
-const INSTALL_TIME_KEY = 'install_time';
 const INTRO_OFFER_DURATION_MS = PRICING.INTRO_OFFER_HOURS * 60 * 60 * 1000;
 
 type PlanId = 'intro_annual' | 'annual' | 'monthly';
 
-const FEATURES = [
-  { icon: '✨', label: '専用AIツイン（無制限チャット）' },
-  { icon: '🧠', label: '詳細性格分析' },
-  { icon: '📓', label: '日記 + AI振り返り' },
-  { icon: '📈', label: '感情トラッキング' },
-  { icon: '💡', label: 'AI洞察レポート' },
+const FEATURE_KEYS = [
+  'subscription.paywall.featuresList.dedicatedTwin',
+  'subscription.paywall.featuresList.personalityAnalysis',
+  'subscription.paywall.featuresList.journalReflection',
+  'subscription.paywall.featuresList.emotionTracking',
+  'subscription.paywall.featuresList.aiInsights',
+  'subscription.paywall.featuresList.unlimitedChat',
 ] as const;
 
 const formatCountdown = (ms: number): string => {
@@ -32,62 +37,67 @@ const formatCountdown = (ms: number): string => {
 
 export default function PaywallScreen() {
   const router = useRouter();
+  const { t } = useTranslation();
   const { purchase, restore, loadOfferings, offerings, isLoading } = useSubscription();
+  const createdAt = useUser((s) => s.user?.createdAt);
 
-  const [selectedPlan, setSelectedPlan] = useState<PlanId>('intro_annual');
-  const [showIntroOffer, setShowIntroOffer] = useState(true);
-  const [remainingMs, setRemainingMs] = useState(INTRO_OFFER_DURATION_MS);
+  const [selectedPlan, setSelectedPlan] = useState<PlanId>('annual');
+  const [showIntroOffer, setShowIntroOffer] = useState(false);
+  const [remainingMs, setRemainingMs] = useState(0);
   const [isPurchasing, setIsPurchasing] = useState(false);
   const [isRestoring, setIsRestoring] = useState(false);
-  const installTimeRef = useRef<number | null>(null);
+  const signupTimeRef = useRef<number | null>(null);
 
   // Load offerings on mount
   useEffect(() => {
     loadOfferings();
   }, [loadOfferings]);
 
-  // Initialize install time and intro offer state
+  // Check intro offer eligibility (AC-3: profiles.created_at < 24h AND never purchased)
   useEffect(() => {
-    const initInstallTime = async () => {
+    const checkIntroEligibility = async () => {
       try {
-        const stored = await AsyncStorage.getItem(INSTALL_TIME_KEY);
-        let installTime: number;
-
-        if (stored) {
-          installTime = parseInt(stored, 10);
-        } else {
-          installTime = Date.now();
-          await AsyncStorage.setItem(INSTALL_TIME_KEY, installTime.toString());
+        if (!createdAt) {
+          setShowIntroOffer(false);
+          return;
         }
 
-        installTimeRef.current = installTime;
-        const elapsed = Date.now() - installTime;
+        const signupTime = new Date(createdAt).getTime();
+        signupTimeRef.current = signupTime;
+        const elapsed = Date.now() - signupTime;
         const remaining = INTRO_OFFER_DURATION_MS - elapsed;
 
         if (remaining <= 0) {
           setShowIntroOffer(false);
-          setSelectedPlan('annual');
-        } else {
-          setRemainingMs(remaining);
-          setShowIntroOffer(true);
+          return;
         }
+
+        // Check RevenueCat purchase history (Q4: use SDK)
+        const neverPurchased = await hasNeverPurchased();
+        if (!neverPurchased) {
+          setShowIntroOffer(false);
+          return;
+        }
+
+        setRemainingMs(remaining);
+        setShowIntroOffer(true);
+        setSelectedPlan('intro_annual');
       } catch {
         setShowIntroOffer(false);
-        setSelectedPlan('annual');
       }
     };
 
-    initInstallTime();
-  }, []);
+    checkIntroEligibility();
+  }, [createdAt]);
 
-  // Countdown timer
+  // Countdown timer (server-based, tamper-resistant per AC-3)
   useEffect(() => {
     if (!showIntroOffer) return;
 
     const timer = setInterval(() => {
-      if (installTimeRef.current === null) return;
+      if (signupTimeRef.current === null) return;
 
-      const elapsed = Date.now() - installTimeRef.current;
+      const elapsed = Date.now() - signupTimeRef.current;
       const remaining = INTRO_OFFER_DURATION_MS - elapsed;
 
       if (remaining <= 0) {
@@ -122,7 +132,7 @@ export default function PaywallScreen() {
   const handlePurchase = useCallback(async () => {
     const pkg = getSelectedPackage();
     if (!pkg) {
-      Alert.alert('エラー', 'プランの取得に失敗しました。もう一度お試しください。');
+      Alert.alert(t('subscription.paywall.errorTitle'), t('subscription.paywall.errorLoadPlan'));
       return;
     }
 
@@ -132,30 +142,30 @@ export default function PaywallScreen() {
       if (success) {
         router.back();
       }
-    } catch (error) {
-      Alert.alert('購入エラー', '購入処理中にエラーが発生しました。もう一度お試しください。');
+    } catch {
+      Alert.alert(t('subscription.paywall.purchaseErrorTitle'), t('subscription.paywall.purchaseError'));
     } finally {
       setIsPurchasing(false);
     }
-  }, [getSelectedPackage, purchase, router]);
+  }, [getSelectedPackage, purchase, router, t]);
 
   const handleRestore = useCallback(async () => {
     setIsRestoring(true);
     try {
       const success = await restore();
       if (success) {
-        Alert.alert('復元完了', '購入情報を復元しました。', [
+        Alert.alert(t('subscription.paywall.restoreCompleteTitle'), t('subscription.paywall.restoreComplete'), [
           { text: 'OK', onPress: () => router.back() },
         ]);
       } else {
-        Alert.alert('復元結果', '復元可能な購入情報が見つかりませんでした。');
+        Alert.alert(t('subscription.paywall.restoreResultTitle'), t('subscription.paywall.restoreNoResult'));
       }
     } catch {
-      Alert.alert('エラー', '復元処理中にエラーが発生しました。');
+      Alert.alert(t('subscription.paywall.errorTitle'), t('subscription.paywall.restoreError'));
     } finally {
       setIsRestoring(false);
     }
-  }, [restore, router]);
+  }, [restore, router, t]);
 
   const handleClose = useCallback(() => {
     router.back();
@@ -166,340 +176,319 @@ export default function PaywallScreen() {
   );
 
   return (
-    <SafeAreaView style={styles.container}>
-      {/* Close button */}
-      <Pressable style={styles.closeButton} onPress={handleClose} hitSlop={12}>
-        <Text style={styles.closeText}>×</Text>
-      </Pressable>
+    <CosmicBackground>
+      <SafeAreaView style={styles.container} edges={['top', 'left', 'right']}>
+        {/* Close button */}
+        <Pressable style={styles.closeButton} onPress={handleClose} hitSlop={12}>
+          <Text style={styles.closeText}>×</Text>
+        </Pressable>
 
-      <ScrollView
-        contentContainerStyle={styles.content}
-        showsVerticalScrollIndicator={false}
-      >
-        {/* Title */}
-        <Text style={styles.title}>✨ AIツインの全機能を解放</Text>
+        <ScrollView
+          contentContainerStyle={styles.content}
+          showsVerticalScrollIndicator={false}
+          contentInsetAdjustmentBehavior="automatic"
+        >
+          {/* Crown icon */}
+          <Feather name="award" size={64} color="#D4A853" style={styles.crownIcon} />
 
-        {/* Feature list */}
-        <View style={styles.featureList}>
-          {FEATURES.map((feature) => (
-            <View key={feature.label} style={styles.featureRow}>
-              <Text style={styles.featureIcon}>{feature.icon}</Text>
-              <Text style={styles.featureLabel}>{feature.label}</Text>
-            </View>
-          ))}
-        </View>
+          {/* Title */}
+          <Text style={styles.title}>{t('subscription.paywall.subtitle')}</Text>
 
-        {/* Plan options */}
-        <View style={styles.plans}>
-          {/* FIRST TIME OFFER */}
+          {/* Countdown (intro offer) */}
           {showIntroOffer && (
+            <Text style={styles.countdown}>
+              初回限定 残り {formatCountdown(remainingMs)}
+            </Text>
+          )}
+
+          {/* Feature list */}
+          <View style={styles.featureList}>
+            {FEATURE_KEYS.map((key) => (
+              <View key={key} style={styles.featureRow}>
+                <Feather name="check" size={20} color="#7DD3FC" />
+                <Text style={styles.featureLabel}>{t(key)}</Text>
+              </View>
+            ))}
+          </View>
+
+          {/* Plan options */}
+          <View style={styles.plans}>
+            {/* FIRST TIME OFFER */}
+            {showIntroOffer && (
+              <Pressable
+                style={[
+                  styles.planCard,
+                  selectedPlan === 'intro_annual' && styles.planCardSelected,
+                ]}
+                onPress={() => setSelectedPlan('intro_annual')}
+              >
+                <View style={styles.introBadge}>
+                  <Text style={styles.introBadgeText}>{t('subscription.paywall.firstTimeOffer')}</Text>
+                </View>
+                <View style={styles.planHeader}>
+                  <View style={[styles.radioOuter, selectedPlan === 'intro_annual' && styles.radioOuterSelected]}>
+                    {selectedPlan === 'intro_annual' && <View style={styles.radioInner} />}
+                  </View>
+                  <View style={styles.planInfo}>
+                    <Text style={styles.planPrice}>
+                      ¥{PRICING.ANNUAL_INTRO.toLocaleString()}{t('subscription.paywall.perYear')}
+                    </Text>
+                    <Text style={styles.planPerMonth}>
+                      {t('subscription.paywall.perMonthParens', { price: Math.round(PRICING.ANNUAL_INTRO / 12).toLocaleString() })}
+                    </Text>
+                  </View>
+                  <Text style={styles.discountBadge}>{introDiscount}%OFF</Text>
+                </View>
+              </Pressable>
+            )}
+
+            {/* Annual */}
             <Pressable
               style={[
                 styles.planCard,
-                selectedPlan === 'intro_annual' && styles.planCardSelected,
+                selectedPlan === 'annual' && styles.planCardSelected,
               ]}
-              onPress={() => setSelectedPlan('intro_annual')}
+              onPress={() => setSelectedPlan('annual')}
             >
-              <View style={styles.introBadge}>
-                <Text style={styles.introBadgeText}>FIRST TIME OFFER</Text>
-              </View>
               <View style={styles.planHeader}>
-                <View style={styles.radioOuter}>
-                  {selectedPlan === 'intro_annual' && <View style={styles.radioInner} />}
+                <View style={[styles.radioOuter, selectedPlan === 'annual' && styles.radioOuterSelected]}>
+                  {selectedPlan === 'annual' && <View style={styles.radioInner} />}
                 </View>
                 <View style={styles.planInfo}>
+                  <Text style={styles.planName}>{t('subscription.paywall.plans.yearly')}</Text>
                   <Text style={styles.planPrice}>
-                    ¥{PRICING.ANNUAL_INTRO.toLocaleString()}/年
+                    ¥{PRICING.ANNUAL.toLocaleString()}{t('subscription.paywall.perYear')}
                   </Text>
                   <Text style={styles.planPerMonth}>
-                    (¥{Math.round(PRICING.ANNUAL_INTRO / 12).toLocaleString()}/月)
+                    {t('subscription.paywall.perMonthParens', { price: Math.round(PRICING.ANNUAL / 12).toLocaleString() })}
                   </Text>
                 </View>
-                <Text style={styles.discountBadge}>{introDiscount}% OFF</Text>
-              </View>
-              <View style={styles.countdownRow}>
-                <Text style={styles.countdownIcon}>⏰</Text>
-                <Text style={styles.countdownTimer}>{formatCountdown(remainingMs)}</Text>
               </View>
             </Pressable>
-          )}
 
-          {/* Annual */}
-          <Pressable
-            style={[
-              styles.planCard,
-              selectedPlan === 'annual' && styles.planCardSelected,
-            ]}
-            onPress={() => setSelectedPlan('annual')}
-          >
-            <View style={styles.planHeader}>
-              <View style={styles.radioOuter}>
-                {selectedPlan === 'annual' && <View style={styles.radioInner} />}
+            {/* Monthly */}
+            <Pressable
+              style={[
+                styles.planCard,
+                selectedPlan === 'monthly' && styles.planCardSelected,
+              ]}
+              onPress={() => setSelectedPlan('monthly')}
+            >
+              <View style={styles.planHeader}>
+                <View style={[styles.radioOuter, selectedPlan === 'monthly' && styles.radioOuterSelected]}>
+                  {selectedPlan === 'monthly' && <View style={styles.radioInner} />}
+                </View>
+                <View style={styles.planInfo}>
+                  <Text style={styles.planName}>{t('subscription.paywall.plans.monthly')}</Text>
+                  <Text style={styles.planPrice}>
+                    ¥{PRICING.MONTHLY.toLocaleString()}{t('subscription.paywall.monthlyUnit')}
+                  </Text>
+                </View>
               </View>
-              <View style={styles.planInfo}>
-                <Text style={styles.planName}>年額</Text>
-                <Text style={styles.planPrice}>
-                  ¥{PRICING.ANNUAL.toLocaleString()}/年
-                </Text>
-                <Text style={styles.planPerMonth}>
-                  (¥{Math.round(PRICING.ANNUAL / 12).toLocaleString()}/月)
-                </Text>
-              </View>
-            </View>
+            </Pressable>
+          </View>
+
+          {/* CTA button */}
+          <GoldButton
+            title={isPurchasing ? t('subscription.paywall.processing') : t('subscription.paywall.startTrial')}
+            onPress={handlePurchase}
+            disabled={isLoading}
+            loading={isPurchasing}
+            style={styles.ctaButton}
+          />
+
+          {/* Restore */}
+          <Pressable onPress={handleRestore} disabled={isRestoring} style={styles.restoreButton}>
+            <Text style={styles.restoreText}>
+              {isRestoring ? t('subscription.paywall.restoring') : t('subscription.paywall.restore')}
+            </Text>
           </Pressable>
 
-          {/* Monthly */}
-          <Pressable
-            style={[
-              styles.planCard,
-              selectedPlan === 'monthly' && styles.planCardSelected,
-            ]}
-            onPress={() => setSelectedPlan('monthly')}
-          >
-            <View style={styles.planHeader}>
-              <View style={styles.radioOuter}>
-                {selectedPlan === 'monthly' && <View style={styles.radioInner} />}
-              </View>
-              <View style={styles.planInfo}>
-                <Text style={styles.planName}>月額</Text>
-                <Text style={styles.planPrice}>
-                  ¥{PRICING.MONTHLY.toLocaleString()}/月
-                </Text>
-              </View>
-            </View>
-          </Pressable>
-        </View>
-
-        {/* Trial info */}
-        <Text style={styles.trialInfo}>3日間無料トライアル</Text>
-
-        {/* CTA button */}
-        <Pressable
-          style={[styles.ctaButton, (isPurchasing || isLoading) && styles.ctaButtonDisabled]}
-          onPress={handlePurchase}
-          disabled={isPurchasing || isLoading}
-        >
-          <Text style={styles.ctaButtonText}>
-            {isPurchasing ? '処理中...' : '無料トライアルを開始'}
-          </Text>
-        </Pressable>
-
-        {/* Restore */}
-        <Pressable onPress={handleRestore} disabled={isRestoring} style={styles.restoreButton}>
-          <Text style={styles.restoreText}>
-            {isRestoring ? '復元中...' : '購入を復元'}
-          </Text>
-        </Pressable>
-
-        {/* Terms | Privacy */}
-        <View style={styles.legalRow}>
-          <Pressable>
-            <Text style={styles.legalLink}>利用規約</Text>
-          </Pressable>
-          <Text style={styles.legalSeparator}>|</Text>
-          <Pressable>
-            <Text style={styles.legalLink}>プライバシー</Text>
-          </Pressable>
-        </View>
-      </ScrollView>
-    </SafeAreaView>
+          {/* Terms | Privacy */}
+          <View style={styles.legalRow}>
+            <Pressable>
+              <Text style={styles.legalLink}>{t('subscription.paywall.termsOfService')}</Text>
+            </Pressable>
+            <Text style={styles.legalSeparator}>|</Text>
+            <Pressable>
+              <Text style={styles.legalLink}>{t('subscription.paywall.privacy')}</Text>
+            </Pressable>
+          </View>
+        </ScrollView>
+      </SafeAreaView>
+    </CosmicBackground>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.background,
   },
   closeButton: {
     position: 'absolute',
-    top: 56,
-    left: spacing.md,
+    top: spacing.sm,
+    right: spacing.md,
     zIndex: 10,
-    width: 36,
-    height: 36,
+    width: 40,
+    height: 40,
     justifyContent: 'center',
     alignItems: 'center',
   },
   closeText: {
-    fontSize: 28,
-    color: colors.textSecondary,
-    lineHeight: 32,
+    fontSize: 32,
+    color: '#94A3B8',
+    lineHeight: 36,
+    fontFamily: fontFamily.regular,
   },
   content: {
     paddingHorizontal: spacing.lg,
-    paddingTop: 80,
+    paddingTop: spacing.lg,
     paddingBottom: spacing.xxl,
     alignItems: 'center',
   },
 
+  // Crown icon
+  crownIcon: {
+    marginBottom: spacing.md,
+  },
+
   // Title
   title: {
-    fontSize: fontSize.xxl,
-    fontWeight: '800',
-    color: colors.text,
+    fontSize: 28,
+    fontFamily: fontFamily.bold,
+    color: '#F8FAFC',
     textAlign: 'center',
+    marginBottom: spacing.md,
+  },
+
+  // Countdown
+  countdown: {
+    fontSize: fontSize.md,
+    fontFamily: fontFamily.semiBold,
+    color: '#EF4444',
+    fontVariant: ['tabular-nums'],
     marginBottom: spacing.lg,
   },
 
   // Feature list
   featureList: {
     alignSelf: 'stretch',
-    backgroundColor: colors.surfaceSecondary,
-    borderRadius: borderRadius.md,
-    padding: spacing.md,
-    marginBottom: spacing.lg,
+    gap: spacing.sm,
+    marginBottom: spacing.xl,
   },
   featureRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingVertical: spacing.xs + 2,
-  },
-  featureIcon: {
-    fontSize: fontSize.lg,
-    width: 32,
-    textAlign: 'center',
+    gap: spacing.sm,
   },
   featureLabel: {
     fontSize: fontSize.md,
-    color: colors.text,
-    fontWeight: '500',
+    color: '#F8FAFC',
+    fontFamily: fontFamily.regular,
     flex: 1,
   },
 
   // Plans
   plans: {
     alignSelf: 'stretch',
-    gap: spacing.sm,
-    marginBottom: spacing.lg,
+    gap: spacing.md,
+    marginBottom: spacing.xl,
   },
   planCard: {
-    borderRadius: borderRadius.md,
+    backgroundColor: '#FFFFFF08',
+    borderRadius: 16,
     padding: spacing.md,
-    borderWidth: 2,
-    borderColor: colors.border,
+    borderWidth: 1,
+    borderColor: '#334155',
     position: 'relative',
     overflow: 'visible',
   },
   planCardSelected: {
-    borderColor: colors.primary,
-    backgroundColor: '#7C3AED0A',
+    borderColor: '#7DD3FC',
+    borderWidth: 2,
+    backgroundColor: '#7DD3FC0A',
   },
   planHeader: {
     flexDirection: 'row',
     alignItems: 'center',
+    gap: spacing.sm,
   },
   radioOuter: {
-    width: 22,
-    height: 22,
-    borderRadius: 11,
+    width: 20,
+    height: 20,
+    borderRadius: 10,
     borderWidth: 2,
-    borderColor: colors.border,
+    borderColor: '#334155',
     justifyContent: 'center',
     alignItems: 'center',
-    marginRight: spacing.sm,
+  },
+  radioOuterSelected: {
+    borderColor: '#7DD3FC',
   },
   radioInner: {
-    width: 12,
-    height: 12,
-    borderRadius: 6,
-    backgroundColor: colors.primary,
+    width: 10,
+    height: 10,
+    borderRadius: 5,
+    backgroundColor: '#7DD3FC',
   },
   planInfo: {
     flex: 1,
   },
   planName: {
     fontSize: fontSize.sm,
-    fontWeight: '600',
-    color: colors.textSecondary,
+    fontFamily: fontFamily.medium,
+    color: '#94A3B8',
     marginBottom: 2,
   },
   planPrice: {
     fontSize: fontSize.lg,
-    fontWeight: '700',
-    color: colors.text,
+    fontFamily: fontFamily.bold,
+    color: '#F8FAFC',
   },
   planPerMonth: {
     fontSize: fontSize.sm,
-    color: colors.textSecondary,
+    fontFamily: fontFamily.regular,
+    color: '#94A3B8',
     marginTop: 2,
   },
 
   // Intro offer badge
   introBadge: {
     position: 'absolute',
-    top: -12,
+    top: -10,
     left: spacing.md,
-    backgroundColor: colors.primary,
+    backgroundColor: '#7DD3FC',
     paddingHorizontal: spacing.sm,
-    paddingVertical: 3,
-    borderRadius: borderRadius.sm,
+    paddingVertical: 4,
+    borderRadius: 8,
   },
   introBadgeText: {
-    color: colors.textInverse,
+    color: '#0F172A',
     fontSize: fontSize.xs,
-    fontWeight: '800',
+    fontFamily: fontFamily.bold,
     letterSpacing: 0.5,
   },
   discountBadge: {
     fontSize: fontSize.sm,
-    fontWeight: '700',
-    color: colors.success,
-    marginLeft: spacing.sm,
-  },
-
-  // Countdown
-  countdownRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginTop: spacing.xs,
-    marginLeft: 30,
-  },
-  countdownIcon: {
-    fontSize: fontSize.sm,
-    marginRight: spacing.xs,
-  },
-  countdownTimer: {
-    fontSize: fontSize.sm,
-    fontWeight: '700',
-    color: colors.error,
-    fontVariant: ['tabular-nums'],
-  },
-
-  // Trial info
-  trialInfo: {
-    fontSize: fontSize.sm,
-    color: colors.textSecondary,
-    marginBottom: spacing.md,
-    textAlign: 'center',
+    fontFamily: fontFamily.bold,
+    color: '#7DD3FC',
   },
 
   // CTA
   ctaButton: {
-    backgroundColor: colors.primary,
-    borderRadius: borderRadius.md,
-    paddingVertical: spacing.md,
-    alignItems: 'center',
     alignSelf: 'stretch',
     marginBottom: spacing.md,
-  },
-  ctaButtonDisabled: {
-    opacity: 0.6,
-  },
-  ctaButtonText: {
-    color: colors.textInverse,
-    fontSize: fontSize.lg,
-    fontWeight: '700',
   },
 
   // Restore
   restoreButton: {
     paddingVertical: spacing.sm,
-    marginBottom: spacing.sm,
+    marginBottom: spacing.lg,
   },
   restoreText: {
     fontSize: fontSize.sm,
-    color: colors.textSecondary,
+    fontFamily: fontFamily.regular,
+    color: '#94A3B8',
     textDecorationLine: 'underline',
   },
 
@@ -510,12 +499,14 @@ const styles = StyleSheet.create({
     gap: spacing.sm,
   },
   legalLink: {
-    fontSize: fontSize.xs,
-    color: colors.textSecondary,
+    fontSize: 12,
+    fontFamily: fontFamily.regular,
+    color: '#64748B',
     textDecorationLine: 'underline',
   },
   legalSeparator: {
-    fontSize: fontSize.xs,
-    color: colors.textSecondary,
+    fontSize: 12,
+    fontFamily: fontFamily.regular,
+    color: '#64748B',
   },
 });

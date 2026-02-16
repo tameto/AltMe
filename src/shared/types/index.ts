@@ -2,6 +2,7 @@ export type {
   UserProfile,
   AgeRange,
   PersonalityTraits,
+  CommunicationStyle,
   PersonalityResult,
 } from './user';
 
@@ -17,11 +18,20 @@ export type {
 export type {
   ChatRole,
   ChatMessageSource,
+  ChatMessageMetadata,
   ChatMessage,
   ChatMessageInput,
   ChatStreamChunk,
 } from './chat';
 export { FREE_DAILY_CHAT_LIMIT } from './chat';
+
+export type {
+  TwinProfile,
+  CompatibilityScore,
+  TwinConversationMessage,
+  TwinConversationStatus,
+  TwinConversation,
+} from './community';
 
 export type {
   OpenClawStatus,
@@ -41,7 +51,5 @@ export type {
 export type {
   Mood,
   JournalEntry,
-  JournalEntryInput,
   MoodRecord,
-  MoodRecordInput,
 } from './journal';

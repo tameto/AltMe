@@ -50,8 +50,8 @@ export const registerForPushNotifications = async (userId: string): Promise<stri
     .update({ push_token: token })
     .eq('id', userId);
 
-  // Set up Android notification channel
-  if (Platform.OS === 'android') {
+  // Set up notification channel (non-iOS platforms)
+  if (Platform.OS !== 'ios') {
     await Notifications.setNotificationChannelAsync('morning', {
       name: '朝の挨拶',
       importance: Notifications.AndroidImportance.HIGH,

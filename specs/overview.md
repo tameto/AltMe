@@ -10,7 +10,7 @@
   - 自己理解を深めたいが方法がわからない
   - 日記・振り返りが続かない
   - セルフケアにAIを活用したいが汎用チャットボットでは物足りない
-- マネタイズモデル: サブスクリプション（RevenueCat）+ 無料トライアル
+- マネタイズモデル: サブスクリプション（RevenueCat / Stripe）+ 無料トライアル + トークン追加購入（Consumable IAP）
   - 6ヶ月後 MRR目標: ¥200,000〜500,000
   - 12ヶ月後 MRR目標: ¥500,000〜1,500,000
 
@@ -26,7 +26,8 @@
 | 認証 | Supabase Auth | - | Apple / Google Sign-In |
 | AI基盤 | OpenClaw | - | ユーザーごとにDigitalOcean Dropletへデプロイ |
 | インフラ | DigitalOcean | - | Droplet自動プロビジョニング |
-| 課金 | RevenueCat | SDK 8.x | Paywalls SDK含む |
+| 課金（モバイル） | RevenueCat | SDK 8.x | Paywalls SDK含む |
+| 課金（Web） | Stripe | Checkout + Webhook | RevenueCat Stripe Provider統合 |
 | 通知 | Expo Notifications | - | ローカル + プッシュ |
 
 ---
@@ -80,22 +81,30 @@
      → Gateway URL をDB保存
 
 3. AIチャットフロー（Proユーザー）:
-   App → WebSocket (ws://{ip}:18789) → ユーザー専用OpenClaw Gateway
+   App → WebSocket (wss://{ip}:18789) → ユーザー専用OpenClaw Gateway
      → Response → App State → DB保存
 
 4. AIチャットフロー（無料ユーザー）:
-   App → Supabase Edge Function → OpenAI API → Response（1日3回制限）
+   App → Supabase Edge Function → OpenAI API → Response（初回10Kトークン制限）
 
 5. 課金フロー:
    App → RevenueCat SDK → App Store / Google Play → Webhook → Supabase DB
 
 6. 通知フロー:
    Supabase Edge Function (cron) → Expo Push API → Device
+
+7. Web課金フロー:
+   Web App → Edge Function (create-checkout-session) → Stripe Checkout
+     → Webhook (webhook-stripe) → Supabase DB + RevenueCat同期
+
+8. ゲストブラウズフロー:
+   未認証ユーザー → コミュニティ一覧/詳細（閲覧のみ）
+     → チャット/ツイン情報/設定はログイン促進UI表示
 ```
 
 ### OpenClaw Gateway通信仕様
-- プロトコル: WebSocket
-- エンドポイント: `ws://{droplet_ip}:18789`
+- プロトコル: WebSocket（セキュア: wss://）
+- エンドポイント: `wss://{droplet_ip}:18789`
 - 認証: トークン認証（JWT）
 - フレーム形式: JSON Schema WebSocketフレーム
 - SOUL.md: オンボーディング結果から自動生成し、OpenClawインスタンスに設定
@@ -109,11 +118,24 @@
 | 1 | 認証（Apple / Google Sign-In） | Must | Agent A | features/auth.md |
 | 2 | オンボーディング + SOUL.md生成 | Must | Agent C | features/onboarding.md |
 | 3 | OpenClawプロビジョニング | Must | Agent A/C | features/openclaw-provisioning.md |
-| 4 | AIチャット（WebSocket） | Must | Agent C | features/chat.md |
-| 5 | 日記 + AI振り返り | Should | Agent D | features/journal.md |
-| 6 | 洞察 + 感情トラッキング | Should | Agent D | features/insights.md |
+| 4 | AIチャット（WebSocket）+ 日記統合 | Must | Agent C | features/chat.md |
+| 5 | コミュニティ（AIツイン同士の会話観察、Pro限定） | Should | Agent D | features/community.md |
+| 6 | ツイン情報（性格データ + 洞察 + OpenClawステータス） | Should | Agent D | features/insights.md |
+<!-- 注: 将来的にinsights.md→twin-info.mdへのリネームを検討 -->
 | 7 | 課金（RevenueCat） | Must | Agent B | features/subscription.md |
-| 8 | 設定 + インスタンス管理 | Should | Agent D | features/settings.md |
+| 8 | 設定 + インスタンス管理 + アカウント削除 | Should | Agent D | features/settings.md |
+
+---
+
+## スコープ内（追加機能）
+
+| 機能 | 概要 | 追加日 |
+|------|------|--------|
+| ゲストブラウズモード | ログインなしでコミュニティ一覧・詳細を閲覧可能（Apple審査準拠） | 2026-02-15 |
+| Web版課金（Stripe） | Stripe Checkout + Webhook + RevenueCat Stripe Provider統合 | 2026-02-15 |
+| トークン管理 | OpenAIトークン消費量の追跡・制限（Free: 10K / Pro: 500K / 追加購入対応） | 2026-02-15 |
+| API Key保護 | 全外部APIキーをEdge Function経由でのみ使用、クライアント非露出 | 2026-02-15 |
+| Googleロゴ規約準拠 | Googleブランドガイドラインに準拠したログインボタン | 2026-02-15 |
 
 ---
 
@@ -121,9 +143,9 @@
 
 - 画像生成（コスト高）
 - 音声チャット（Phase 2以降）
-- ソーシャル機能
+- ユーザー同士のDM・フォロー（コミュニティはツイン交流のみ）
 - マルチエージェント（1ユーザー1インスタンス）
-- Web版（モバイルアプリのみ）
+- Web版フルアプリ（課金のみWeb対応、アプリ本体はモバイルのみ）
 - 多言語対応（Phase 2以降、MVP時点では日本語+英語）
 
 ---
@@ -138,15 +160,16 @@
 | 無料トライアル | 3日間 | 全機能開放 |
 
 ### 無料ユーザー制限
-- 1日3回までチャット可能
+- 初回10,000トークンのみ（月次リセットなし、使い切りで終了）
 - Supabase Edge Function経由でAI応答（OpenClawなし）
-- 日記・洞察機能は閲覧のみ
+- コミュニティ機能は利用不可（ブラー表示 + ペイウォール誘導）
+- ツイン情報の基本データは閲覧可能
 - OpenClawインスタンスはデプロイされない
 
 ### Proユーザー特典
 - チャット無制限
 - 専用OpenClawインスタンス（DigitalOcean Droplet）
-- 全機能フルアクセス
+- 全機能フルアクセス（コミュニティ・ツイン情報・インスタンス管理）
 - SOUL.mdによるパーソナライズAI
 
 ### RevenueCat設定
@@ -165,20 +188,24 @@
 #### 認証前
 1. スプラッシュ画面
 2. ログイン / サインアップ (`app/(auth)/`)
+3. ゲストブラウズ（ログインせずにコミュニティ一覧・詳細を閲覧可能、他タブはログイン促進UI）
 
 #### オンボーディング
 1. ウェルカム (`app/(onboarding)/welcome.tsx`)
 2. パーソナリティクイズ (`app/(onboarding)/personality-quiz.tsx`)
 3. 結果表示 (`app/(onboarding)/result.tsx`)
-4. ツインと対面 (`app/(onboarding)/meet-twin.tsx`)
+4. AIアイコン選択 (`app/(onboarding)/choose-avatar.tsx`)
+5. 口調パターン (`app/(onboarding)/choose-tone.tsx`)
+6. ツインと対面 (`app/(onboarding)/meet-twin.tsx`)
 
 #### ペイウォール
 1. ペイウォール (`app/(paywall)/index.tsx`)
 
-#### メインタブ（認証後）
-1. チャット（ホーム） (`app/(tabs)/index.tsx`)
-2. 日記履歴 (`app/(tabs)/history.tsx`)
-3. 設定 (`app/(tabs)/settings.tsx`)
+#### メインタブ（認証後、4タブ構成）
+1. チャット（ホーム） (`app/(tabs)/index.tsx`) — AIツインとの1:1チャット + 日記統合
+2. コミュニティ (`app/(tabs)/community.tsx`) — AIツイン同士の会話を観察（Pro限定）
+3. ツイン情報 (`app/(tabs)/twin.tsx`) — 性格データ + 気分 + OpenClawステータス
+4. 設定 (`app/(tabs)/settings.tsx`) — アカウント・サブスク管理 + インスタンス管理 + アカウント削除
 
 ---
 
@@ -201,7 +228,8 @@
 
 ### セキュリティ
 - APIキーは環境変数管理、クライアントに露出させない
-- OpenClaw通信はトークン認証付きWebSocket
+- **API Key保護原則**: OpenAI / DigitalOcean / Stripe Secret Key は Edge Function 環境変数のみ。クライアントには Supabase Anon Key と RevenueCat API Key のみ許可
+- OpenClaw通信はトークン認証付きWebSocket（wss://）
 - チャット履歴はSupabase RLS（Row Level Security）で保護
 - 個人情報の暗号化保存
 - SOUL.mdはユーザー専用Droplet内に保持
@@ -228,15 +256,18 @@ altme/
 │   │   ├── welcome.tsx
 │   │   ├── personality-quiz.tsx
 │   │   ├── result.tsx
+│   │   ├── choose-avatar.tsx
+│   │   ├── choose-tone.tsx
 │   │   └── meet-twin.tsx
 │   ├── (paywall)/                # ペイウォール
 │   │   ├── _layout.tsx
 │   │   └── index.tsx
-│   └── (tabs)/                   # メインタブ（3タブ）
+│   └── (tabs)/                   # メインタブ（4タブ）
 │       ├── _layout.tsx
-│       ├── index.tsx             # チャット（ホーム）
-│       ├── history.tsx           # 日記履歴 + 気分トラッキング
-│       └── settings.tsx          # 設定 + サブスク + インスタンス管理
+│       ├── index.tsx             # チャット（ホーム）+ 日記統合
+│       ├── community.tsx         # コミュニティ（AIツイン同士の会話、Pro限定）
+│       ├── twin.tsx              # ツイン情報（性格 + 気分 + OpenClawステータス）
+│       └── settings.tsx          # 設定 + サブスク + インスタンス管理 + アカウント削除
 ├── src/
 │   ├── features/                 # 機能モジュール
 │   │   ├── auth/
@@ -261,16 +292,17 @@ altme/
 │   │   │   ├── stores/
 │   │   │   ├── utils/
 │   │   │   └── __tests__/
-│   │   ├── journal/
+│   │   ├── community/              # AIツイン同士の会話（Pro限定）
 │   │   │   ├── components/
 │   │   │   ├── hooks/
 │   │   │   ├── stores/
 │   │   │   └── __tests__/
-│   │   ├── insights/
+│   │   ├── twin-info/              # 性格 + 気分 + OpenClawステータス
 │   │   │   ├── components/
 │   │   │   ├── hooks/
 │   │   │   ├── stores/
 │   │   │   └── __tests__/
+│   │   # 注: journal/ はチャットに統合、insights/ は twin-info/ に統合
 │   │   └── settings/
 │   │       ├── components/
 │   │       ├── hooks/
@@ -302,7 +334,9 @@ altme/
 │       ├── chat/                 # 無料ユーザー用AIチャット
 │       ├── provision-openclaw/   # OpenClawプロビジョニング
 │       ├── personality-analyze/  # パーソナリティ分析
-│       └── webhook-revenuecat/   # RevenueCat Webhook
+│       ├── webhook-revenuecat/   # RevenueCat Webhook
+│       ├── create-checkout-session/  # Stripe Checkout Session作成
+│       └── webhook-stripe/       # Stripe Webhook
 ├── specs/                        # 仕様書（本ドキュメント）
 │   └── overview.md
 ├── docs/                         # その他ドキュメント
@@ -338,11 +372,11 @@ altme/
 | 01 | specs/features/auth.md | 認証仕様 | Agent A |
 | 02 | specs/features/onboarding.md | オンボーディング仕様 | Agent C |
 | 03 | specs/features/openclaw-provisioning.md | OpenClawプロビジョニング仕様 | Agent A/C |
-| 04 | specs/features/chat.md | AIチャット仕様 | Agent C |
-| 05 | specs/features/journal.md | 日記機能仕様 | Agent D |
-| 06 | specs/features/insights.md | 洞察・レポート仕様 | Agent D |
+| 04 | specs/features/chat.md | AIチャット仕様（日記統合） | Agent C |
+| 05 | specs/features/community.md | コミュニティ仕様（AIツイン同士の会話、Pro限定） | Agent D |
+| 06 | specs/features/twin-info.md | ツイン情報仕様（性格 + 気分 + OpenClawステータス） | Agent D |
 | 07 | specs/features/subscription.md | 課金仕様（RevenueCat） | Agent B |
-| 08 | specs/features/settings.md | 設定・インスタンス管理仕様 | Agent D |
+| 08 | specs/features/settings.md | 設定・インスタンス管理・アカウント削除仕様 | Agent D |
 
 ### AgentTeam構成
 
@@ -351,7 +385,7 @@ altme/
 | A | Foundation | shared/, services/, config/, auth, レイアウト, DBマイグレーション |
 | B | Subscription | subscription/, (paywall)/, RevenueCat全般, Webhook |
 | C | Core AI | chat/, onboarding/, openclaw/, Edge Functions(chat, provision) |
-| D | Engagement | journal/, insights/, settings/, 通知, Edge Functions(journal, insight) |
+| D | Engagement | community/, twin-info/, settings/, 通知, Edge Functions(community) |
 
 ### Agent間ルール
 - `features/` は担当Agentのみ変更可
@@ -368,3 +402,93 @@ altme/
 - OpenClaw APIのモックを用意（テスト時は実サーバーに接続しない）
 - テストケースは仕様書の受け入れ条件から導出する
 - RevenueCat: サンドボックスアカウントで必ず課金フローをテスト
+
+---
+
+## デザインシステム（V4 Dark Premium）
+
+### デザインコンセプト
+V4 Dark Premium Redesign: ダークコスミックテーマ + glassmorphism + ゴールドCTA の統一されたデザインシステム。
+全19画面（認証2、チャット3、タブ3、オンボーディング6、ペイウォール1、モーダル3、サブ1）に適用。
+
+### カラートークン（src/config/theme.ts）
+
+| トークン | 値 | 用途 |
+|---------|-----|------|
+| background | `#0F172A` | 全画面ベース背景 |
+| backgroundSecondary | `#131C2E` | セカンダリ背景 |
+| surface | `#1E293B` | カード・入力欄背景 |
+| primary | `#7DD3FC` | アクティブ要素・リンク・インジケータ |
+| primaryLight | `#BAE6FD` | ホバー・ライト |
+| accent / gold | `#D4A853` | CTA ボタン・バッジ |
+| text | `#F8FAFC` | プライマリテキスト |
+| textSecondary | `#94A3B8` | セカンダリテキスト |
+| textTertiary | `#64748B` | ターシャリテキスト |
+| border | `#334155` | ボーダー |
+| success | `#34D399` | 成功・オンライン |
+| error | `#EF4444` | エラー・削除 |
+| warning | `#F59E0B` | 警告 |
+
+### 新規デザイントークン（src/config/theme.ts）
+
+```typescript
+glassmorphism: {
+  card:       { bg: 'rgba(30, 41, 59, 0.6)', border: 'rgba(248, 250, 252, 0.1)', blur: 16 },
+  bubbleAi:   { bg: 'rgba(30, 41, 59, 0.7)', border: 'rgba(248, 250, 252, 0.08)', blur: 12 },
+  bubbleUser: { bg: 'rgba(125, 211, 252, 0.25)', border: 'rgba(125, 211, 252, 0.4)', blur: 8 },
+  input:      { bg: 'rgba(30, 41, 59, 0.8)', border: 'rgba(248, 250, 252, 0.15)', blur: 10 },
+}
+goldGradient: ['#E8C567', '#C9A033', '#A07B1A']  // 3-stop
+sendGradient: ['#7DD3FC', '#38BDF8']
+tabBarColors: {
+  background: '#0F172AEE',
+  active: '#00D4FF',
+  inactive: '#64748B',
+  border: '#1E293B',
+}
+fontFamily: {
+  regular: 'Outfit_400Regular',
+  medium: 'Outfit_500Medium',
+  semiBold: 'Outfit_600SemiBold',
+  bold: 'Outfit_700Bold',
+}
+```
+
+### 新規共通コンポーネント（src/shared/components/）
+
+| コンポーネント | ファイル | 用途 |
+|--------------|---------|------|
+| CosmicBackground | `cosmic-background.tsx` | 全画面共通の宇宙背景（ImageBackground + `#0F172ACC` オーバーレイ） |
+| GlassCard | `glass-card.tsx` | BlurView glassmorphism カード（variants: default/ai-bubble/user-bubble/input） |
+| GoldButton | `gold-button.tsx` | LinearGradient CTA ボタン（`#E8C567`→`#C9A033`→`#A07B1A`、高さ54px、角丸22px） |
+
+### 追加パッケージ
+- `expo-blur` — BlurView（glassmorphism エフェクト）
+- `expo-linear-gradient` — LinearGradient（ゴールドCTA・センドグラデーション）
+- `@expo-google-fonts/outfit` — Outfit フォントファミリー
+
+### タイポグラフィスケール
+
+| 用途 | サイズ | Weight |
+|------|-------|--------|
+| ヒーロータイトル | 40px | 700 (Bold) |
+| セクションタイトル | 24px | 700 (Bold) |
+| カードタイトル | 18px | 600 (SemiBold) |
+| 本文 | 16px | 400 (Regular) |
+| キャプション | 14px | 400 (Regular) |
+| ラベル | 12px | 500 (Medium) |
+
+### Cosmic背景
+- 全画面共通の星空/ネビュラ背景画像
+- オーバーレイ: `#0F172ACC`（80% opacity）
+- フォールバック背景色: `#0F172A`
+
+---
+
+## 変更履歴
+| 日付 | 変更内容 | 理由 | 関連タスク |
+|------|---------|------|-----------|
+| 2026-02-14 | タブ構成を3タブから4タブに変更（Chat/Community/Twin Info/Settings）<br>日記機能をチャットに統合<br>洞察機能をツイン情報に統合<br>コミュニティ機能追加（Pro限定、AIツイン同士の会話観察）<br>アカウント削除機能追加<br>ソーシャル機能方針変更（ユーザー同士のDM・フォローなし） | Reconcile: 製品方針の変更に伴う仕様更新 | — |
+| 2026-02-15 | オンボーディング: 4画面→6画面に変更<br>新画面追加: choose-avatar.tsx (4), choose-tone.tsx (5)<br>画面一覧更新<br>ディレクトリ構成にchoose-avatar.tsx, choose-tone.tsx追記 | V3 Liquid Glass: AIアイコン・口調カスタマイズ機能追加 | — |
+| 2026-02-15 | ゲストブラウズモード追加<br>Web版課金（Stripe）追加<br>トークン管理追加<br>API Key保護原則追加<br>Googleロゴ規約準拠追加<br>「やらないこと」からWeb版を変更（課金のみWeb対応） | 7新要件の反映 | — |
+| 2026-02-16 | デザインシステムセクション追加（V4 Dark Premium）<br>カラートークン・glassmorphism・goldGradient・sendGradient・tabBarColors・fontFamily追記<br>新規共通コンポーネント（CosmicBackground/GlassCard/GoldButton）追記<br>追加パッケージ（expo-blur/expo-linear-gradient/@expo-google-fonts/outfit）追記<br>タイポグラフィスケール追記 | Reconcile: V4 Dark Premium UI 実装完了後の仕様書同期 | — |

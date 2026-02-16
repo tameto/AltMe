@@ -8,24 +8,39 @@ export type PersonalityTraits = {
   neuroticism: number;
 };
 
+export type CommunicationStyle = {
+  tone: string;
+  formality: string;
+  emoji_usage: string;
+  response_length: string;
+};
+
 export type PersonalityResult = {
   id: string;
   userId: string;
-  answers: Array<{ questionId: string; answer: string }>;
+  rawAnswers: { questionId: string; answer: string }[];
+  personalityTraits: PersonalityTraits;
   summary: string;
-  detailedAnalysis: string | null;
-  personalityTraits: PersonalityTraits | null;
+  communicationStyle: CommunicationStyle | null;
   createdAt: string;
 };
 
+export type AvatarIcon = 'default' | 'geometric' | 'cosmic' | 'organic' | 'tech' | 'zen';
+export type SpeechTone = 'polite' | 'friendly' | 'intellectual' | 'mentor' | 'tsundere';
+
 export type UserProfile = {
   id: string;
-  displayName: string;
+  displayName: string | null;
+  avatarUrl: string | null;
+  email: string | null;
   ageRange: AgeRange | null;
   locale: string;
   timezone: string;
   onboardingCompleted: boolean;
   twinName: string | null;
+  avatarIcon: AvatarIcon;
+  speechTone: SpeechTone;
+  mbtiType: string | null;
   createdAt: string;
   updatedAt: string;
 };

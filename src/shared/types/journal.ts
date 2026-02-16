@@ -3,18 +3,13 @@ export type Mood = 'great' | 'good' | 'neutral' | 'bad' | 'terrible';
 export type JournalEntry = {
   id: string;
   userId: string;
+  title: string | null;
   content: string;
   aiReflection: string | null;
-  mood: Mood | null;
   tags: string[];
+  chatSessionId: string | null;
   createdAt: string;
   updatedAt: string;
-};
-
-export type JournalEntryInput = {
-  content: string;
-  mood?: Mood;
-  tags?: string[];
 };
 
 export type MoodRecord = {
@@ -22,11 +17,6 @@ export type MoodRecord = {
   userId: string;
   mood: Mood;
   note: string | null;
-  recordedAt: string;
+  recordedAt: string; // DATE
   createdAt: string;
-};
-
-export type MoodRecordInput = {
-  mood: Mood;
-  note?: string;
 };

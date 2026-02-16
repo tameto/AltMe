@@ -193,11 +193,13 @@ async function triggerDestroy(userId: string): Promise<void> {
   try {
     const supabaseUrl = Deno.env.get('SUPABASE_URL') ?? '';
     const serviceRoleKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '';
+    const internalToken = Deno.env.get('INTERNAL_FUNCTION_TOKEN') ?? '';
     const res = await fetch(`${supabaseUrl}/functions/v1/destroy-openclaw`, {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${serviceRoleKey}`,
         'Content-Type': 'application/json',
+        'x-internal-function-token': internalToken,
       },
       body: JSON.stringify({ user_id: userId }),
     });

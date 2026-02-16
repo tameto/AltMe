@@ -1,4 +1,10 @@
-import { useSubscription, useIsPro } from '../use-subscription';
+import { useSubscription } from '../use-subscription';
+import {
+  checkSubscriptionStatus,
+  getOfferings,
+  purchasePackage,
+  restorePurchases,
+} from '@/src/services/revenuecat/client';
 
 // Mock the revenuecat client
 jest.mock('@/src/services/revenuecat/client', () => ({
@@ -7,13 +13,6 @@ jest.mock('@/src/services/revenuecat/client', () => ({
   purchasePackage: jest.fn(),
   restorePurchases: jest.fn(),
 }));
-
-const {
-  checkSubscriptionStatus,
-  getOfferings,
-  purchasePackage,
-  restorePurchases,
-} = require('@/src/services/revenuecat/client');
 
 describe('useSubscription store', () => {
   beforeEach(() => {
@@ -35,16 +34,17 @@ describe('useSubscription store', () => {
 
     expect(state.entitlement.isPro).toBe(true);
     expect(state.entitlement.status).toBe('active');
-    expect(state.entitlement.planType).toBeNull(); // unchanged
+    expect(state.entitlement.planType).toBe('free'); // unchanged
   });
 
   it('refreshStatus fetches and updates entitlement', async () => {
     checkSubscriptionStatus.mockResolvedValue({
       isPro: true,
+      isTrialing: false,
       status: 'active',
       planType: 'monthly',
+      expiresAt: null,
       trialDaysRemaining: null,
-      credits: 0,
     });
 
     await useSubscription.getState().refreshStatus();
@@ -79,10 +79,11 @@ describe('useSubscription store', () => {
   it('purchase updates entitlement on success', async () => {
     const mockEntitlement = {
       isPro: true,
+      isTrialing: false,
       status: 'active' as const,
       planType: 'monthly' as const,
+      expiresAt: null,
       trialDaysRemaining: null,
-      credits: 0,
     };
     purchasePackage.mockResolvedValue(mockEntitlement);
 
@@ -112,10 +113,11 @@ describe('useSubscription store', () => {
   it('restore updates entitlement on success', async () => {
     const mockEntitlement = {
       isPro: true,
+      isTrialing: false,
       status: 'active' as const,
       planType: 'annual' as const,
+      expiresAt: null,
       trialDaysRemaining: null,
-      credits: 0,
     };
     restorePurchases.mockResolvedValue(mockEntitlement);
 

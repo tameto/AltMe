@@ -14,6 +14,7 @@ Apple/Google Sign-Inを通じてSupabase Authと連携し、ユーザーの認�
 - [ ] ユーザーとして、Apple IDでワンタップログインしたい。なぜならパスワードを覚えたくないから。
 - [ ] ユーザーとして、Googleアカウントでログインしたい。なぜなら既存のアカウントを活用したいから。
 - [ ] ユーザーとして、安全にログアウトしたい。なぜなら他人にアカウントを使われたくないから。
+- [ ] ユーザーとして、ログインせずにアプリの一部を閲覧したい。なぜならログイン前にアプリの雰囲気を確認したいから。
 - [ ] 開発者として、DEVモードで仮ログインしたい。なぜなら認証フローを毎回通らずに開発を進めたいから。
 
 ## 受け入れ条件（Acceptance Criteria）
@@ -34,11 +35,17 @@ Apple/Google Sign-Inを通じてSupabase Authと連携し、ユーザーの認�
 - Given: 未認証のユーザーがログイン画面を表示している
 - When: 「Googleでサインイン」ボタンをタップし、Google認証フローを完了する
 - Then:
+  - **Native SDK方式**: `@react-native-google-signin/google-signin` パッケージを使用
+  - `GoogleSignin.signIn()` → `idToken` 取得 → `supabase.auth.signInWithIdToken({ provider: 'google', token: idToken })`
+  - ブラウザ遷移なし、ネイティブUI表示
   - Supabase Authにユーザーが作成される（初回）またはセッションが開始される（2回目以降）
   - アクセストークンとリフレッシュトークンがSecureStoreに保存される
   - 初回の場合はオンボーディング画面へ、2回目以降はメインタブへ遷移する
+- 実装詳細:
+  - `src/config/env.ts` に `googleWebClientId` 設定追加
+  - `app.json` plugins に `@react-native-google-signin/google-signin` 追加
 - エッジケース:
-  - Google認証をキャンセルした場合、ログイン画面に戻りエラーは表示しない
+  - Google認証をキャンセルした場合（SIGN_IN_CANCELLED）、ログイン画面に戻りエラーは表示しない
   - 同一メールでApple/Google両方でサインインした場合、アカウントがリンクされる
   - Google Play Services未インストール環境（Android）でエラーメッセージを表示
 
@@ -59,13 +66,17 @@ Apple/Google Sign-Inを通じてSupabase Authと連携し、ユーザーの認�
 - Given: 認証済みのユーザーがアプリを使用している
 - When: アクセストークンの有効期限が近づく（期限の5分前）
 - Then:
-  - リフレッシュトークンを使ってSupabase Authから新しいアクセストークンを取得する
-  - 新しいトークンがSecureStoreに保存される
+  - Supabase SDK が自動的にリフレッシュトークンを使って新しいアクセストークンを取得する
+  - 新しいトークンがSecureStoreに保存される（SecureStore adapter使用）
   - ユーザー操作は中断されない
+- 実装詳細:
+  - **SecureStore adapter**: `expo-secure-store` の `getItemAsync`/`setItemAsync`/`deleteItemAsync` を使用
+  - `supabase.createClient` の `auth.storage` に SecureStoreAdapter 設定（`src/services/supabase/client.ts`）
+  - **AppState listener**: フォアグラウンド復帰時 `startAutoRefresh()`、バックグラウンド移行時 `stopAutoRefresh()`
 - エッジケース:
   - リフレッシュトークン自体が期限切れの場合、ログイン画面にリダイレクトされる
   - リフレッシュ中にネットワークエラーが発生した場合、オフラインバナーを表示し再接続時にリトライ
-  - バックグラウンドからフォアグラウンドに復帰した際にもトークンチェックが行われる
+  - バックグラウンドからフォアグラウンドに復帰した際にトークンチェックが行われる
 
 ### AC-5: 初回ログイン時にprofileが自動作成される（Supabaseトリガー）
 - Given: ユーザーがAppleまたはGoogleで初回サインインを完了した
@@ -80,7 +91,24 @@ Apple/Google Sign-Inを通じてSupabase Authと連携し、ユーザーの認�
   - トリガーが失敗した場合、アプリ側でprofileの存在チェックを行い、なければ手動作成する
   - 同一ユーザーの重複作成は`id`のPK制約で防止される
 
-### AC-6: __DEV__モードでdevLogin（仮ログイン）が使える
+### AC-6: ゲストブラウズモードでアプリの一部を閲覧できる
+- Given: 未認証のユーザーがアプリを起動する
+- When: ログインせずにアプリを閲覧する
+- Then:
+  - コミュニティ一覧（`(tabs)/community.tsx`）が閲覧できる（閲覧のみ、いいね・コメント不可）
+  - コミュニティ詳細が閲覧できる（閲覧のみ）
+  - チャット、ツイン情報タブには `GuestPromptOverlay` コンポーネントが表示される
+  - 設定タブにはゲスト専用マイページ（ログインボタン + グレーアウト機能一覧）が表示される
+- 実装詳細:
+  - **GuestPromptOverlay**: 専用コンポーネント（`src/shared/components/guest-prompt-overlay.tsx`）
+  - 各タブ画面内で `isAuthenticated` 判定して条件分岐表示（専用画面 `guest-prompt.tsx` ではない）
+  - `auth-store` に `isGuest: boolean` と `enterGuestMode()` 追加
+- エッジケース:
+  - ゲスト状態でログイン後、通常の画面に切り替わること
+  - ゲストがアクセス不可の機能をディープリンクで開こうとした場合、ログイン促進UIが表示されること
+  - Apple審査: ログインなしでアプリの一部を閲覧できること（App Store Review Guideline 5.1.1準拠）
+
+### AC-7: __DEV__モードでdevLogin（仮ログイン）が使える
 - Given: アプリが__DEV__モード（開発ビルド）で起動している
 - When: ログイン画面で開発用ログインボタンをタップする
 - Then:
@@ -94,13 +122,30 @@ Apple/Google Sign-Inを通じてSupabase Authと連携し、ユーザーの認�
 
 ## 画面仕様
 
-### ログイン画面 (app/(auth)/login.tsx)
+### ランディング画面 (app/(auth)/login.tsx — Landing部分: A-0)
+
+V4 Dark Premium デザイン適用。
+
+- 背景: CosmicBackground（宇宙背景 + `#0F172ACC` オーバーレイ）
+- 表示項目:
+  - 「AltMe」ロゴ + タグライン
+  - 3つの GlassCard フィーチャーカード（glassmorphism）
+  - GoldButton「ログインして始める」（`#E8C567`→`#C9A033`→`#A07B1A`グラデーション、高さ54px）
+  - ゲストブラウズリンク
+  - 法的リンク（利用規約・プライバシーポリシー）
+- アクション:
+  - GoldButton タップ → Login部分（A-1）に遷移
+  - ゲストリンクタップ → ゲストモード開始 → メインタブ
+
+### ログイン画面 (app/(auth)/login.tsx — Login部分: A-1)
+
+V4 Dark Premium デザイン適用。ランディングと同じ CosmicBackground を継続。
+
+- 背景: CosmicBackground（ランディングと共通）
 - 入力項目: なし（ソーシャルログインのみ）
 - 表示項目:
-  - アプリロゴ
-  - キャッチコピー
-  - 「Appleでサインイン」ボタン（iOS標準スタイル）
-  - 「Googleでサインイン」ボタン
+  - Apple Sign-In ボタン（白背景 `#FFFFFF`、黒テキスト `#000000`、Apple HIG準拠）
+  - Google Sign-In ボタン（白背景 `#FFFFFF`、灰ボーダー `#747775`、黒テキスト `#1F1F1F`、Googleブランドガイドライン準拠）
   - 利用規約・プライバシーポリシーリンク
   - devLoginボタン（__DEV__モードのみ）
 - アクション:
@@ -110,6 +155,57 @@ Apple/Google Sign-Inを通じてSupabase Authと連携し、ユーザーの認�
 - 状態遷移:
   - 未認証 → 認証中（ローディング表示）→ 認証完了（画面遷移）
   - 未認証 → 認証中 → 認証失敗（エラー表示、ログイン画面に留まる）
+
+### ゲスト時マイページ (app/(tabs)/settings.tsx ゲストモード)
+- 入力項目: なし
+- 表示項目:
+  - アプリロゴ
+  - 「ログインして始めよう」テキスト
+  - 「AIツインがあなたを待っています」サブテキスト
+  - 「Appleでサインイン」ボタン（iOS標準スタイル）
+  - 「Googleでサインイン」ボタン（Googleブランドガイドライン準拠）
+  - 機能プレビュー（グレーアウト、タップ不可）: AIチャット、性格診断、日記+AI振り返り、感情トラッキング
+- アクション:
+  - Apple/Googleログインボタン → 認証フロー → 成功後、通常の設定画面に切り替わる
+- 状態遷移:
+  - ゲスト → ログインボタンタップ → 認証中 → 認証完了（通常設定画面に切り替え）
+
+## 外部認証ブランドガイドライン
+
+### Google Sign-In ボタン
+Googleのブランドガイドラインに準拠する。
+
+| 項目 | 仕様 |
+|------|------|
+| アイコン | 正式なGoogle Gアイコン（マルチカラー版） |
+| テキスト | "Sign in with Google" または "Googleでサインイン" |
+| ボタン背景 | ライトモード: 白 (`#FFFFFF`) + 1pt border (`#747775`) |
+| ボタン背景 | ダークモード: `#131314` + 1pt border (`#8E918F`) |
+| テキスト色 | ライトモード: `#1F1F1F` / ダークモード: `#E3E3E3` |
+| フォント | Roboto Medium, 14sp |
+| 高さ | 40dp以上（AltMeでは50pt） |
+| アイコンサイズ | 18x18dp |
+
+#### 禁止事項
+- Googleアイコンの色やプロポーションを変更しない
+- ボタンテキストを独自のものに変更しない
+- アイコンなしでGoogleボタンを表示しない
+
+### Apple Sign-In ボタン
+AppleのHuman Interface Guidelinesに準拠（既存実装通り）。
+
+## API Key保護
+
+全てのAPIキーはクライアントに露出させない。Edge Function経由でのみ外部APIを呼び出す。
+
+| キー | 保管場所 | クライアント露出 |
+|------|---------|---------------|
+| OpenAI API Key | Edge Function環境変数 | 不可 |
+| Supabase Service Role Key | Edge Function環境変数 | 不可 |
+| Supabase Anon Key | クライアントアプリ | 許可（RLS保護） |
+| DigitalOcean API Token | Edge Function環境変数 | 不可 |
+| RevenueCat API Key | クライアントアプリ | 許可（SDK仕様） |
+| Stripe Secret Key | Edge Function環境変数 | 不可 |
 
 ## エッジケース・エラーケース
 | ケース | 期待される動作 |
@@ -147,3 +243,20 @@ Apple/Google Sign-Inを通じてSupabase Authと連携し、ユーザーの認�
 - [ ] 境界値テスト: トークン有効期限ちょうどの時のリフレッシュ動作
 - [ ] 境界値テスト: バックグラウンド復帰時のトークン状態チェック
 - [ ] セキュリティテスト: 本番ビルドでdevLoginが表示されないこと
+- [ ] 正常系テスト: ゲストブラウズモードでコミュニティ一覧・詳細が閲覧できる
+- [ ] 正常系テスト: ゲストブラウズモードでチャット・ツイン情報タブにログイン促進UIが表示される
+- [ ] 正常系テスト: ゲスト時マイページにログインボタンとグレーアウト機能一覧が表示される
+- [ ] 正常系テスト: ゲスト状態でログイン後、通常の画面に切り替わる
+- [ ] UIテスト: GoogleログインボタンがGoogleブランドガイドラインに準拠している
+- [ ] UIテスト: ダークモードでGoogleボタンのダークバリアントが表示される
+- [ ] セキュリティテスト: クライアントアプリにOpenAI/DigitalOcean/Stripe APIキーが含まれていない
+- [ ] セキュリティテスト: 外部APIコールが全てEdge Function経由で行われる
+
+---
+
+## 変更履歴
+
+| 日付 | 変更内容 | 理由 | 関連タスク |
+|------|---------|------|-----------|
+| 2026-02-16 | AC-2: Google Sign-In 実装方式を「Native SDK」に更新（`@react-native-google-signin/google-signin` 使用）<br>AC-4: SecureStore adapter + AppState listener 実装詳細を追記<br>AC-6: GuestPromptOverlay コンポーネント実装詳細を追記（`guest-prompt.tsx` 画面ではなくオーバーレイ形式） | Reconcile: Auth SDD 実装完了後の仕様書同期 | T042-T052 |
+| 2026-02-16 | ランディング画面（A-0）をログイン画面仕様から分離して追記<br>V4 Dark Premium UI 仕様を追記（CosmicBackground、GlassCardフィーチャーカード、GoldButton、Apple/Googleボタンのブランド準拠スタイル） | Reconcile: V4 Dark Premium UI 実装完了後の仕様書同期 | — |

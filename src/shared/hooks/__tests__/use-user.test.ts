@@ -4,11 +4,16 @@ import type { UserProfile } from '../../types/user';
 const mockUser: UserProfile = {
   id: 'user-123',
   displayName: 'Test User',
+  avatarUrl: null,
+  email: null,
   ageRange: '25-34',
   locale: 'ja',
   timezone: 'Asia/Tokyo',
   onboardingCompleted: false,
   twinName: null,
+  avatarIcon: 'default',
+  speechTone: 'friendly',
+  mbtiType: null,
   createdAt: '2026-01-01T00:00:00Z',
   updatedAt: '2026-01-01T00:00:00Z',
 };

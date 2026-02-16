@@ -1,54 +1,64 @@
 import React from 'react';
-import FontAwesome from '@expo/vector-icons/FontAwesome';
+import Feather from '@expo/vector-icons/Feather';
 import { Tabs } from 'expo-router';
+import { useTranslation } from 'react-i18next';
 
-import { colors } from '@/src/config/theme';
+import { tabBarColors } from '@/src/config/theme';
 
 function TabBarIcon(props: {
-  name: React.ComponentProps<typeof FontAwesome>['name'];
+  name: React.ComponentProps<typeof Feather>['name'];
   color: string;
 }) {
-  return <FontAwesome size={24} style={{ marginBottom: -3 }} {...props} />;
+  return <Feather size={22} style={{ marginBottom: -3 }} {...props} />;
 }
 
 export default function TabLayout() {
+  const { t } = useTranslation();
+
   return (
     <Tabs
       screenOptions={{
-        tabBarActiveTintColor: colors.primary,
-        headerShown: true,
+        tabBarActiveTintColor: tabBarColors.active,
+        tabBarInactiveTintColor: tabBarColors.inactive,
+        tabBarStyle: {
+          backgroundColor: tabBarColors.background,
+          borderTopColor: tabBarColors.border,
+          borderTopWidth: 1,
+          elevation: 0,
+        },
+        headerShown: false,
       }}
     >
       <Tabs.Screen
         name="index"
         options={{
-          title: 'チャット',
+          title: t('tabs.chat'),
           headerShown: false,
-          tabBarIcon: ({ color }) => <TabBarIcon name="comments" color={color} />,
+          tabBarIcon: ({ color }) => <TabBarIcon name="message-circle" color={color} />,
         }}
       />
       <Tabs.Screen
-        name="journal"
+        name="community"
         options={{
-          title: '日記',
+          title: t('tabs.community'),
           headerShown: false,
-          tabBarIcon: ({ color }) => <TabBarIcon name="book" color={color} />,
+          tabBarIcon: ({ color }) => <TabBarIcon name="users" color={color} />,
         }}
       />
       <Tabs.Screen
-        name="insights"
+        name="twin"
         options={{
-          title: '洞察',
+          title: t('tabs.myAgent'),
           headerShown: false,
-          tabBarIcon: ({ color }) => <TabBarIcon name="line-chart" color={color} />,
+          tabBarIcon: ({ color }) => <TabBarIcon name="cpu" color={color} />,
         }}
       />
       <Tabs.Screen
         name="settings"
         options={{
-          title: '設定',
+          title: t('tabs.myPage'),
           headerShown: false,
-          tabBarIcon: ({ color }) => <TabBarIcon name="cog" color={color} />,
+          tabBarIcon: ({ color }) => <TabBarIcon name="user" color={color} />,
         }}
       />
     </Tabs>

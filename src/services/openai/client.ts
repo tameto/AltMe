@@ -16,8 +16,8 @@ Be helpful, proactive, and speak in their preferred style.`;
 
 User's personality profile:
 - Summary: ${profile.summary}
-${profile.detailedAnalysis ? `- Detailed analysis: ${profile.detailedAnalysis}` : ''}
-${profile.personalityTraits ? `- Openness: ${profile.personalityTraits.openness}, Conscientiousness: ${profile.personalityTraits.conscientiousness}, Extraversion: ${profile.personalityTraits.extraversion}, Agreeableness: ${profile.personalityTraits.agreeableness}, Neuroticism: ${profile.personalityTraits.neuroticism}` : ''}
+- Openness: ${profile.personalityTraits.openness}, Conscientiousness: ${profile.personalityTraits.conscientiousness}, Extraversion: ${profile.personalityTraits.extraversion}, Agreeableness: ${profile.personalityTraits.agreeableness}, Neuroticism: ${profile.personalityTraits.neuroticism}
+${profile.communicationStyle ? `- Communication style: tone=${profile.communicationStyle.tone}, formality=${profile.communicationStyle.formality}` : ''}
 
 Match this communication style in your responses.`;
 }

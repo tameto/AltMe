@@ -12,9 +12,11 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
-import FontAwesome from '@expo/vector-icons/FontAwesome';
+import { useTranslation } from 'react-i18next';
+import Feather from '@expo/vector-icons/Feather';
 
-import { colors, spacing, borderRadius, fontSize } from '@/src/config/theme';
+import { colors, spacing, borderRadius, fontSize, fontFamily, glassmorphism } from '@/src/config/theme';
+import { CosmicBackground } from '@/src/shared/components/cosmic-background';
 import { useSubscription } from '@/src/shared/hooks/use-subscription';
 import { useUser } from '@/src/shared/hooks/use-user';
 import { supabase } from '@/src/services/supabase/client';
@@ -28,6 +30,7 @@ type UsageStats = {
 
 export default function SubscriptionManageScreen() {
   const router = useRouter();
+  const { t } = useTranslation();
   const { entitlement } = useSubscription();
   const user = useUser((s) => s.user);
   const [stats, setStats] = useState<UsageStats | null>(null);
@@ -73,13 +76,14 @@ export default function SubscriptionManageScreen() {
   }, [user?.id, user?.createdAt]);
 
   const handleCancelSubscription = () => {
+    const twinName = user?.twinName || 'AI Twin';
     Alert.alert(
-      '本当に解約しますか？',
-      `${user?.twinName || 'AIツイン'}との${stats?.daysActive ?? 0}日間の思い出が失われます。\n\n解約後も現在の期間終了まではPro機能をご利用いただけます。`,
+      t('subscription.manage.cancelConfirmTitle'),
+      t('subscription.manage.cancelConfirmMessage', { twinName, days: stats?.daysActive ?? 0 }),
       [
-        { text: 'やっぱりやめる', style: 'cancel' },
+        { text: t('subscription.manage.cancelConfirmCancel'), style: 'cancel' },
         {
-          text: '解約手続きへ',
+          text: t('subscription.manage.cancelConfirmProceed'),
           style: 'destructive',
           onPress: openSubscriptionSettings,
         },
@@ -97,109 +101,128 @@ export default function SubscriptionManageScreen() {
 
   const planLabel = (() => {
     switch (entitlement.planType) {
-      case 'monthly': return '月額プラン';
-      case 'annual': return '年額プラン';
-      case 'intro_annual': return '年額プラン（初回特別）';
-      default: return 'Pro プラン';
+      case 'monthly': return t('subscription.manage.planMonthly');
+      case 'annual': return t('subscription.manage.planYearly');
+      case 'annual_intro': return t('subscription.manage.planIntroYearly');
+      default: return t('subscription.manage.proPlan');
     }
   })();
 
   const statusLabel = (() => {
     switch (entitlement.status) {
-      case 'active': return 'アクティブ';
-      case 'trial': return `トライアル中（残り${entitlement.trialDaysRemaining ?? 0}日）`;
-      case 'cancelled': return '解約済み（期間終了まで利用可）';
-      case 'grace_period': return '猶予期間（お支払い更新が必要）';
-      case 'expired': return '期限切れ';
-      default: return 'Free';
+      case 'active': return t('subscription.manage.statusActive');
+      case 'trial': return t('subscription.manage.statusTrial', { days: entitlement.trialDaysRemaining ?? 0 });
+      case 'cancelled': return t('subscription.manage.statusCancelled');
+      case 'grace_period': return t('subscription.manage.statusGracePeriod');
+      case 'expired': return t('subscription.manage.statusExpired');
+      default: return t('subscription.manage.statusFree');
     }
   })();
 
   return (
-    <SafeAreaView style={styles.container} edges={['top']}>
-      <View style={styles.header}>
-        <Pressable onPress={() => router.back()} hitSlop={12}>
-          <FontAwesome name="arrow-left" size={20} color={colors.text} />
-        </Pressable>
-        <Text style={styles.headerTitle}>サブスクリプション管理</Text>
-        <View style={{ width: 20 }} />
-      </View>
-
-      <ScrollView contentContainerStyle={styles.content}>
-        {/* Current plan */}
-        <View style={styles.planCard}>
-          <View style={styles.planHeader}>
-            <Text style={styles.planTitle}>{planLabel}</Text>
-            <View style={[styles.statusBadge, entitlement.isPro && styles.statusBadgeActive]}>
-              <Text style={[styles.statusText, entitlement.isPro && styles.statusTextActive]}>
-                {statusLabel}
-              </Text>
-            </View>
-          </View>
-          {entitlement.credits > 0 && (
-            <Text style={styles.credits}>残りクレジット: {entitlement.credits}</Text>
-          )}
+    <CosmicBackground overlayOpacity={0.9}>
+      <SafeAreaView style={styles.container} edges={['top']}>
+        <View style={styles.header}>
+          <Pressable onPress={() => router.back()} hitSlop={12}>
+            <Feather name="x" size={24} color={colors.text} />
+          </Pressable>
+          <Text style={styles.headerTitle}>{t('subscription.manage.title')}</Text>
+          <View style={{ width: 24 }} />
         </View>
 
-        {/* Usage stats - churn prevention */}
-        {isLoading ? (
-          <ActivityIndicator size="large" color={colors.primary} style={styles.loader} />
-        ) : stats && (
-          <View style={styles.statsSection}>
-            <Text style={styles.statsTitle}>あなたとAIツインの記録</Text>
-            <View style={styles.statsGrid}>
-              <StatCard icon="comments" value={stats.totalMessages} label="チャット" />
-              <StatCard icon="book" value={stats.totalJournals} label="日記" />
-              <StatCard icon="heart" value={stats.totalMoods} label="気分記録" />
-              <StatCard icon="calendar" value={stats.daysActive} label="日間" />
+        <ScrollView
+          contentContainerStyle={styles.content}
+          contentInsetAdjustmentBehavior="automatic"
+        >
+          {/* Current plan card */}
+          <View style={styles.planCard}>
+            <View style={styles.planHeader}>
+              <Text style={styles.planTitle}>{planLabel}</Text>
+              {entitlement.isPro ? (
+                <View style={styles.proBadge}>
+                  <Text style={styles.proBadgeText}>Pro</Text>
+                </View>
+              ) : null}
             </View>
-            {stats.totalMessages > 0 && (
-              <Text style={styles.statsMessage}>
-                {user?.twinName || 'AIツイン'}はあなたのことを{stats.totalMessages}回の会話から学んでいます。
-                解約するとこのデータは保持されますが、新しい会話や分析は利用できなくなります。
+            <Text style={styles.statusLabel}>{statusLabel}</Text>
+            {entitlement.expiresAt ? (
+              <Text style={styles.renewalDate}>
+                {t('subscription.manage.renewsOn', { date: new Date(entitlement.expiresAt).toLocaleDateString() })}
               </Text>
-            )}
+            ) : null}
           </View>
-        )}
 
-        {/* Actions */}
-        {entitlement.isPro && entitlement.status !== 'cancelled' && (
-          <Pressable style={styles.cancelButton} onPress={handleCancelSubscription}>
-            <Text style={styles.cancelText}>サブスクリプションを解約</Text>
-          </Pressable>
-        )}
+          {/* Usage stats - churn prevention */}
+          {isLoading ? (
+            <ActivityIndicator size="large" color={colors.primary} style={styles.loader} />
+          ) : stats ? (
+            <View style={styles.statsSection}>
+              <Text style={styles.statsTitle}>{t('subscription.manage.statsTitle')}</Text>
+              <View style={styles.statsGrid}>
+                <StatCard icon="message-circle" value={stats.totalMessages} label={t('subscription.manage.statChat')} />
+                <StatCard icon="book" value={stats.totalJournals} label={t('subscription.manage.statJournal')} />
+                <StatCard icon="heart" value={stats.totalMoods} label={t('subscription.manage.statMood')} />
+                <StatCard icon="calendar" value={stats.daysActive} label={t('subscription.manage.statDays')} />
+              </View>
+              {stats.totalMessages > 0 ? (
+                <Text style={styles.statsMessage}>
+                  {t('subscription.manage.statsMessage', { twinName: user?.twinName || 'AI Twin', count: stats.totalMessages })}
+                </Text>
+              ) : null}
+            </View>
+          ) : null}
 
-        {entitlement.status === 'cancelled' && (
-          <View style={styles.resubscribeSection}>
-            <Text style={styles.resubscribeText}>
-              再度Pro機能をご利用いただくには、ストアからサブスクリプションを再開してください。
-            </Text>
-            <Pressable style={styles.resubscribeButton} onPress={openSubscriptionSettings}>
-              <Text style={styles.resubscribeButtonText}>ストアを開く</Text>
+          {/* Action links */}
+          <View style={styles.actionsSection}>
+            <Pressable style={styles.actionLink} onPress={openSubscriptionSettings}>
+              <Text style={styles.actionLinkText}>{t('subscription.manage.changePlan')}</Text>
+              <Feather name="chevron-right" size={20} color={colors.primary} />
+            </Pressable>
+            <Pressable style={styles.actionLink} onPress={openSubscriptionSettings}>
+              <Text style={styles.actionLinkText}>{t('subscription.manage.paymentMethod')}</Text>
+              <Feather name="chevron-right" size={20} color={colors.primary} />
             </Pressable>
           </View>
-        )}
 
-        {!entitlement.isPro && (
-          <Pressable
-            style={styles.upgradeButton}
-            onPress={() => router.push('/(paywall)' as never)}>
-            <Text style={styles.upgradeText}>Pro にアップグレード</Text>
-          </Pressable>
-        )}
-      </ScrollView>
-    </SafeAreaView>
+          {/* Cancel subscription */}
+          {entitlement.isPro && entitlement.status !== 'cancelled' ? (
+            <Pressable style={styles.cancelButton} onPress={handleCancelSubscription}>
+              <Text style={styles.cancelText}>{t('subscription.manage.cancelSubscription')}</Text>
+            </Pressable>
+          ) : null}
+
+          {entitlement.status === 'cancelled' ? (
+            <View style={styles.resubscribeSection}>
+              <Text style={styles.resubscribeText}>
+                {t('subscription.manage.resubscribeMessage')}
+              </Text>
+              <Pressable style={styles.resubscribeButton} onPress={openSubscriptionSettings}>
+                <Text style={styles.resubscribeButtonText}>{t('subscription.manage.openStore')}</Text>
+              </Pressable>
+            </View>
+          ) : null}
+
+          {!entitlement.isPro ? (
+            <Pressable
+              style={styles.upgradeButton}
+              onPress={() => router.push('/(paywall)')}>
+              <Text style={styles.upgradeText}>{t('subscription.manage.upgradeButton')}</Text>
+            </Pressable>
+          ) : null}
+        </ScrollView>
+      </SafeAreaView>
+    </CosmicBackground>
   );
 }
 
 function StatCard({ icon, value, label }: {
-  icon: React.ComponentProps<typeof FontAwesome>['name'];
+  icon: React.ComponentProps<typeof Feather>['name'];
   value: number;
   label: string;
 }) {
   return (
     <View style={styles.statCard}>
-      <FontAwesome name={icon} size={20} color={colors.primary} />
+      <Feather name={icon} size={20} color={colors.primary} />
       <Text style={styles.statValue}>{value.toLocaleString()}</Text>
       <Text style={styles.statLabel}>{label}</Text>
     </View>
@@ -207,30 +230,33 @@ function StatCard({ icon, value, label }: {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: colors.background },
+  container: {
+    flex: 1,
+  },
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.md,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.border,
   },
   headerTitle: {
-    fontSize: fontSize.lg,
-    fontWeight: '700',
+    fontSize: 24,
+    fontFamily: fontFamily.bold,
     color: colors.text,
   },
   content: {
     padding: spacing.md,
     paddingBottom: spacing.xxl,
+    gap: spacing.lg,
   },
   planCard: {
-    backgroundColor: colors.surfaceSecondary,
-    borderRadius: borderRadius.lg,
+    backgroundColor: glassmorphism.card.bg,
+    borderWidth: 1,
+    borderColor: glassmorphism.card.border,
+    borderRadius: 16,
     padding: spacing.md,
-    marginBottom: spacing.lg,
+    gap: spacing.sm,
   },
   planHeader: {
     flexDirection: 'row',
@@ -238,55 +264,51 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   planTitle: {
-    fontSize: fontSize.md,
-    fontWeight: '700',
+    fontSize: fontSize.lg,
+    fontFamily: fontFamily.semiBold,
     color: colors.text,
   },
-  statusBadge: {
+  proBadge: {
     paddingHorizontal: spacing.sm,
     paddingVertical: spacing.xs,
-    borderRadius: borderRadius.full,
-    backgroundColor: colors.surfaceSecondary,
-    borderWidth: 1,
-    borderColor: colors.border,
+    borderRadius: borderRadius.sm,
+    backgroundColor: colors.accent,
   },
-  statusBadgeActive: {
-    backgroundColor: colors.success + '20',
-    borderColor: colors.success,
-  },
-  statusText: {
+  proBadgeText: {
     fontSize: fontSize.xs,
-    fontWeight: '600',
-    color: colors.textSecondary,
+    fontFamily: fontFamily.bold,
+    color: colors.textInverse,
   },
-  statusTextActive: {
-    color: colors.success,
-  },
-  credits: {
+  statusLabel: {
     fontSize: fontSize.sm,
+    fontFamily: fontFamily.regular,
     color: colors.textSecondary,
-    marginTop: spacing.sm,
+  },
+  renewalDate: {
+    fontSize: fontSize.sm,
+    fontFamily: fontFamily.regular,
+    color: colors.textSecondary,
   },
   loader: {
     marginVertical: spacing.xl,
   },
   statsSection: {
-    marginBottom: spacing.lg,
+    gap: spacing.md,
   },
   statsTitle: {
     fontSize: fontSize.md,
-    fontWeight: '700',
+    fontFamily: fontFamily.bold,
     color: colors.text,
-    marginBottom: spacing.md,
   },
   statsGrid: {
     flexDirection: 'row',
     gap: spacing.sm,
-    marginBottom: spacing.md,
   },
   statCard: {
     flex: 1,
-    backgroundColor: colors.surfaceSecondary,
+    backgroundColor: glassmorphism.card.bg,
+    borderWidth: 1,
+    borderColor: glassmorphism.card.border,
     borderRadius: borderRadius.md,
     padding: spacing.md,
     alignItems: 'center',
@@ -294,17 +316,35 @@ const styles = StyleSheet.create({
   },
   statValue: {
     fontSize: fontSize.xl,
-    fontWeight: '800',
+    fontFamily: fontFamily.bold,
     color: colors.text,
   },
   statLabel: {
     fontSize: fontSize.xs,
+    fontFamily: fontFamily.regular,
     color: colors.textSecondary,
+    textAlign: 'center',
   },
   statsMessage: {
     fontSize: fontSize.sm,
+    fontFamily: fontFamily.regular,
     color: colors.textSecondary,
     lineHeight: 20,
+  },
+  actionsSection: {
+    gap: spacing.xs,
+  },
+  actionLink: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingVertical: spacing.md,
+    paddingHorizontal: spacing.sm,
+  },
+  actionLinkText: {
+    fontSize: fontSize.md,
+    fontFamily: fontFamily.regular,
+    color: colors.primary,
   },
   cancelButton: {
     paddingVertical: spacing.md,
@@ -312,18 +352,21 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: colors.error,
     borderRadius: borderRadius.md,
+    marginTop: spacing.lg,
   },
   cancelText: {
     fontSize: fontSize.md,
     color: colors.error,
-    fontWeight: '600',
+    fontFamily: fontFamily.semiBold,
   },
   resubscribeSection: {
     alignItems: 'center',
     gap: spacing.md,
+    marginTop: spacing.lg,
   },
   resubscribeText: {
     fontSize: fontSize.sm,
+    fontFamily: fontFamily.regular,
     color: colors.textSecondary,
     textAlign: 'center',
     lineHeight: 20,
@@ -337,17 +380,18 @@ const styles = StyleSheet.create({
   resubscribeButtonText: {
     color: colors.textInverse,
     fontSize: fontSize.md,
-    fontWeight: '600',
+    fontFamily: fontFamily.semiBold,
   },
   upgradeButton: {
     backgroundColor: colors.primary,
     paddingVertical: spacing.md,
     borderRadius: borderRadius.md,
     alignItems: 'center',
+    marginTop: spacing.lg,
   },
   upgradeText: {
     color: colors.textInverse,
     fontSize: fontSize.md,
-    fontWeight: '700',
+    fontFamily: fontFamily.bold,
   },
 });

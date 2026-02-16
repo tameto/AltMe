@@ -3,27 +3,33 @@ import {
   View,
   Text,
   TextInput,
-  TouchableOpacity,
   FlatList,
   KeyboardAvoidingView,
   Platform,
   StyleSheet,
   ActivityIndicator,
+  Pressable,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import FontAwesome from '@expo/vector-icons/FontAwesome';
+import { Feather, MaterialCommunityIcons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useTranslation } from 'react-i18next';
+import { LinearGradient } from 'expo-linear-gradient';
 
-import { colors, spacing, borderRadius, fontSize } from '@/src/config/theme';
-import { FREE_DAILY_CHAT_LIMIT, CHAT, APP_NAME } from '@/src/config/constants';
+import { colors, spacing, borderRadius, fontSize, fontFamily, sendGradient, glassmorphism } from '@/src/config/theme';
+import { CosmicBackground } from '@/src/shared/components/cosmic-background';
+import { FREE_DAILY_LIMIT, CHAT, APP_NAME } from '@/src/config/constants';
 import { useIsPro } from '@/src/shared/hooks/use-subscription';
 import { useUser } from '@/src/shared/hooks/use-user';
 import { useNetwork } from '@/src/shared/hooks/use-network';
+import { useAuthStore } from '@/src/features/auth/stores/auth-store';
+import { GuestPromptOverlay } from '@/src/shared/components/guest-prompt-overlay';
 import { supabase } from '@/src/services/supabase/client';
 import { env } from '@/src/config/env';
 import { getMyInstance, getGatewayToken, subscribeToInstanceChanges } from '@/src/services/openclaw/client';
 import { OpenClawWebSocketClient } from '@/src/services/openclaw/websocket-client';
+import { setActiveClient } from '@/src/services/openclaw/connection-manager';
 import type { WsConnectionStatus, ConnectionMode } from '@/src/shared/types/openclaw';
 
 const DEVICE_ID_KEY = 'device_id';
@@ -45,8 +51,10 @@ type DisplayMessage = {
 
 export default function ChatScreen() {
   const router = useRouter();
+  const { t } = useTranslation();
   const isPro = useIsPro();
   const user = useUser((s) => s.user);
+  const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
   const flatListRef = useRef<FlatList>(null);
   const { isConnected: isOnline } = useNetwork();
 
@@ -59,11 +67,17 @@ export default function ChatScreen() {
 
   // WebSocket / OpenClaw state
   const [connectionMode, setConnectionMode] = useState<ConnectionMode>('edge_function');
+  const connectionModeRef = useRef<ConnectionMode>('edge_function');
   const [wsStatus, setWsStatus] = useState<WsConnectionStatus>('disconnected');
   const wsClientRef = useRef<OpenClawWebSocketClient | null>(null);
   const streamingTextRef = useRef('');
 
-  const isAtLimit = !isPro && todayUserCount >= FREE_DAILY_CHAT_LIMIT;
+  const updateConnectionMode = useCallback((mode: ConnectionMode) => {
+    connectionModeRef.current = mode;
+    setConnectionMode(mode);
+  }, []);
+
+  const isAtLimit = !isPro && todayUserCount >= FREE_DAILY_LIMIT;
 
   // Load chat history on mount
   useEffect(() => {
@@ -89,10 +103,14 @@ export default function ChatScreen() {
           }));
           setMessages(mapped);
         } else {
+          const twinName = user.twinName || APP_NAME;
+          const welcomeContent = user.displayName
+            ? t('chat.welcomeMessage', { name: user.displayName, twinName })
+            : t('chat.welcomeMessageDefault', { twinName });
           setMessages([{
             id: 'welcome',
             role: 'assistant',
-            content: `${user.displayName ? `${user.displayName}さん、` : ''}こんにちは！${user.twinName || APP_NAME}だよ。今日はどんなことがあった？`,
+            content: welcomeContent,
             createdAt: new Date().toISOString(),
           }]);
         }
@@ -117,7 +135,7 @@ export default function ChatScreen() {
       }
     };
     loadHistory();
-  }, [user?.id, user?.displayName, user?.twinName, user?.timezone, isPro]);
+  }, [user?.id, user?.displayName, user?.twinName, user?.timezone, isPro, t]);
 
   // Connect to OpenClaw WebSocket for Pro users
   const connectToWebSocket = useCallback(async (cancelled: { current: boolean }) => {
@@ -126,13 +144,13 @@ export default function ChatScreen() {
       if (cancelled.current) return;
 
       if (!inst || inst.status !== 'running' || !inst.ipAddress) {
-        setConnectionMode('edge_function');
+        updateConnectionMode('edge_function');
         return;
       }
 
       const token = await getGatewayToken();
       if (cancelled.current || !token) {
-        setConnectionMode('edge_function');
+        updateConnectionMode('edge_function');
         return;
       }
 
@@ -141,6 +159,7 @@ export default function ChatScreen() {
 
       // Disconnect existing client
       wsClientRef.current?.disconnect();
+      setActiveClient(null);
 
       const client = new OpenClawWebSocketClient({
         ipAddress: inst.ipAddress,
@@ -163,35 +182,36 @@ export default function ChatScreen() {
           setIsLoading(false);
         },
         onConnected: (_sessionId) => {
-          setConnectionMode('websocket');
+          updateConnectionMode('websocket');
         },
         onError: (code, message) => {
           console.error(`OpenClaw error: ${code} - ${message}`);
           if (code === 'AUTH_FAILED') {
-            setConnectionMode('edge_function');
+            updateConnectionMode('edge_function');
           }
         },
         onStatusChange: (status) => {
           setWsStatus(status);
           if (status === 'disconnected' && !cancelled.current) {
-            setConnectionMode('edge_function');
+            updateConnectionMode('edge_function');
           }
         },
       });
 
       wsClientRef.current = client;
+      setActiveClient(client);
       client.connect();
     } catch (error) {
       console.error('Failed to connect WebSocket:', error);
       if (!cancelled.current) {
-        setConnectionMode('edge_function');
+        updateConnectionMode('edge_function');
       }
     }
-  }, []);
+  }, [updateConnectionMode]);
 
   useEffect(() => {
     if (!isPro || !user?.id) {
-      setConnectionMode('edge_function');
+      updateConnectionMode('edge_function');
       return;
     }
 
@@ -201,13 +221,14 @@ export default function ChatScreen() {
 
     // Subscribe to instance changes so we auto-connect when provisioning completes
     const unsubscribe = subscribeToInstanceChanges(user.id, (updated) => {
-      if (updated.status === 'running' && updated.ipAddress && connectionMode !== 'websocket') {
+      if (updated.status === 'running' && updated.ipAddress && connectionModeRef.current !== 'websocket') {
         connectToWebSocket(cancelled);
       }
       if (updated.status === 'stopped' || updated.status === 'error' || updated.status === 'destroying') {
         wsClientRef.current?.disconnect();
         wsClientRef.current = null;
-        setConnectionMode('edge_function');
+        setActiveClient(null);
+        updateConnectionMode('edge_function');
       }
     });
 
@@ -215,9 +236,10 @@ export default function ChatScreen() {
       cancelled.current = true;
       wsClientRef.current?.disconnect();
       wsClientRef.current = null;
+      setActiveClient(null);
       unsubscribe();
     };
-  }, [isPro, user?.id, connectToWebSocket, connectionMode]);
+  }, [isPro, user?.id, connectToWebSocket, updateConnectionMode]);
 
   // Auto scroll to bottom
   useEffect(() => {
@@ -260,14 +282,14 @@ export default function ChatScreen() {
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
         if (errorData.error === 'chat_limit_reached') {
-          router.push('/(paywall)' as never);
+          router.push('/(paywall)');
           return;
         }
         if (errorData.error === 'rate_limited') {
           setMessages((prev) => [...prev, {
             id: `error-${Date.now()}`,
             role: 'assistant',
-            content: 'ちょっと待ってね。少し間を置いてからもう一度話しかけて。',
+            content: t('chat.rateLimited'),
             createdAt: new Date().toISOString(),
           }]);
           return;
@@ -319,7 +341,7 @@ export default function ChatScreen() {
       }
 
       // If stream ended without isComplete event
-      if (fullResponse && !messages.find((m) => m.content === fullResponse)) {
+      if (fullResponse) {
         setMessages((prev) => {
           if (prev.find((m) => m.content === fullResponse)) return prev;
           return [...prev, {
@@ -340,19 +362,19 @@ export default function ChatScreen() {
       setMessages((prev) => [...prev, {
         id: `error-${Date.now()}`,
         role: 'assistant',
-        content: 'ごめんね、うまく返事ができなかった。もう一度試してみて。',
+        content: t('chat.errorResponse'),
         createdAt: new Date().toISOString(),
       }]);
       setStreamingText('');
     }
-  }, [router, isPro, messages]);
+  }, [router, isPro, t]);
 
   const handleSend = useCallback(async () => {
     const text = inputText.trim();
     if (!text || isLoading || !isOnline) return;
 
     if (isAtLimit) {
-      router.push('/(paywall)' as never);
+      router.push('/(paywall)');
       return;
     }
 
@@ -400,14 +422,17 @@ export default function ChatScreen() {
     return (
       <View style={[styles.messageBubble, isUser ? styles.userBubble : styles.aiBubble]}>
         {!isUser && (
-          <View style={styles.avatarContainer}>
-            <FontAwesome name="user-circle" size={14} color={colors.primary} />
+          <View style={styles.aiAvatarContainer}>
+            <MaterialCommunityIcons name="robot-outline" size={14} color={colors.primary} />
           </View>
         )}
         <View style={[styles.messageContent, isUser ? styles.userContent : styles.aiContent]}>
           <Text style={[styles.messageText, isUser && styles.userText]}>
             {item.content}
             {isStreaming && <Text style={styles.cursor}>|</Text>}
+          </Text>
+          <Text style={styles.messageTimestamp}>
+            {new Date(item.createdAt).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}
           </Text>
         </View>
       </View>
@@ -419,60 +444,61 @@ export default function ChatScreen() {
     ? (wsStatus === 'connected' ? colors.success : wsStatus === 'reconnecting' ? colors.warning : colors.textTertiary)
     : colors.success;
 
+  if (!isAuthenticated) {
+    return (
+      <CosmicBackground>
+        <SafeAreaView style={styles.container} edges={['top']}>
+          <GuestPromptOverlay />
+        </SafeAreaView>
+      </CosmicBackground>
+    );
+  }
+
   if (isLoadingHistory) {
     return (
-      <SafeAreaView style={styles.container} edges={['top']}>
-        <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color={colors.primary} />
-        </View>
-      </SafeAreaView>
+      <CosmicBackground>
+        <SafeAreaView style={styles.container} edges={['top']}>
+          <View style={styles.loadingContainer}>
+            <ActivityIndicator size="large" color={colors.primary} />
+          </View>
+        </SafeAreaView>
+      </CosmicBackground>
     );
   }
 
   return (
-    <SafeAreaView style={styles.container} edges={['top']}>
-      <View style={styles.header}>
-        <View style={styles.headerLeft}>
-          <View style={[styles.statusDot, { backgroundColor: statusDotColor }]} />
-          <Text style={styles.headerTitle}>{user?.twinName || APP_NAME}</Text>
-          {isPro && connectionMode === 'websocket' && (
-            <View style={styles.modeBadge}>
-              <Text style={styles.modeBadgeText}>Pro</Text>
+    <CosmicBackground>
+      <SafeAreaView style={styles.container} edges={['top']}>
+        <View style={styles.header}>
+          <View style={styles.headerLeft}>
+            <View style={styles.avatarWrapper}>
+              <MaterialCommunityIcons name="robot-outline" size={20} color={colors.primary} />
+            </View>
+            <Text style={styles.headerTitle}>{user?.twinName || APP_NAME}</Text>
+            <View style={[styles.statusDot, { backgroundColor: statusDotColor }]} />
+          </View>
+          {!isPro && (
+            <View style={styles.remainingBadge}>
+              <Text style={styles.remainingBadgeText}>
+                {Math.max(0, FREE_DAILY_LIMIT - todayUserCount)}
+              </Text>
             </View>
           )}
         </View>
-        {!isPro && (
-          <TouchableOpacity
-            style={styles.upgradeButton}
-            onPress={() => router.push('/(paywall)' as never)}>
-            <Text style={styles.upgradeText}>Pro</Text>
-          </TouchableOpacity>
+
+        {!isOnline && (
+          <View style={styles.offlineBanner}>
+            <Feather name="wifi-off" size={12} color={colors.error} />
+            <Text style={styles.offlineText}>{t('chat.offline')}</Text>
+          </View>
         )}
-      </View>
 
-      {!isPro && (
-        <View style={styles.limitBanner}>
-          <Text style={styles.limitText}>
-            {isAtLimit
-              ? 'Proにアップグレードして無制限に会話しよう'
-              : `残り${Math.max(0, FREE_DAILY_CHAT_LIMIT - todayUserCount)}回`}
-          </Text>
-        </View>
-      )}
-
-      {!isOnline && (
-        <View style={styles.offlineBanner}>
-          <FontAwesome name="wifi" size={12} color={colors.error} />
-          <Text style={styles.offlineText}>オフライン</Text>
-        </View>
-      )}
-
-      {isOnline && isPro && wsStatus === 'reconnecting' && (
-        <View style={styles.reconnectBanner}>
-          <ActivityIndicator size="small" color={colors.warning} />
-          <Text style={styles.reconnectText}>再接続中...</Text>
-        </View>
-      )}
+        {isOnline && isPro && wsStatus === 'reconnecting' && (
+          <View style={styles.reconnectBanner}>
+            <ActivityIndicator size="small" color={colors.warning} />
+            <Text style={styles.reconnectText}>{t('chat.connectionStatus.reconnecting')}</Text>
+          </View>
+        )}
 
       <FlatList
         ref={flatListRef}
@@ -486,7 +512,7 @@ export default function ChatScreen() {
       {isLoading && !streamingText && (
         <View style={styles.typingIndicator}>
           <ActivityIndicator size="small" color={colors.primary} />
-          <Text style={styles.typingText}>考え中...</Text>
+          <Text style={styles.typingText}>{t('chat.thinking')}</Text>
         </View>
       )}
 
@@ -494,36 +520,42 @@ export default function ChatScreen() {
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         keyboardVerticalOffset={90}>
         <View style={styles.inputContainer}>
-          <TextInput
-            style={styles.textInput}
-            value={inputText}
-            onChangeText={setInputText}
-            placeholder={isAtLimit ? 'Proにアップグレードして続けよう' : '今日の出来事を教えて...'}
-            placeholderTextColor={colors.textTertiary}
-            multiline
-            maxLength={CHAT.maxMessageLength}
-            editable={!isAtLimit}
-          />
-          <TouchableOpacity
-            style={[styles.sendButton, (!inputText.trim() || isLoading || !isOnline) && styles.sendButtonDisabled]}
-            onPress={handleSend}
-            disabled={!inputText.trim() || isLoading || !isOnline}>
-            <FontAwesome
-              name="send"
-              size={16}
-              color={inputText.trim() && !isLoading && isOnline ? colors.textInverse : colors.textTertiary}
+          <View style={styles.inputWrapper}>
+            <TextInput
+              style={styles.textInput}
+              value={inputText}
+              onChangeText={setInputText}
+              placeholder={isAtLimit ? t('chat.inputPlaceholderAtLimit') : t('chat.inputPlaceholderDefault')}
+              placeholderTextColor={colors.textTertiary}
+              multiline
+              maxLength={CHAT.maxMessageLength}
+              editable={!isAtLimit}
             />
-          </TouchableOpacity>
+            {inputText.trim() && !isLoading && isOnline ? (
+              <Pressable
+                style={styles.sendButton}
+                onPress={handleSend}>
+                <LinearGradient
+                  colors={sendGradient.colors}
+                  start={sendGradient.start}
+                  end={sendGradient.end}
+                  style={styles.sendGradient}>
+                  <Feather name="send" size={18} color={colors.text} />
+                </LinearGradient>
+              </Pressable>
+            ) : null}
+          </View>
         </View>
       </KeyboardAvoidingView>
-    </SafeAreaView>
+      </SafeAreaView>
+    </CosmicBackground>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.background,
+    backgroundColor: 'transparent',
   },
   loadingContainer: {
     flex: 1,
@@ -535,55 +567,45 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     paddingHorizontal: spacing.md,
-    paddingVertical: spacing.sm,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.border,
+    paddingVertical: spacing.md,
   },
   headerLeft: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: spacing.sm,
   },
+  avatarWrapper: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    borderWidth: 2,
+    borderColor: colors.primary,
+    backgroundColor: glassmorphism.input.bg,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  headerTitle: {
+    fontSize: fontSize.lg,
+    fontFamily: fontFamily.bold,
+    color: colors.text,
+  },
   statusDot: {
     width: 8,
     height: 8,
     borderRadius: 4,
   },
-  headerTitle: {
-    fontSize: fontSize.lg,
-    fontWeight: '700',
-    color: colors.text,
-  },
-  modeBadge: {
-    backgroundColor: colors.primary + '20',
-    paddingHorizontal: spacing.xs + 2,
-    paddingVertical: 1,
-    borderRadius: borderRadius.sm,
-  },
-  modeBadgeText: {
-    fontSize: fontSize.xs,
-    fontWeight: '600',
-    color: colors.primary,
-  },
-  upgradeButton: {
+  remainingBadge: {
     backgroundColor: colors.primary,
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.xs,
     borderRadius: borderRadius.full,
-  },
-  upgradeText: {
-    color: colors.textInverse,
-    fontSize: fontSize.sm,
-    fontWeight: '600',
-  },
-  limitBanner: {
-    backgroundColor: colors.surfaceSecondary,
+    paddingHorizontal: spacing.sm,
     paddingVertical: spacing.xs,
+    minWidth: 32,
     alignItems: 'center',
   },
-  limitText: {
-    fontSize: fontSize.xs,
-    color: colors.textSecondary,
+  remainingBadgeText: {
+    fontSize: fontSize.sm,
+    fontFamily: fontFamily.semiBold,
+    color: colors.textInverse,
   },
   offlineBanner: {
     flexDirection: 'row',
@@ -595,8 +617,8 @@ const styles = StyleSheet.create({
   },
   offlineText: {
     fontSize: fontSize.xs,
+    fontFamily: fontFamily.medium,
     color: colors.error,
-    fontWeight: '500',
   },
   reconnectBanner: {
     flexDirection: 'row',
@@ -608,8 +630,8 @@ const styles = StyleSheet.create({
   },
   reconnectText: {
     fontSize: fontSize.xs,
+    fontFamily: fontFamily.medium,
     color: colors.warning,
-    fontWeight: '500',
   },
   messageList: {
     paddingHorizontal: spacing.md,
@@ -627,11 +649,13 @@ const styles = StyleSheet.create({
   aiBubble: {
     justifyContent: 'flex-start',
   },
-  avatarContainer: {
-    width: 28,
-    height: 28,
-    borderRadius: 14,
-    backgroundColor: colors.surfaceSecondary,
+  aiAvatarContainer: {
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+    backgroundColor: glassmorphism.input.bg,
+    borderWidth: 1,
+    borderColor: colors.primary,
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: spacing.sm,
@@ -639,29 +663,45 @@ const styles = StyleSheet.create({
   messageContent: {
     maxWidth: '75%',
     paddingHorizontal: spacing.md,
-    paddingVertical: spacing.sm,
-    borderRadius: borderRadius.lg,
+    paddingVertical: spacing.sm + 2,
+    gap: spacing.xs,
   },
   userContent: {
-    backgroundColor: colors.primary,
-    marginLeft: 'auto',
-    borderBottomRightRadius: spacing.xs,
+    backgroundColor: glassmorphism.bubble.user.bg,
+    borderWidth: 1,
+    borderColor: glassmorphism.bubble.user.border,
+    borderTopLeftRadius: borderRadius.lg,
+    borderTopRightRadius: 4,
+    borderBottomRightRadius: borderRadius.lg,
+    borderBottomLeftRadius: borderRadius.lg,
   },
   aiContent: {
-    backgroundColor: colors.surfaceSecondary,
-    borderBottomLeftRadius: spacing.xs,
+    backgroundColor: glassmorphism.bubble.ai.bg,
+    borderWidth: 1,
+    borderColor: glassmorphism.bubble.ai.border,
+    borderTopLeftRadius: 4,
+    borderTopRightRadius: borderRadius.lg,
+    borderBottomRightRadius: borderRadius.lg,
+    borderBottomLeftRadius: borderRadius.lg,
   },
   messageText: {
     fontSize: fontSize.md,
+    fontFamily: fontFamily.regular,
     color: colors.text,
     lineHeight: 22,
   },
   userText: {
-    color: colors.textInverse,
+    color: colors.text,
+  },
+  messageTimestamp: {
+    fontSize: 11,
+    fontFamily: fontFamily.regular,
+    color: '#FFFFFF60',
+    alignSelf: 'flex-end',
   },
   cursor: {
     color: colors.primary,
-    fontWeight: '700',
+    fontFamily: fontFamily.bold,
   },
   typingIndicator: {
     flexDirection: 'row',
@@ -672,38 +712,46 @@ const styles = StyleSheet.create({
   },
   typingText: {
     fontSize: fontSize.sm,
+    fontFamily: fontFamily.regular,
     color: colors.textSecondary,
   },
   inputContainer: {
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.md,
+    backgroundColor: 'transparent',
+  },
+  inputWrapper: {
     flexDirection: 'row',
     alignItems: 'flex-end',
+    backgroundColor: glassmorphism.input.bg,
+    borderWidth: 1,
+    borderColor: glassmorphism.input.border,
+    borderRadius: borderRadius.full,
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.sm,
-    borderTopWidth: 1,
-    borderTopColor: colors.border,
-    backgroundColor: colors.background,
     gap: spacing.sm,
   },
   textInput: {
     flex: 1,
-    minHeight: 40,
+    minHeight: 24,
     maxHeight: 120,
-    backgroundColor: colors.surfaceSecondary,
-    borderRadius: borderRadius.xl,
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.sm,
     fontSize: fontSize.md,
+    fontFamily: fontFamily.regular,
     color: colors.text,
+    paddingTop: 0,
+    paddingBottom: 0,
   },
   sendButton: {
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: colors.primary,
+    overflow: 'hidden',
+  },
+  sendGradient: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
     justifyContent: 'center',
     alignItems: 'center',
-  },
-  sendButtonDisabled: {
-    backgroundColor: colors.surfaceSecondary,
   },
 });
