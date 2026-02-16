@@ -261,7 +261,7 @@ export default function SettingsScreen() {
         style: 'destructive',
         onPress: async () => {
           await signOut();
-          router.replace('/(auth)/login' as never);
+          router.replace('/(auth)/login');
         },
       },
     ]);
@@ -338,7 +338,7 @@ export default function SettingsScreen() {
           </Pressable>
 
           {/* Delete Account Link */}
-          <Pressable onPress={() => Alert.alert(t('settings.account.delete'), t('settings.account.deleteConfirm'))}>
+          <Pressable onPress={() => router.push('/account-delete-confirm')}>
             <Text style={styles.deleteAccountText}>
               {t('settings.account.deleteAccount')}
             </Text>

@@ -188,19 +188,34 @@ const fetchOrCreateProfile = async (
   return mapDbProfile(data);
 };
 
+const asStr = (v: unknown): string | null => (typeof v === 'string' ? v : null);
+const asBool = (v: unknown, fallback = false): boolean => (typeof v === 'boolean' ? v : fallback);
+
+const AGE_RANGES = new Set(['18-24', '25-34', '35-44', '45+']);
+const isAgeRange = (v: unknown): v is UserProfile['ageRange'] =>
+  typeof v === 'string' && AGE_RANGES.has(v);
+
+const AVATAR_ICONS = new Set(['default', 'geometric', 'cosmic', 'organic', 'techno', 'zen']);
+const isAvatarIcon = (v: unknown): v is UserProfile['avatarIcon'] =>
+  typeof v === 'string' && AVATAR_ICONS.has(v);
+
+const SPEECH_TONES = new Set(['polite', 'casual', 'intellectual', 'mentor', 'tsundere', 'friendly']);
+const isSpeechTone = (v: unknown): v is UserProfile['speechTone'] =>
+  typeof v === 'string' && SPEECH_TONES.has(v);
+
 const mapDbProfile = (data: Record<string, unknown>): UserProfile => ({
-  id: data.id as string,
-  displayName: (data.display_name as string) ?? null,
-  avatarUrl: (data.avatar_url as string) ?? null,
-  email: (data.email as string) ?? null,
-  ageRange: (data.age_range as UserProfile['ageRange']) ?? null,
-  locale: (data.locale as string) ?? 'ja',
-  timezone: (data.timezone as string) ?? 'Asia/Tokyo',
-  onboardingCompleted: (data.onboarding_completed as boolean) ?? false,
-  twinName: (data.twin_name as string) ?? null,
-  avatarIcon: (data.avatar_icon as UserProfile['avatarIcon']) ?? 'default',
-  speechTone: (data.speech_tone as UserProfile['speechTone']) ?? 'friendly',
-  mbtiType: (data.mbti_type as string) ?? null,
-  createdAt: data.created_at as string,
-  updatedAt: data.updated_at as string,
+  id: asStr(data.id) ?? '',
+  displayName: asStr(data.display_name),
+  avatarUrl: asStr(data.avatar_url),
+  email: asStr(data.email),
+  ageRange: isAgeRange(data.age_range) ? data.age_range : null,
+  locale: asStr(data.locale) ?? 'ja',
+  timezone: asStr(data.timezone) ?? 'Asia/Tokyo',
+  onboardingCompleted: asBool(data.onboarding_completed),
+  twinName: asStr(data.twin_name),
+  avatarIcon: isAvatarIcon(data.avatar_icon) ? data.avatar_icon : 'default',
+  speechTone: isSpeechTone(data.speech_tone) ? data.speech_tone : 'friendly',
+  mbtiType: asStr(data.mbti_type),
+  createdAt: asStr(data.created_at) ?? new Date().toISOString(),
+  updatedAt: asStr(data.updated_at) ?? new Date().toISOString(),
 });

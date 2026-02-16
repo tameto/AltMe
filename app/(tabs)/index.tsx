@@ -29,6 +29,7 @@ import { supabase } from '@/src/services/supabase/client';
 import { env } from '@/src/config/env';
 import { getMyInstance, getGatewayToken, subscribeToInstanceChanges } from '@/src/services/openclaw/client';
 import { OpenClawWebSocketClient } from '@/src/services/openclaw/websocket-client';
+import { setActiveClient } from '@/src/services/openclaw/connection-manager';
 import type { WsConnectionStatus, ConnectionMode } from '@/src/shared/types/openclaw';
 
 const DEVICE_ID_KEY = 'device_id';
@@ -158,6 +159,7 @@ export default function ChatScreen() {
 
       // Disconnect existing client
       wsClientRef.current?.disconnect();
+      setActiveClient(null);
 
       const client = new OpenClawWebSocketClient({
         ipAddress: inst.ipAddress,
@@ -197,6 +199,7 @@ export default function ChatScreen() {
       });
 
       wsClientRef.current = client;
+      setActiveClient(client);
       client.connect();
     } catch (error) {
       console.error('Failed to connect WebSocket:', error);
@@ -224,6 +227,7 @@ export default function ChatScreen() {
       if (updated.status === 'stopped' || updated.status === 'error' || updated.status === 'destroying') {
         wsClientRef.current?.disconnect();
         wsClientRef.current = null;
+        setActiveClient(null);
         updateConnectionMode('edge_function');
       }
     });
@@ -232,6 +236,7 @@ export default function ChatScreen() {
       cancelled.current = true;
       wsClientRef.current?.disconnect();
       wsClientRef.current = null;
+      setActiveClient(null);
       unsubscribe();
     };
   }, [isPro, user?.id, connectToWebSocket, updateConnectionMode]);
@@ -277,7 +282,7 @@ export default function ChatScreen() {
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
         if (errorData.error === 'chat_limit_reached') {
-          router.push('/(paywall)' as never);
+          router.push('/(paywall)');
           return;
         }
         if (errorData.error === 'rate_limited') {
@@ -369,7 +374,7 @@ export default function ChatScreen() {
     if (!text || isLoading || !isOnline) return;
 
     if (isAtLimit) {
-      router.push('/(paywall)' as never);
+      router.push('/(paywall)');
       return;
     }
 

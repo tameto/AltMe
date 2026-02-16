@@ -1,7 +1,8 @@
 import { corsHeaders } from '../_shared/cors.ts';
-import { createServiceClient } from '../_shared/supabase.ts';
+import { createSupabaseClient, createServiceClient } from '../_shared/supabase.ts';
 
 const DIGITALOCEAN_API_TOKEN = Deno.env.get('DIGITALOCEAN_API_TOKEN') ?? '';
+const INTERNAL_FUNCTION_TOKEN = Deno.env.get('INTERNAL_FUNCTION_TOKEN') ?? '';
 
 Deno.serve(async (req: Request) => {
   if (req.method === 'OPTIONS') {
@@ -9,9 +10,28 @@ Deno.serve(async (req: Request) => {
   }
 
   try {
-    const { user_id } = await req.json();
+    let targetUserId: string | null = null;
 
-    if (!user_id) {
+    // Check if this is an internal function-to-function call
+    const internalToken = req.headers.get('x-internal-function-token');
+    if (internalToken && INTERNAL_FUNCTION_TOKEN && internalToken === INTERNAL_FUNCTION_TOKEN) {
+      // Internal call: trust the provided user_id
+      const body = await req.json();
+      targetUserId = body?.user_id ?? null;
+    } else {
+      // External call: authenticate via JWT and use caller's own user_id
+      const userClient = createSupabaseClient(req);
+      const { data: { user }, error: authError } = await userClient.auth.getUser();
+      if (authError || !user) {
+        return new Response(
+          JSON.stringify({ error: 'unauthorized' }),
+          { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
+        );
+      }
+      targetUserId = user.id;
+    }
+
+    if (!targetUserId) {
       return new Response(
         JSON.stringify({ error: 'missing user_id' }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
@@ -19,6 +39,7 @@ Deno.serve(async (req: Request) => {
     }
 
     const supabase = createServiceClient();
+    const user_id = targetUserId;
 
     // Look up openclaw_instances by user_id
     const { data: instance, error: fetchError } = await supabase

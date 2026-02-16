@@ -205,7 +205,7 @@ export default function SubscriptionManageScreen() {
           {!entitlement.isPro ? (
             <Pressable
               style={styles.upgradeButton}
-              onPress={() => router.push('/(paywall)' as never)}>
+              onPress={() => router.push('/(paywall)')}>
               <Text style={styles.upgradeText}>{t('subscription.manage.upgradeButton')}</Text>
             </Pressable>
           ) : null}

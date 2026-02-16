@@ -3,7 +3,7 @@ import { View, Text, StyleSheet, ScrollView, Pressable } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Feather from '@expo/vector-icons/Feather';
 import { useTranslation } from 'react-i18next';
-import { useRouter } from 'expo-router';
+import { useRouter, type Href } from 'expo-router';
 
 import { CosmicBackground } from '@/src/shared/components/cosmic-background';
 import { GlassCard } from '@/src/shared/components/glass-card';
@@ -36,7 +36,7 @@ export default function CommunityScreen() {
   const [language, setLanguage] = useState<Language>('jp');
 
   const handleUpgradeToPro = () => {
-    router.push('/(paywall)' as never);
+    router.push('/(paywall)' as Href);
   };
 
   return (
@@ -89,7 +89,7 @@ export default function CommunityScreen() {
           {/* Popular Communities Section */}
           <View style={styles.sectionHeader}>
             <Text style={styles.sectionTitle}>人気のコミュニティ</Text>
-            <Pressable style={styles.addButton}>
+            <Pressable style={styles.addButton} onPress={() => router.push('/community-create' as Href)}>
               <Feather name="plus" size={20} color={colors.primary} />
             </Pressable>
           </View>

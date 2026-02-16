@@ -176,14 +176,15 @@ export const useAuthStore = create<AuthStore>((set) => ({
 
       // 2. Call delete-account Edge Function (handles OpenClaw destroy + RevenueCat + auth deletion)
       await authDeleteAccount();
-    } catch (error) {
-      console.error('Account deletion error:', error);
-      throw error;
-    } finally {
-      // 3. Always reset local state
+
+      // 3. Reset local state only on success
       useUser.getState().reset();
       useSubscription.getState().reset();
       set({ isAuthenticated: false, isGuest: false, error: null });
+    } catch (error) {
+      console.error('Account deletion error:', error);
+      set({ error: error instanceof Error ? error.message : 'Account deletion failed' });
+      throw error;
     }
   },
 
@@ -242,21 +243,24 @@ export const useAuthStore = create<AuthStore>((set) => ({
       .single();
 
     const profileData = profile as Record<string, unknown> | null;
+    const str = (v: unknown): string | null => (typeof v === 'string' ? v : null);
+    const bool = (v: unknown, fb = false): boolean => (typeof v === 'boolean' ? v : fb);
     const devUser: UserProfile = {
       id: session.user.id,
-      displayName: (profileData?.display_name as string) ?? 'テストユーザー',
-      avatarUrl: (profileData?.avatar_url as string) ?? null,
-      email: (profileData?.email as string) ?? (session.user as Record<string, unknown>).email as string ?? null,
-      ageRange: (profileData?.age_range as AgeRange) ?? '25-34',
-      locale: (profileData?.locale as string) ?? 'ja',
-      timezone: (profileData?.timezone as string) ?? 'Asia/Tokyo',
-      onboardingCompleted: skipOnboarding || ((profileData?.onboarding_completed as boolean) ?? false),
-      twinName: (profileData?.twin_name as string) ?? (skipOnboarding ? 'AltMe' : null),
-      avatarIcon: (profileData?.avatar_icon as UserProfile['avatarIcon']) ?? 'default',
-      speechTone: (profileData?.speech_tone as UserProfile['speechTone']) ?? 'friendly',
-      mbtiType: (profileData?.mbti_type as string) ?? null,
-      createdAt: (profileData?.created_at as string) ?? new Date().toISOString(),
-      updatedAt: (profileData?.updated_at as string) ?? new Date().toISOString(),
+      displayName: str(profileData?.display_name) ?? 'テストユーザー',
+      avatarUrl: str(profileData?.avatar_url),
+      email: str(profileData?.email) ?? str((session.user as Record<string, unknown>).email),
+      ageRange: (['18-24', '25-34', '35-44', '45+'].includes(str(profileData?.age_range) ?? '')
+        ? str(profileData?.age_range) as AgeRange : '25-34'),
+      locale: str(profileData?.locale) ?? 'ja',
+      timezone: str(profileData?.timezone) ?? 'Asia/Tokyo',
+      onboardingCompleted: skipOnboarding || bool(profileData?.onboarding_completed),
+      twinName: str(profileData?.twin_name) ?? (skipOnboarding ? 'AltMe' : null),
+      avatarIcon: (str(profileData?.avatar_icon) as UserProfile['avatarIcon']) ?? 'default',
+      speechTone: (str(profileData?.speech_tone) as UserProfile['speechTone']) ?? 'friendly',
+      mbtiType: str(profileData?.mbti_type),
+      createdAt: str(profileData?.created_at) ?? new Date().toISOString(),
+      updatedAt: str(profileData?.updated_at) ?? new Date().toISOString(),
     };
 
     useUser.getState().setUser(devUser);
