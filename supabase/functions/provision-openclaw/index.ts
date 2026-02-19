@@ -362,15 +362,92 @@ services:
       - OPENCLAW_PORT=18789
 COMPOSEEOF
 
-# Configure UFW to allow OpenClaw gateway port
+# Pull and start OpenClaw (with retry for transient registry failures)
+cd /opt/openclaw
+pull_ok=0
+for i in 1 2 3; do
+  if docker compose pull; then
+    pull_ok=1
+    break
+  fi
+  sleep $((i * 5))
+done
+if [ "$pull_ok" -eq 1 ]; then
+  docker compose up -d
+else
+  docker compose up -d --pull never
+fi
+
+# Install nginx
+apt-get update -y
+apt-get install -y nginx
+
+# Generate self-signed certificate with IP SAN
+mkdir -p /etc/nginx/ssl
+PUBLIC_IP=$(curl -fsS http://169.254.169.254/metadata/v1/interfaces/public/0/ipv4/address \\
+  || hostname -I | awk '{print $1}')
+
+cat > /tmp/openclaw-cert.cnf << CERTEOF
+[req]
+prompt = no
+distinguished_name = dn
+x509_extensions = v3_req
+[dn]
+CN = \${PUBLIC_IP}
+[v3_req]
+subjectAltName = @alt_names
+[alt_names]
+IP.1 = \${PUBLIC_IP}
+IP.2 = 127.0.0.1
+DNS.1 = localhost
+CERTEOF
+
+openssl req -x509 -nodes -days 365 -newkey rsa:2048 \\
+  -keyout /etc/nginx/ssl/selfsigned.key \\
+  -out /etc/nginx/ssl/selfsigned.crt \\
+  -config /tmp/openclaw-cert.cnf
+rm -f /tmp/openclaw-cert.cnf
+
+# Configure nginx reverse proxy
+cat > /etc/nginx/sites-available/openclaw << 'NGINXEOF'
+server {
+    listen 443 ssl;
+    server_name _;
+
+    ssl_certificate /etc/nginx/ssl/selfsigned.crt;
+    ssl_certificate_key /etc/nginx/ssl/selfsigned.key;
+    ssl_protocols TLSv1.2 TLSv1.3;
+    ssl_ciphers ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES256-GCM-SHA384:ECDHE-RSA-AES256-GCM-SHA384;
+    ssl_prefer_server_ciphers off;
+
+    location / {
+        proxy_pass http://127.0.0.1:18789;
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection "upgrade";
+        proxy_set_header Host $host;
+        proxy_read_timeout 86400s;
+        proxy_send_timeout 86400s;
+    }
+}
+NGINXEOF
+
+# Enable nginx site
+ln -sf /etc/nginx/sites-available/openclaw /etc/nginx/sites-enabled/
+rm -f /etc/nginx/sites-enabled/default
+nginx -t && systemctl enable nginx && systemctl restart nginx
+
+# Configure UFW: expose 443 (TLS) and 18789 (authenticated, for Edge Function health-checks)
+# Note: 18789 must remain externally accessible because Supabase Edge Functions (Deno runtime)
+# cannot connect to wss:// with self-signed certificates. Health-checks fall back to ws://18789.
+# Security is enforced by gateway_token authentication on port 18789.
+ufw allow 443/tcp
 ufw allow 18789/tcp
 ufw --force enable
 
-# Pull and start OpenClaw
-cd /opt/openclaw
-docker compose pull
-docker compose up -d
-
 echo "=== AltMe: OpenClaw provisioning complete ==="
+
+# Remove sensitive cloud-init user-data
+rm -f /var/lib/cloud/instance/user-data.txt
 `;
 }

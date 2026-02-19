@@ -1,5 +1,13 @@
-import React from 'react';
-import { View, Text, StyleSheet, ScrollView, Pressable, Alert } from 'react-native';
+import React, { useState } from 'react';
+import {
+  View,
+  Text,
+  StyleSheet,
+  ScrollView,
+  Pressable,
+  Modal,
+  ActivityIndicator,
+} from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Feather from '@expo/vector-icons/Feather';
 import { useTranslation } from 'react-i18next';
@@ -9,24 +17,21 @@ import { colors, spacing, fontSize, fontFamily } from '@/src/config/theme';
 import { useAuthStore } from '@/src/features/auth/stores/auth-store';
 import { useUser } from '@/src/shared/hooks/use-user';
 import { GuestPromptOverlay } from '@/src/shared/components/guest-prompt-overlay';
+import { useTwinData } from '@/src/features/insights/hooks/use-twin-data';
 
 type BigFiveTrait = {
   label: string;
   value: number;
 };
 
-const MOCK_BIG_FIVE: BigFiveTrait[] = [
-  { label: '開放性', value: 0.75 },
-  { label: '誠実性', value: 0.82 },
-  { label: '外向性', value: 0.45 },
-  { label: '協調性', value: 0.68 },
-  { label: '神経症傾向', value: 0.35 },
-];
-
 export default function TwinScreen() {
   const { t } = useTranslation();
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
   const user = useUser((s) => s.user);
+  const { isLoading, personalityTraits, hasData, fetchSoulMd } = useTwinData();
+  const [soulMdVisible, setSoulMdVisible] = useState(false);
+  const [soulMdContent, setSoulMdContent] = useState<string | null>(null);
+  const [soulMdLoading, setSoulMdLoading] = useState(false);
 
   if (!isAuthenticated) {
     return (
@@ -41,8 +46,22 @@ export default function TwinScreen() {
   const twinName = user?.twinName || t('twin.defaultName');
   const mbti = user?.mbtiType || 'INFP';
 
-  const handleViewSoulMd = () => {
-    Alert.alert('SOUL.md', t('twin.soulMdComingSoon'));
+  const bigFiveTraits: BigFiveTrait[] = personalityTraits
+    ? [
+        { label: '開放性', value: personalityTraits.openness / 100 },
+        { label: '誠実性', value: personalityTraits.conscientiousness / 100 },
+        { label: '外向性', value: personalityTraits.extraversion / 100 },
+        { label: '協調性', value: personalityTraits.agreeableness / 100 },
+        { label: '神経症傾向', value: personalityTraits.neuroticism / 100 },
+      ]
+    : [];
+
+  const handleViewSoulMd = async () => {
+    setSoulMdLoading(true);
+    setSoulMdVisible(true);
+    const content = await fetchSoulMd();
+    setSoulMdContent(content);
+    setSoulMdLoading(false);
   };
 
   return (
@@ -74,27 +93,40 @@ export default function TwinScreen() {
           {/* Personality Traits Section */}
           <Text style={styles.sectionTitle}>パーソナリティ特性</Text>
 
-          {/* Big Five Bars */}
-          <View style={styles.bigFiveContainer}>
-            {MOCK_BIG_FIVE.map((trait, index) => (
-              <View key={index} style={styles.traitRow}>
-                <Text style={styles.traitLabel}>{trait.label}</Text>
-                <View style={styles.progressBarContainer}>
-                  <View style={styles.progressBarTrack}>
-                    <View
-                      style={[
-                        styles.progressBarFill,
-                        { width: `${trait.value * 100}%` },
-                      ]}
-                    />
+          {isLoading ? (
+            <View style={styles.loadingContainer}>
+              <ActivityIndicator size="small" color={colors.primary} />
+            </View>
+          ) : !hasData ? (
+            <View style={styles.emptyContainer}>
+              <Feather name="alert-circle" size={32} color={colors.textSecondary} />
+              <Text style={styles.emptyText}>性格診断を受けてください</Text>
+              <Text style={styles.emptySubText}>
+                診断を完了するとあなたのパーソナリティが表示されます
+              </Text>
+            </View>
+          ) : (
+            <View style={styles.bigFiveContainer}>
+              {bigFiveTraits.map((trait) => (
+                <View key={trait.label} style={styles.traitRow}>
+                  <Text style={styles.traitLabel}>{trait.label}</Text>
+                  <View style={styles.progressBarContainer}>
+                    <View style={styles.progressBarTrack}>
+                      <View
+                        style={[
+                          styles.progressBarFill,
+                          { width: `${trait.value * 100}%` },
+                        ]}
+                      />
+                    </View>
+                    <Text style={styles.traitValue}>
+                      {Math.round(trait.value * 100)}%
+                    </Text>
                   </View>
-                  <Text style={styles.traitValue}>
-                    {Math.round(trait.value * 100)}%
-                  </Text>
                 </View>
-              </View>
-            ))}
-          </View>
+              ))}
+            </View>
+          )}
 
           {/* View SOUL.md Button */}
           <Pressable style={styles.viewSoulButton} onPress={handleViewSoulMd}>
@@ -103,6 +135,34 @@ export default function TwinScreen() {
             <Feather name="chevron-right" size={16} color={colors.textSecondary} />
           </Pressable>
         </ScrollView>
+
+        {/* SOUL.md Modal */}
+        <Modal
+          visible={soulMdVisible}
+          animationType="slide"
+          transparent
+          onRequestClose={() => setSoulMdVisible(false)}
+        >
+          <View style={styles.modalOverlay}>
+            <View style={styles.modalContainer}>
+              <View style={styles.modalHeader}>
+                <Text style={styles.modalTitle}>SOUL.md</Text>
+                <Pressable onPress={() => setSoulMdVisible(false)}>
+                  <Feather name="x" size={24} color={colors.text} />
+                </Pressable>
+              </View>
+              <ScrollView style={styles.modalBody}>
+                {soulMdLoading ? (
+                  <ActivityIndicator size="small" color={colors.primary} />
+                ) : soulMdContent ? (
+                  <Text style={styles.soulMdText}>{soulMdContent}</Text>
+                ) : (
+                  <Text style={styles.emptyText}>SOUL.mdはまだ生成されていません</Text>
+                )}
+              </ScrollView>
+            </View>
+          </View>
+        </Modal>
       </SafeAreaView>
     </CosmicBackground>
   );
@@ -181,6 +241,31 @@ const styles = StyleSheet.create({
     alignSelf: 'flex-start',
     marginBottom: spacing.md,
   },
+  loadingContainer: {
+    width: '100%',
+    paddingVertical: spacing.xl,
+    alignItems: 'center',
+    marginBottom: spacing.xl,
+  },
+  emptyContainer: {
+    width: '100%',
+    alignItems: 'center',
+    paddingVertical: spacing.xl,
+    gap: spacing.sm,
+    marginBottom: spacing.xl,
+  },
+  emptyText: {
+    fontSize: fontSize.md,
+    fontFamily: fontFamily.semiBold,
+    color: colors.text,
+    textAlign: 'center',
+  },
+  emptySubText: {
+    fontSize: fontSize.sm,
+    fontFamily: fontFamily.regular,
+    color: colors.textSecondary,
+    textAlign: 'center',
+  },
   bigFiveContainer: {
     width: '100%',
     gap: spacing.md,
@@ -234,5 +319,39 @@ const styles = StyleSheet.create({
     fontSize: fontSize.md,
     fontFamily: fontFamily.medium,
     color: colors.text,
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.7)',
+    justifyContent: 'flex-end',
+  },
+  modalContainer: {
+    backgroundColor: colors.background,
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+    maxHeight: '70%',
+    paddingBottom: spacing.xxl,
+  },
+  modalHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    padding: spacing.md,
+    borderBottomWidth: 1,
+    borderBottomColor: '#FFFFFF15',
+  },
+  modalTitle: {
+    fontSize: 18,
+    fontFamily: fontFamily.semiBold,
+    color: colors.text,
+  },
+  modalBody: {
+    padding: spacing.md,
+  },
+  soulMdText: {
+    fontSize: fontSize.sm,
+    fontFamily: fontFamily.regular,
+    color: colors.text,
+    lineHeight: 22,
   },
 });

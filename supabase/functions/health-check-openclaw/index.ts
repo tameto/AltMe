@@ -2,7 +2,8 @@ import { corsHeaders } from '../_shared/cors.ts';
 import { createServiceClient } from '../_shared/supabase.ts';
 
 const DIGITALOCEAN_API_TOKEN = Deno.env.get('DIGITALOCEAN_API_TOKEN') ?? '';
-const WEBSOCKET_PORT = 18789;
+const WSS_PORT = 443;
+const LEGACY_WS_PORT = 18789;
 const WEBSOCKET_TIMEOUT_MS = 5_000;
 const PROVISIONING_TIMEOUT_MS = 15 * 60 * 1_000;
 const HEALTH_STALE_THRESHOLD_MS = 15 * 60 * 1_000;
@@ -63,11 +64,16 @@ const extractIpAddress = (droplet: Record<string, unknown>): string | null => {
 };
 
 /**
- * Attempt a WebSocket health check against an OpenClaw Gateway.
+ * Attempt a WebSocket health check against an OpenClaw Gateway using a specific protocol and port.
  * Connects, sends a connect handshake, waits for a "connected" response.
  * Resolves true if healthy, false otherwise.
  */
-const wsHealthCheck = (ipAddress: string, gatewayToken: string): Promise<boolean> => {
+const wsHealthCheckWithProtocol = (
+  ipAddress: string,
+  gatewayToken: string,
+  protocol: 'ws' | 'wss',
+  port: number,
+): Promise<boolean> => {
   return new Promise((resolve) => {
     let settled = false;
     const settle = (result: boolean, ws?: WebSocket) => {
@@ -81,10 +87,11 @@ const wsHealthCheck = (ipAddress: string, gatewayToken: string): Promise<boolean
       resolve(result);
     };
 
-    const timeout = setTimeout(() => settle(false), WEBSOCKET_TIMEOUT_MS);
+    let ws: WebSocket | undefined;
+    const timeout = setTimeout(() => settle(false, ws), WEBSOCKET_TIMEOUT_MS);
 
     try {
-      const ws = new WebSocket(`ws://${ipAddress}:${WEBSOCKET_PORT}`);
+      ws = new WebSocket(`${protocol}://${ipAddress}:${port}`);
 
       ws.onopen = () => {
         ws.send(
@@ -124,6 +131,21 @@ const wsHealthCheck = (ipAddress: string, gatewayToken: string): Promise<boolean
       clearTimeout(timeout);
       settle(false);
     }
+  });
+};
+
+/**
+ * Attempt a WebSocket health check against an OpenClaw Gateway.
+ * Tries ws:// (port 18789) first because Deno runtime in Supabase Edge Functions
+ * rejects self-signed certificates on wss:// connections.
+ * Falls back to wss:// (port 443) in case ws:// port is restricted.
+ */
+const wsHealthCheck = (ipAddress: string, gatewayToken: string): Promise<boolean> => {
+  // ws:// first: Deno cannot connect to wss:// with self-signed certs
+  return wsHealthCheckWithProtocol(ipAddress, gatewayToken, 'ws', LEGACY_WS_PORT).then((result) => {
+    if (result) return true;
+    // Fallback to wss:// in case port 18789 is restricted
+    return wsHealthCheckWithProtocol(ipAddress, gatewayToken, 'wss', WSS_PORT);
   });
 };
 

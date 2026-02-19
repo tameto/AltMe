@@ -143,11 +143,8 @@ export default function SettingsScreen() {
   const appVersion = Constants.expoConfig?.version ?? '1.0.0';
 
   // OpenClaw instance state (must be before any conditional returns)
-  // Note: These will be used when full OpenClaw settings UI is built
   const [instance, setInstance] = useState<OpenClawInstance | null>(null);
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [isLoadingInstance, setIsLoadingInstance] = useState(false);
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [isRestarting, setIsRestarting] = useState(false);
 
   // Load OpenClaw instance for Pro users
@@ -180,8 +177,6 @@ export default function SettingsScreen() {
     };
   }, [isPro, user?.id]);
 
-  // Note: This will be used when full OpenClaw settings UI is built
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const handleRestartInstance = useCallback(async () => {
     Alert.alert(
       t('settings.instance.restartTitle'),
@@ -320,6 +315,43 @@ export default function SettingsScreen() {
               subtitle={t('settings.twinSettings.subtitle')}
               onPress={handleEditTwinName}
             />
+            {/* OpenClaw Instance Status - Pro only */}
+            {isPro && instance ? (
+              <View style={styles.instanceSection}>
+                <View style={styles.instanceHeader}>
+                  <Feather name="server" size={20} color={colors.text} />
+                  <View style={styles.settingRowContent}>
+                    <Text style={styles.settingLabel}>{t('settings.instance.title')}</Text>
+                    <View style={styles.instanceStatusRow}>
+                      <View style={[styles.instanceStatusDot, instanceStatusStyle(instance.status)]} />
+                      <Text style={styles.instanceStatusText}>
+                        {t(`settings.instance.status${capitalize(instance.status)}`)}
+                      </Text>
+                    </View>
+                  </View>
+                  {instance.status === 'running' ? (
+                    <Pressable
+                      onPress={handleRestartInstance}
+                      disabled={isRestarting}
+                      style={styles.restartButton}
+                    >
+                      {isRestarting ? (
+                        <ActivityIndicator size="small" color={colors.primary} />
+                      ) : (
+                        <Feather name="refresh-cw" size={18} color={colors.primary} />
+                      )}
+                    </Pressable>
+                  ) : null}
+                </View>
+                {instance.status === 'error' && instance.errorMessage ? (
+                  <Text style={styles.instanceError}>{instance.errorMessage}</Text>
+                ) : null}
+              </View>
+            ) : isPro && isLoadingInstance ? (
+              <View style={styles.instanceSection}>
+                <ActivityIndicator size="small" color={colors.primary} />
+              </View>
+            ) : null}
             <SettingRow
               icon="globe"
               label={t('settings.language')}
@@ -349,6 +381,20 @@ export default function SettingsScreen() {
       </SafeAreaView>
     </CosmicBackground>
   );
+}
+
+function capitalize(s: string): string {
+  return s.charAt(0).toUpperCase() + s.slice(1);
+}
+
+function instanceStatusStyle(status: string) {
+  switch (status) {
+    case 'running': return { backgroundColor: '#34D399' };
+    case 'provisioning': return { backgroundColor: '#FBBF24' };
+    case 'error': return { backgroundColor: colors.error };
+    case 'destroying': return { backgroundColor: '#F97316' };
+    default: return { backgroundColor: colors.textTertiary };
+  }
 }
 
 function SettingRow({
@@ -564,5 +610,42 @@ const styles = StyleSheet.create({
   },
   section: {
     marginBottom: spacing.lg,
+  },
+  instanceSection: {
+    paddingVertical: spacing.md,
+    borderBottomWidth: 1,
+    borderBottomColor: '#FFFFFF0A',
+  },
+  instanceHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.md,
+  },
+  instanceStatusRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    marginTop: 2,
+  },
+  instanceStatusDot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+  },
+  instanceStatusText: {
+    fontSize: fontSize.sm,
+    color: colors.textSecondary,
+  },
+  restartButton: {
+    width: 36,
+    height: 36,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  instanceError: {
+    fontSize: fontSize.xs,
+    color: colors.error,
+    marginTop: spacing.xs,
+    marginLeft: 36,
   },
 });

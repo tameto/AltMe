@@ -6,6 +6,7 @@ import {
   Pressable,
   TextInput,
   ScrollView,
+  Alert,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
@@ -15,12 +16,13 @@ import { useTranslation } from 'react-i18next';
 import { CosmicBackground } from '@/src/shared/components/cosmic-background';
 import { GoldButton } from '@/src/shared/components/gold-button';
 import { spacing, borderRadius, fontSize, fontFamily, glassmorphism } from '@/src/config/theme';
+import { createCommunity } from '@/src/services/community/client';
 
 type LanguageCode = 'ja' | 'en' | 'ko';
-type CategoryKey = 'entertainment' | 'lifestyle' | 'technology' | 'sports' | 'music';
+type CategoryKey = 'info' | 'business' | 'hobby' | 'casual' | 'other';
 
 const LANGUAGES: LanguageCode[] = ['ja', 'en', 'ko'];
-const CATEGORIES: CategoryKey[] = ['entertainment', 'lifestyle', 'technology', 'sports', 'music'];
+const CATEGORIES: CategoryKey[] = ['info', 'business', 'hobby', 'casual', 'other'];
 
 export default function CommunityCreateScreen() {
   const router = useRouter();
@@ -30,13 +32,34 @@ export default function CommunityCreateScreen() {
   const [description, setDescription] = useState('');
   const [selectedLanguage, setSelectedLanguage] = useState<LanguageCode>('ja');
   const [selectedCategory, setSelectedCategory] = useState<CategoryKey | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
 
   const isValid = channelName.trim().length > 0;
 
-  const handleCreate = () => {
-    if (!isValid) return;
-    // TODO: Implement channel creation logic
-    router.back();
+  const handleCreate = async () => {
+    if (!isValid || isLoading) return;
+
+    setIsLoading(true);
+    try {
+      const result = await createCommunity({
+        name: channelName.trim(),
+        description: description.trim(),
+        language: selectedLanguage,
+        category: selectedCategory ?? 'other',
+      });
+
+      if (result) {
+        router.back();
+      } else {
+        Alert.alert(
+          'エラー',
+          'コミュニティの作成に失敗しました。もう一度お試しください。',
+          [{ text: 'OK' }],
+        );
+      }
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -144,7 +167,7 @@ export default function CommunityCreateScreen() {
           <GoldButton
             title={t('community.create.cta')}
             onPress={handleCreate}
-            disabled={!isValid}
+            disabled={!isValid || isLoading}
           />
         </ScrollView>
       </SafeAreaView>

@@ -1,9 +1,34 @@
 /**
  * 課金イベントトラッキング基盤
  *
- * 現時点では開発環境のみ console.log ベースの実装。
- * 将来的に実際の Analytics SDK に差し替え予定。
+ * 開発環境では console.log に加え、PostHog SDK にも送信する。
  */
+
+import { env } from '@/src/config/env';
+
+// ---- PostHog クライアント（モジュールスコープ、冪等初期化） ----
+
+let posthogClient: any | null = null;
+
+/**
+ * PostHog Analytics を初期化する。
+ * 2回以上呼んでも1インスタンスのみ生成する（冪等）。
+ * posthog-react-native を動的 require することで jest.resetModules() 後も正しいモックを参照する。
+ */
+export async function initializeAnalytics(): Promise<void> {
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  if (!env.posthogApiKey) return;
+  const posthogModule = require('posthog-react-native') as any;
+  // モジュールレベルでシングルトンを管理（jest.resetModules() 後は新しいモジュールなのでリセットされる）
+  if (posthogModule.__posthogInstance) {
+    posthogClient = posthogModule.__posthogInstance;
+    return;
+  }
+  posthogClient = new posthogModule.PostHog(env.posthogApiKey, {
+    host: 'https://us.i.posthog.com',
+  });
+  posthogModule.__posthogInstance = posthogClient;
+}
 
 // ---- イベント定義 ----
 
@@ -36,13 +61,18 @@ export type EventName = (typeof EVENT_NAMES)[keyof typeof EVENT_NAMES];
 /**
  * イベントを送信する
  *
- * 現在は開発環境のみ console.log。将来的に Analytics SDK に差し替え予定。
+ * __DEV__ では console.log に出力し、PostHog SDK（初期化済みの場合）にも送信する。
  */
 export const trackEvent = (event: AnalyticsEvent): void => {
   if (__DEV__) {
     console.log(`[Analytics] ${event.name}`, event.properties ?? {});
   }
-  // TODO: 実際の Analytics SDK に置き換え
+
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  const activeClient: any = posthogClient ?? (require('posthog-react-native') as any).__posthogInstance ?? null;
+  if (activeClient) {
+    activeClient.capture(event.name, event.properties ?? {});
+  }
 };
 
 // ---- 型安全なイベントヘルパー ----
