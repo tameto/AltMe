@@ -4,4 +4,5 @@ export const env = {
   revenuecatIosKey: process.env.EXPO_PUBLIC_REVENUECAT_IOS_KEY ?? '',
   revenuecatAndroidKey: process.env.EXPO_PUBLIC_REVENUECAT_ANDROID_KEY ?? '',
   googleWebClientId: process.env.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID ?? '',
+  posthogApiKey: process.env.EXPO_PUBLIC_POSTHOG_API_KEY ?? '',
 } as const;

@@ -14,6 +14,11 @@ jest.mock('@/src/services/revenuecat/client', () => ({
   restorePurchases: jest.fn(),
 }));
 
+const checkSubscriptionStatusMock = checkSubscriptionStatus as jest.Mock;
+const getOfferingsMock = getOfferings as jest.Mock;
+const purchasePackageMock = purchasePackage as jest.Mock;
+const restorePurchasesMock = restorePurchases as jest.Mock;
+
 describe('useSubscription store', () => {
   beforeEach(() => {
     useSubscription.getState().reset();
@@ -38,7 +43,7 @@ describe('useSubscription store', () => {
   });
 
   it('refreshStatus fetches and updates entitlement', async () => {
-    checkSubscriptionStatus.mockResolvedValue({
+    checkSubscriptionStatusMock.mockResolvedValue({
       isPro: true,
       isTrialing: false,
       status: 'active',
@@ -57,7 +62,7 @@ describe('useSubscription store', () => {
   });
 
   it('refreshStatus handles errors gracefully', async () => {
-    checkSubscriptionStatus.mockRejectedValue(new Error('Network error'));
+    checkSubscriptionStatusMock.mockRejectedValue(new Error('Network error'));
 
     await useSubscription.getState().refreshStatus();
 
@@ -68,7 +73,7 @@ describe('useSubscription store', () => {
 
   it('loadOfferings fetches offerings', async () => {
     const mockOfferings = { current: { identifier: 'default', availablePackages: [] } };
-    getOfferings.mockResolvedValue(mockOfferings);
+    getOfferingsMock.mockResolvedValue(mockOfferings);
 
     const result = await useSubscription.getState().loadOfferings();
 
@@ -85,7 +90,7 @@ describe('useSubscription store', () => {
       expiresAt: null,
       trialDaysRemaining: null,
     };
-    purchasePackage.mockResolvedValue(mockEntitlement);
+    purchasePackageMock.mockResolvedValue(mockEntitlement);
 
     const mockPkg = { identifier: '$rc_monthly' } as never;
     const result = await useSubscription.getState().purchase(mockPkg);
@@ -95,7 +100,7 @@ describe('useSubscription store', () => {
   });
 
   it('purchase returns false when user cancels', async () => {
-    purchasePackage.mockRejectedValue(new Error('PURCHASE_CANCELLED'));
+    purchasePackageMock.mockRejectedValue(new Error('PURCHASE_CANCELLED'));
 
     const mockPkg = { identifier: '$rc_monthly' } as never;
     const result = await useSubscription.getState().purchase(mockPkg);
@@ -104,7 +109,7 @@ describe('useSubscription store', () => {
   });
 
   it('purchase throws on non-cancellation errors', async () => {
-    purchasePackage.mockRejectedValue(new Error('PAYMENT_FAILED'));
+    purchasePackageMock.mockRejectedValue(new Error('PAYMENT_FAILED'));
 
     const mockPkg = { identifier: '$rc_monthly' } as never;
     await expect(useSubscription.getState().purchase(mockPkg)).rejects.toThrow('PAYMENT_FAILED');
@@ -119,7 +124,7 @@ describe('useSubscription store', () => {
       expiresAt: null,
       trialDaysRemaining: null,
     };
-    restorePurchases.mockResolvedValue(mockEntitlement);
+    restorePurchasesMock.mockResolvedValue(mockEntitlement);
 
     const result = await useSubscription.getState().restore();
 
@@ -128,7 +133,7 @@ describe('useSubscription store', () => {
   });
 
   it('restore returns false on error', async () => {
-    restorePurchases.mockRejectedValue(new Error('Restore failed'));
+    restorePurchasesMock.mockRejectedValue(new Error('Restore failed'));
 
     const result = await useSubscription.getState().restore();
 

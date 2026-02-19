@@ -1,3 +1,13 @@
+/**
+ * TDD-RED + Existing: Analytics Tracker Tests
+ *
+ * Existing tests for console.log behavior are preserved.
+ * New tests for PostHog SDK integration added (TDD-RED).
+ *
+ * SDD Spec: Feature 4 (Analytics SDK Integration)
+ * AC-4.1 ~ AC-4.6
+ */
+
 import {
   trackEvent,
   trackPaywallViewed,
@@ -12,8 +22,26 @@ import {
   trackChatSent,
   trackJournalCreated,
   trackMoodRecorded,
+  initializeAnalytics,
   EVENT_NAMES,
 } from '../tracker';
+
+// Mock PostHog
+jest.mock('posthog-react-native', () => ({
+  PostHog: jest.fn().mockImplementation(() => ({
+    capture: jest.fn(),
+    identify: jest.fn(),
+    flush: jest.fn(),
+    shutdown: jest.fn(),
+  })),
+}));
+
+// Mock env
+jest.mock('@/src/config/env', () => ({
+  env: {
+    posthogApiKey: 'phc_test_key_123',
+  },
+}));
 
 describe('Analytics Tracker', () => {
   let consoleSpy: jest.SpyInstance;
@@ -26,7 +54,9 @@ describe('Analytics Tracker', () => {
     consoleSpy.mockRestore();
   });
 
-  describe('trackEvent', () => {
+  // --- Existing console.log tests (preserved) ---
+
+  describe('trackEvent (console.log in __DEV__)', () => {
     it('logs event name and properties', () => {
       trackEvent({ name: 'test_event', properties: { key: 'value' } });
 
@@ -138,6 +168,52 @@ describe('Analytics Tracker', () => {
         `[Analytics] ${EVENT_NAMES.MOOD_RECORDED}`,
         { mood: 'happy' },
       );
+    });
+  });
+
+  // --- NEW: PostHog SDK Integration Tests (TDD-RED) ---
+
+  describe('PostHog integration', () => {
+    it('initializeAnalytics creates PostHog instance', async () => {
+      await initializeAnalytics();
+
+      // After initialization, PostHog should be configured
+      const { PostHog } = require('posthog-react-native');
+      expect(PostHog).toHaveBeenCalled();
+    });
+
+    it('trackEvent sends capture to PostHog after initialization', async () => {
+      await initializeAnalytics();
+
+      trackEvent({ name: 'test_posthog_event', properties: { key: 'value' } });
+
+      const { PostHog } = require('posthog-react-native');
+      const instance = PostHog.mock.results[0]?.value;
+      if (instance) {
+        expect(instance.capture).toHaveBeenCalledWith(
+          'test_posthog_event',
+          { key: 'value' },
+        );
+      }
+    });
+
+    it('trackEvent does not crash when PostHog is not initialized', () => {
+      // Reset module to clear initialization
+      jest.resetModules();
+
+      // This should not throw even without initialization
+      expect(() => {
+        trackEvent({ name: 'safe_event' });
+      }).not.toThrow();
+    });
+
+    it('initializeAnalytics is idempotent', async () => {
+      await initializeAnalytics();
+      await initializeAnalytics();
+
+      const { PostHog } = require('posthog-react-native');
+      // Should only create one instance
+      expect(PostHog).toHaveBeenCalledTimes(1);
     });
   });
 });

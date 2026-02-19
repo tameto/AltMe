@@ -7,6 +7,7 @@ module.exports = {
   moduleNameMapper: {
     '^@/(.*)$': '<rootDir>/$1',
   },
+  clearMocks: true,
   testPathIgnorePatterns: [
     '/node_modules/',
     '/supabase/',

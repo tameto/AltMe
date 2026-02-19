@@ -1,5 +1,13 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, Pressable } from 'react-native';
+import {
+  View,
+  Text,
+  StyleSheet,
+  FlatList,
+  Pressable,
+  ActivityIndicator,
+  RefreshControl,
+} from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Feather from '@expo/vector-icons/Feather';
 import { useTranslation } from 'react-i18next';
@@ -11,22 +19,10 @@ import { GoldButton } from '@/src/shared/components/gold-button';
 import { colors, spacing, fontSize, fontFamily, borderRadius } from '@/src/config/theme';
 import { useAuthStore } from '@/src/features/auth/stores/auth-store';
 import { useIsPro } from '@/src/shared/hooks/use-subscription';
+import { useCommunities } from '@/src/features/community/hooks/use-communities';
+import type { Community } from '@/src/services/community/client';
 
 type Language = 'jp' | 'en';
-
-type Community = {
-  id: string;
-  name: string;
-  thumbnail: string;
-  participantCount: number;
-  conversationCount: number;
-};
-
-const MOCK_COMMUNITIES: Community[] = [
-  { id: '1', name: 'ビジネスリーダー', thumbnail: '💼', participantCount: 1234, conversationCount: 567 },
-  { id: '2', name: 'クリエイティブ', thumbnail: '🎨', participantCount: 892, conversationCount: 423 },
-  { id: '3', name: 'ウェルネス', thumbnail: '🧘', participantCount: 654, conversationCount: 312 },
-];
 
 export default function CommunityScreen() {
   const { t } = useTranslation();
@@ -35,117 +31,143 @@ export default function CommunityScreen() {
   const isPro = useIsPro();
   const [language, setLanguage] = useState<Language>('jp');
 
+  const { communities, isLoading, isRefreshing, refresh } = useCommunities();
+
   const handleUpgradeToPro = () => {
     router.push('/(paywall)' as Href);
   };
 
+  const renderCommunity = ({ item }: { item: Community }) => (
+    <Pressable style={styles.communityCardWrapper}>
+      <View style={styles.communityCard}>
+        <View style={styles.communityThumbnail}>
+          <Feather name="users" size={24} color={colors.textSecondary} />
+        </View>
+        <View style={styles.communityInfo}>
+          <Text style={styles.communityName}>{item.name}</Text>
+          {item.description !== null ? (
+            <Text style={styles.communityDescription} numberOfLines={1}>
+              {item.description}
+            </Text>
+          ) : null}
+          <View style={styles.communityStats}>
+            <View style={styles.communityStat}>
+              <Feather name="users" size={14} color={colors.textSecondary} />
+              <Text style={styles.communityStatText}>{item.memberCount}</Text>
+            </View>
+          </View>
+        </View>
+        <Feather name="chevron-right" size={20} color={colors.textTertiary} />
+      </View>
+    </Pressable>
+  );
+
+  const ListHeader = (
+    <>
+      {/* Header */}
+      <View style={styles.header}>
+        <Text style={styles.headerTitle}>AltMe</Text>
+        {/* Language Switcher */}
+        <View style={styles.languageSwitcher}>
+          <Pressable
+            style={[
+              styles.languageButton,
+              language === 'jp' ? styles.languageButtonActive : styles.languageButtonInactive,
+            ]}
+            onPress={() => setLanguage('jp')}
+          >
+            <Text
+              style={[
+                styles.languageButtonText,
+                language === 'jp' ? styles.languageButtonTextActive : styles.languageButtonTextInactive,
+              ]}
+            >
+              JP
+            </Text>
+          </Pressable>
+          <Pressable
+            style={[
+              styles.languageButton,
+              language === 'en' ? styles.languageButtonActive : styles.languageButtonInactive,
+            ]}
+            onPress={() => setLanguage('en')}
+          >
+            <Text
+              style={[
+                styles.languageButtonText,
+                language === 'en' ? styles.languageButtonTextActive : styles.languageButtonTextInactive,
+              ]}
+            >
+              EN
+            </Text>
+          </Pressable>
+        </View>
+      </View>
+
+      {/* Popular Communities Section */}
+      <View style={styles.sectionHeader}>
+        <Text style={styles.sectionTitle}>人気のコミュニティ</Text>
+        <Pressable style={styles.addButton} onPress={() => router.push('/community-create' as Href)}>
+          <Feather name="plus" size={20} color={colors.primary} />
+        </Pressable>
+      </View>
+
+      {isLoading ? (
+        <ActivityIndicator color={colors.primary} style={styles.loader} />
+      ) : null}
+    </>
+  );
+
+  const ListFooter = (
+    <>
+      {/* Pro Upgrade Banner */}
+      {!isPro ? (
+        <GlassCard style={styles.proUpgradeBanner}>
+          <Text style={styles.proUpgradeTitle}>
+            Proメンバーになってもっと楽しもう
+          </Text>
+          <Text style={styles.proUpgradeSubtitle}>
+            すべてのコミュニティに参加できます
+          </Text>
+          <GoldButton
+            title="Proにアップグレード"
+            onPress={handleUpgradeToPro}
+            style={styles.proUpgradeButton}
+          />
+        </GlassCard>
+      ) : null}
+
+      {/* Guest Banner */}
+      {!isAuthenticated ? (
+        <View style={styles.guestBanner}>
+          <Feather name="eye" size={16} color={colors.textSecondary} />
+          <Text style={styles.guestBannerText}>
+            {t('community.guestBanner')}
+          </Text>
+        </View>
+      ) : null}
+    </>
+  );
+
   return (
     <CosmicBackground>
       <SafeAreaView style={styles.container} edges={['top']}>
-        <ScrollView
+        <FlatList
+          data={communities}
+          keyExtractor={(item) => item.id}
+          renderItem={renderCommunity}
           contentContainerStyle={styles.content}
           contentInsetAdjustmentBehavior="automatic"
-        >
-          {/* Header */}
-          <View style={styles.header}>
-            <Text style={styles.headerTitle}>AltMe</Text>
-            {/* Language Switcher */}
-            <View style={styles.languageSwitcher}>
-              <Pressable
-                style={[
-                  styles.languageButton,
-                  language === 'jp' ? styles.languageButtonActive : styles.languageButtonInactive,
-                ]}
-                onPress={() => setLanguage('jp')}
-              >
-                <Text
-                  style={[
-                    styles.languageButtonText,
-                    language === 'jp' ? styles.languageButtonTextActive : styles.languageButtonTextInactive,
-                  ]}
-                >
-                  JP
-                </Text>
-              </Pressable>
-              <Pressable
-                style={[
-                  styles.languageButton,
-                  language === 'en' ? styles.languageButtonActive : styles.languageButtonInactive,
-                ]}
-                onPress={() => setLanguage('en')}
-              >
-                <Text
-                  style={[
-                    styles.languageButtonText,
-                    language === 'en' ? styles.languageButtonTextActive : styles.languageButtonTextInactive,
-                  ]}
-                >
-                  EN
-                </Text>
-              </Pressable>
-            </View>
-          </View>
-
-          {/* Popular Communities Section */}
-          <View style={styles.sectionHeader}>
-            <Text style={styles.sectionTitle}>人気のコミュニティ</Text>
-            <Pressable style={styles.addButton} onPress={() => router.push('/community-create' as Href)}>
-              <Feather name="plus" size={20} color={colors.primary} />
-            </Pressable>
-          </View>
-
-          {/* Community Cards */}
-          {MOCK_COMMUNITIES.map((community) => (
-            <Pressable key={community.id} style={styles.communityCardWrapper}>
-              <View style={styles.communityCard}>
-                <View style={styles.communityThumbnail}>
-                  <Text style={styles.communityThumbnailText}>{community.thumbnail}</Text>
-                </View>
-                <View style={styles.communityInfo}>
-                  <Text style={styles.communityName}>{community.name}</Text>
-                  <View style={styles.communityStats}>
-                    <View style={styles.communityStat}>
-                      <Feather name="users" size={14} color={colors.textSecondary} />
-                      <Text style={styles.communityStatText}>{community.participantCount}</Text>
-                    </View>
-                    <View style={styles.communityStat}>
-                      <Feather name="message-circle" size={14} color={colors.textSecondary} />
-                      <Text style={styles.communityStatText}>{community.conversationCount}</Text>
-                    </View>
-                  </View>
-                </View>
-                <Feather name="chevron-right" size={20} color={colors.textTertiary} />
-              </View>
-            </Pressable>
-          ))}
-
-          {/* Pro Upgrade Banner */}
-          {!isPro && (
-            <GlassCard style={styles.proUpgradeBanner}>
-              <Text style={styles.proUpgradeTitle}>
-                Proメンバーになってもっと楽しもう
-              </Text>
-              <Text style={styles.proUpgradeSubtitle}>
-                すべてのコミュニティに参加できます
-              </Text>
-              <GoldButton
-                title="Proにアップグレード"
-                onPress={handleUpgradeToPro}
-                style={styles.proUpgradeButton}
-              />
-            </GlassCard>
-          )}
-
-          {/* Guest Banner */}
-          {!isAuthenticated && (
-            <View style={styles.guestBanner}>
-              <Feather name="eye" size={16} color={colors.textSecondary} />
-              <Text style={styles.guestBannerText}>
-                {t('community.guestBanner')}
-              </Text>
-            </View>
-          )}
-        </ScrollView>
+          ListHeaderComponent={ListHeader}
+          ListFooterComponent={ListFooter}
+          refreshControl={
+            <RefreshControl
+              refreshing={isRefreshing}
+              onRefresh={refresh}
+              tintColor={colors.primary}
+            />
+          }
+        />
       </SafeAreaView>
     </CosmicBackground>
   );
@@ -215,6 +237,9 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
+  loader: {
+    marginVertical: spacing.lg,
+  },
   communityCardWrapper: {
     marginBottom: spacing.md,
   },
@@ -236,9 +261,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
-  communityThumbnailText: {
-    fontSize: 24,
-  },
   communityInfo: {
     flex: 1,
     gap: spacing.xs,
@@ -247,6 +269,10 @@ const styles = StyleSheet.create({
     fontSize: fontSize.md,
     fontFamily: fontFamily.semiBold,
     color: colors.text,
+  },
+  communityDescription: {
+    fontSize: fontSize.sm,
+    color: colors.textSecondary,
   },
   communityStats: {
     flexDirection: 'row',

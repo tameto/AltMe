@@ -21,6 +21,7 @@ import {
   addNotificationResponseListener,
   clearBadgeCount,
 } from '@/src/services/notifications/client';
+import { initializeAnalytics } from '@/src/services/analytics/tracker';
 
 export { ErrorBoundary } from 'expo-router';
 
@@ -63,9 +64,10 @@ function RootLayoutNav() {
   const { isAuthenticated, isGuest, isLoading: authLoading, initialize } = useAuthStore();
   const user = useUser((s) => s.user);
 
-  // Initialize auth on mount
+  // Initialize auth and analytics on mount
   useEffect(() => {
     initialize();
+    initializeAnalytics();
   }, [initialize]);
 
   // Register push notifications when authenticated
