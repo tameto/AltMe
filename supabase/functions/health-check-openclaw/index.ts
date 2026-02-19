@@ -136,14 +136,16 @@ const wsHealthCheckWithProtocol = (
 
 /**
  * Attempt a WebSocket health check against an OpenClaw Gateway.
- * Tries wss:// (TLS, port 443) first, falls back to ws:// (legacy, port 18789).
+ * Tries ws:// (port 18789) first because Deno runtime in Supabase Edge Functions
+ * rejects self-signed certificates on wss:// connections.
+ * Falls back to wss:// (port 443) in case ws:// port is restricted.
  */
 const wsHealthCheck = (ipAddress: string, gatewayToken: string): Promise<boolean> => {
-  // Try wss:// first (new TLS instances), fall back to ws:// (legacy)
-  return wsHealthCheckWithProtocol(ipAddress, gatewayToken, 'wss', WSS_PORT).then((result) => {
+  // ws:// first: Deno cannot connect to wss:// with self-signed certs
+  return wsHealthCheckWithProtocol(ipAddress, gatewayToken, 'ws', LEGACY_WS_PORT).then((result) => {
     if (result) return true;
-    // Fallback to legacy ws:// for pre-TLS instances
-    return wsHealthCheckWithProtocol(ipAddress, gatewayToken, 'ws', LEGACY_WS_PORT);
+    // Fallback to wss:// in case port 18789 is restricted
+    return wsHealthCheckWithProtocol(ipAddress, gatewayToken, 'wss', WSS_PORT);
   });
 };
 

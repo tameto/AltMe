@@ -352,7 +352,7 @@ services:
     container_name: openclaw
     restart: unless-stopped
     ports:
-      - "127.0.0.1:18789:18789"
+      - "18789:18789"
     volumes:
       - /opt/openclaw/soul.md:/app/SOUL.md:ro
     environment:
@@ -437,10 +437,12 @@ ln -sf /etc/nginx/sites-available/openclaw /etc/nginx/sites-enabled/
 rm -f /etc/nginx/sites-enabled/default
 nginx -t && systemctl enable nginx && systemctl restart nginx
 
-# Configure UFW: expose 443 externally, restrict 18789 to localhost only
+# Configure UFW: expose 443 (TLS) and 18789 (authenticated, for Edge Function health-checks)
+# Note: 18789 must remain externally accessible because Supabase Edge Functions (Deno runtime)
+# cannot connect to wss:// with self-signed certificates. Health-checks fall back to ws://18789.
+# Security is enforced by gateway_token authentication on port 18789.
 ufw allow 443/tcp
-ufw delete allow 18789/tcp 2>/dev/null || true
-ufw allow from 127.0.0.1 to any port 18789 proto tcp
+ufw allow 18789/tcp
 ufw --force enable
 
 echo "=== AltMe: OpenClaw provisioning complete ==="
