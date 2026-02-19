@@ -317,7 +317,19 @@
       "push": "Push Notifications",
       "dailyReminder": "Daily Reminder",
       "subtitle": "Customize notifications",
-      "comingSoon": "Coming soon. Stay tuned for future updates."
+      "comingSoon": "Coming soon. Stay tuned for future updates.",
+      "systemDisabled": "Device notifications are turned off",
+      "openSettings": "Open Settings",
+      "chat": "Chat Notifications",
+      "chatDesc": "Receive messages from your twin",
+      "journalReminder": "Journal Reminder",
+      "journalReminderDesc": "Daily morning journal reminder",
+      "community": "Community Notifications",
+      "communityDesc": "Likes and comments notifications",
+      "marketing": "Announcements",
+      "marketingDesc": "New features and campaigns",
+      "updateError": "Failed to update settings",
+      "loadError": "Failed to load settings"
     },
     "account": {
       "title": "Account",

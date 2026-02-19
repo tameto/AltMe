@@ -318,7 +318,19 @@
       "push": "プッシュ通知",
       "dailyReminder": "デイリーリマインダー",
       "subtitle": "通知のカスタマイズ",
-      "comingSoon": "現在準備中です。今後のアップデートをお待ちください。"
+      "comingSoon": "現在準備中です。今後のアップデートをお待ちください。",
+      "systemDisabled": "端末の通知がオフになっています",
+      "openSettings": "設定を開く",
+      "chat": "チャット通知",
+      "chatDesc": "ツインからのメッセージを受け取る",
+      "journalReminder": "日記リマインダー",
+      "journalReminderDesc": "毎朝の日記の書き込みリマインダー",
+      "community": "コミュニティ通知",
+      "communityDesc": "いいね・コメントの通知",
+      "marketing": "お知らせ",
+      "marketingDesc": "新機能やキャンペーンのお知らせ",
+      "updateError": "設定の更新に失敗しました",
+      "loadError": "設定の読み込みに失敗しました"
     },
     "account": {
       "title": "アカウント",

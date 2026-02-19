@@ -1,11 +1,17 @@
 import { createServiceClient } from '../_shared/supabase.ts';
 import { corsHeaders } from '../_shared/cors.ts';
+import { sendOneSignalNotification } from '../_shared/onesignal.ts';
+
+interface NotificationPayload {
+  userId: string;
+  title: string;
+  body: string;
+}
 
 /**
  * Daily notification Edge Function
  * Triggered by Supabase cron job to send morning greetings
- *
- * TODO: Task #27 - Connect to Expo Push Notifications service
+ * Sends only to users with journal_reminder_enabled = true
  */
 Deno.serve(async (req: Request) => {
   if (req.method === 'OPTIONS') {
@@ -13,15 +19,54 @@ Deno.serve(async (req: Request) => {
   }
 
   try {
+    // Auth: accept service_role Bearer token OR x-cron-secret header
+    const authHeader = req.headers.get('Authorization');
+    const serviceRoleKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
+    const cronSecret = Deno.env.get('CRON_SECRET');
+    const incomingCronSecret = req.headers.get('x-cron-secret');
+
+    const isServiceRole = serviceRoleKey && authHeader === `Bearer ${serviceRoleKey}`;
+    const isCron = cronSecret && incomingCronSecret === cronSecret;
+
+    if (!isServiceRole && !isCron) {
+      return new Response(
+        JSON.stringify({ error: 'unauthorized' }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
+      );
+    }
+
     const supabase = createServiceClient();
 
-    // Get all users with active subscriptions or in trial
-    const { data: activeUsers } = await supabase
+    // Step 1: Get active subscribers with profiles
+    const { data: activeSubscriptions } = await supabase
       .from('subscriptions')
       .select('user_id, profiles(display_name, twin_name, timezone)')
       .in('status', ['active', 'trial']);
 
-    if (!activeUsers || activeUsers.length === 0) {
+    if (!activeSubscriptions || activeSubscriptions.length === 0) {
+      return new Response(
+        JSON.stringify({ sent: 0 }),
+        { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
+      );
+    }
+
+    // Step 2: Filter by notification_settings (journal_reminder_enabled)
+    const userIds = activeSubscriptions.map((s: Record<string, unknown>) => s.user_id as string);
+    const { data: enabledSettings } = await supabase
+      .from('notification_settings')
+      .select('user_id')
+      .in('user_id', userIds)
+      .eq('journal_reminder_enabled', true);
+
+    const enabledUserIds = new Set(
+      (enabledSettings ?? []).map((s: { user_id: string }) => s.user_id),
+    );
+
+    const activeUsers = activeSubscriptions.filter(
+      (s: Record<string, unknown>) => enabledUserIds.has(s.user_id as string),
+    );
+
+    if (activeUsers.length === 0) {
       return new Response(
         JSON.stringify({ sent: 0 }),
         { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
@@ -39,9 +84,15 @@ Deno.serve(async (req: Request) => {
       return localHour >= 7 && localHour <= 9;
     });
 
-    // TODO: Send push notifications via Expo Notifications
-    // For each user, send a personalized morning greeting
-    const notifications = morningUsers.map((u: Record<string, unknown>) => {
+    if (morningUsers.length === 0) {
+      return new Response(
+        JSON.stringify({ sent: 0 }),
+        { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
+      );
+    }
+
+    // Build per-user notification messages
+    const notifications: NotificationPayload[] = morningUsers.map((u: Record<string, unknown>) => {
       const profile = u.profiles as Record<string, string> | null;
       const twinName = profile?.twin_name || 'AltMe';
       const displayName = profile?.display_name || 'ユーザー';
@@ -54,19 +105,36 @@ Deno.serve(async (req: Request) => {
       ];
 
       return {
-        userId: u.user_id,
+        userId: u.user_id as string,
         title: twinName,
         body: greetings[Math.floor(Math.random() * greetings.length)],
       };
     });
 
-    console.log(`Prepared ${notifications.length} morning notifications`);
+    // Send per-user because each greeting is personalized
+    let sentCount = 0;
+    const errors: string[] = [];
 
-    // TODO: Actually send via Expo Push API
-    // await sendExpoPushNotifications(notifications);
+    for (const notification of notifications) {
+      const result = await sendOneSignalNotification({
+        userIds: [notification.userId],
+        title: notification.title,
+        body: notification.body,
+        data: { screen: 'journal' },
+      });
+
+      if (result.success) {
+        sentCount++;
+      } else {
+        console.error(`Failed to send to user ${notification.userId}:`, result.errors);
+        errors.push(...(result.errors ?? []));
+      }
+    }
+
+    console.log(`Sent ${sentCount}/${notifications.length} morning notifications`);
 
     return new Response(
-      JSON.stringify({ sent: notifications.length }),
+      JSON.stringify({ sent: sentCount, errors: errors.length > 0 ? errors : undefined }),
       { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
     );
   } catch (error) {

@@ -1,112 +1,54 @@
-import * as Notifications from 'expo-notifications';
-import * as Device from 'expo-device';
-import { Platform } from 'react-native';
-import { supabase } from '@/src/services/supabase/client';
-
-// Configure notification handler
-Notifications.setNotificationHandler({
-  handleNotification: async () => ({
-    shouldShowAlert: true,
-    shouldPlaySound: true,
-    shouldSetBadge: false,
-    shouldShowBanner: true,
-    shouldShowList: true,
-  }),
-});
+import { OneSignal, NotificationClickEvent } from 'react-native-onesignal';
+import { env } from '@/src/config/env';
 
 /**
- * Register for push notifications and save token to Supabase
+ * Initialize OneSignal SDK (call once in RootLayout)
  */
-export const registerForPushNotifications = async (userId: string): Promise<string | null> => {
-  if (!Device.isDevice) {
-    console.log('Push notifications require a physical device');
-    return null;
-  }
-
-  // Check existing permissions
-  const { status: existingStatus } = await Notifications.getPermissionsAsync();
-  let finalStatus = existingStatus;
-
-  // Request if not already granted
-  if (existingStatus !== 'granted') {
-    const { status } = await Notifications.requestPermissionsAsync();
-    finalStatus = status;
-  }
-
-  if (finalStatus !== 'granted') {
-    console.log('Push notification permission not granted');
-    return null;
-  }
-
-  // Get Expo push token
-  const tokenData = await Notifications.getExpoPushTokenAsync({
-    projectId: process.env.EXPO_PUBLIC_PROJECT_ID,
-  });
-  const token = tokenData.data;
-
-  // Save token to Supabase profile
-  await supabase
-    .from('profiles')
-    .update({ push_token: token })
-    .eq('id', userId);
-
-  // Set up notification channel (non-iOS platforms)
-  if (Platform.OS !== 'ios') {
-    await Notifications.setNotificationChannelAsync('morning', {
-      name: '朝の挨拶',
-      importance: Notifications.AndroidImportance.HIGH,
-      vibrationPattern: [0, 250, 250, 250],
-      lightColor: '#7C3AED',
-    });
-  }
-
-  return token;
+export const initializeOneSignal = (): void => {
+  OneSignal.initialize(env.onesignalAppId);
+  // iOS ではプロンプトを自動表示しない（後で明示的に呼ぶ）
 };
 
 /**
- * Schedule a local notification (for testing)
+ * Request notification permission
+ * Returns true if granted
  */
-export const scheduleLocalNotification = async (
-  title: string,
-  body: string,
-  triggerSeconds?: number,
-): Promise<string> => {
-  return Notifications.scheduleNotificationAsync({
-    content: { title, body, sound: true },
-    trigger: triggerSeconds
-      ? { seconds: triggerSeconds, type: Notifications.SchedulableTriggerInputTypes.TIME_INTERVAL }
-      : null,
-  });
+export const requestNotificationPermission = async (): Promise<boolean> => {
+  return OneSignal.Notifications.requestPermission(true);
 };
 
 /**
- * Add notification response listener (when user taps notification)
+ * Login user to OneSignal (set External User ID)
+ * Call when user is authenticated
  */
-export const addNotificationResponseListener = (
-  callback: (response: Notifications.NotificationResponse) => void,
-): Notifications.EventSubscription => {
-  return Notifications.addNotificationResponseReceivedListener(callback);
+export const loginOneSignal = (userId: string): void => {
+  OneSignal.login(userId);
 };
 
 /**
- * Add notification received listener (when app is in foreground)
+ * Logout from OneSignal
+ * Call when user signs out
  */
-export const addNotificationReceivedListener = (
-  callback: (notification: Notifications.Notification) => void,
-): Notifications.EventSubscription => {
-  return Notifications.addNotificationReceivedListener(callback);
+export const logoutOneSignal = (): void => {
+  OneSignal.logout();
 };
 
 /**
- * Get current badge count
+ * Add click listener (when user taps notification)
+ * Returns cleanup function
  */
-export const getBadgeCount = async (): Promise<number> => {
-  return Notifications.getBadgeCountAsync();
+export const addNotificationClickListener = (
+  callback: (event: NotificationClickEvent) => void,
+): (() => void) => {
+  OneSignal.Notifications.addEventListener('click', callback);
+  return () => {
+    OneSignal.Notifications.removeEventListener('click', callback);
+  };
 };
 
 /**
- * Clear badge count
+ * Check if notifications are enabled
  */
-export const clearBadgeCount = async (): Promise<void> => {
-  await Notifications.setBadgeCountAsync(0);
+export const getNotificationPermissionStatus = async (): Promise<boolean> => {
+  return OneSignal.Notifications.getPermissionAsync();
 };
