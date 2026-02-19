@@ -24,6 +24,8 @@ export class OpenClawWebSocketClient {
   private reconnectAttempt = 0;
   private reconnectTimer: ReturnType<typeof setTimeout> | null = null;
   private isManualClose = false;
+  private useTls: boolean = true;
+  private hasEstablishedTlsSession = false;
 
   constructor(options: WebSocketClientOptions) {
     this.options = options;
@@ -37,14 +39,28 @@ export class OpenClawWebSocketClient {
     this.isManualClose = false;
     this.options.onStatusChange('connecting');
 
-    const url = `ws://${this.options.ipAddress}:${OPENCLAW.gatewayPort}`;
+    const protocol = this.useTls ? 'wss' : 'ws';
+    const port = this.useTls ? OPENCLAW.wsPort : OPENCLAW.gatewayPort;
+    const url = `${protocol}://${this.options.ipAddress}:${port}`;
     this.ws = new WebSocket(url);
+
+    let failureHandled = false;
+    const handleFailure = () => {
+      if (failureHandled || this.isManualClose) return;
+      failureHandled = true;
+      if (this.useTls && !this.hasEstablishedTlsSession) {
+        console.warn('TLS connection failed, falling back to ws://');
+        this.useTls = false;
+      }
+      this.options.onStatusChange('disconnected');
+      this.scheduleReconnect();
+    };
 
     const connectionTimeout = setTimeout(() => {
       if (this.ws?.readyState !== WebSocket.OPEN) {
-        this.ws?.close();
         this.options.onError('CONNECTION_TIMEOUT', 'Connection timed out');
-        this.scheduleReconnect();
+        try { this.ws?.close(); } catch { /* ignore */ }
+        handleFailure();
       }
     }, OPENCLAW.connectionTimeoutMs);
 
@@ -59,10 +75,7 @@ export class OpenClawWebSocketClient {
 
     this.ws.onclose = () => {
       clearTimeout(connectionTimeout);
-      if (!this.isManualClose) {
-        this.options.onStatusChange('disconnected');
-        this.scheduleReconnect();
-      }
+      handleFailure();
     };
 
     this.ws.onerror = () => {
@@ -72,6 +85,8 @@ export class OpenClawWebSocketClient {
 
   disconnect(): void {
     this.isManualClose = true;
+    this.useTls = true;
+    this.hasEstablishedTlsSession = false;
     this.clearReconnectTimer();
     this.reconnectAttempt = 0;
     this.sessionId = null;
@@ -132,6 +147,7 @@ export class OpenClawWebSocketClient {
       case 'connected':
         this.sessionId = msg.sessionId;
         this.reconnectAttempt = 0;
+        if (this.useTls) this.hasEstablishedTlsSession = true;
         this.options.onStatusChange('connected');
         this.options.onConnected(msg.sessionId);
         break;
@@ -156,6 +172,13 @@ export class OpenClawWebSocketClient {
   private scheduleReconnect(): void {
     if (this.isManualClose) return;
     if (this.reconnectAttempt >= OPENCLAW.reconnect.maxAttempts) {
+      if (this.useTls) {
+        console.warn('TLS max reconnect attempts reached, falling back to ws://');
+        this.useTls = false;
+        this.reconnectAttempt = 0;
+        this.connect();
+        return;
+      }
       this.options.onError('MAX_RECONNECT', 'Maximum reconnection attempts reached');
       this.options.onStatusChange('disconnected');
       return;

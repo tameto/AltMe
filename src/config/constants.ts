@@ -58,6 +58,7 @@ export const ONBOARDING_QUESTION_COUNT = 5;
 
 export const OPENCLAW = {
   gatewayPort: 18789,
+  wsPort: 443,
   defaultRegion: 'sgp1',
   defaultDropletSize: 's-1vcpu-1gb',
   healthCheckIntervalMs: 5 * 60 * 1000,
