@@ -185,6 +185,7 @@ export function useChat(): UseChatReturn {
         },
         onError: (code, message) => {
           console.error(`OpenClaw error: ${code} - ${message}`);
+          setIsLoading(false);
           if (code === 'AUTH_FAILED') {
             updateConnectionMode('edge_function');
           }

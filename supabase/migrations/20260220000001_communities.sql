@@ -54,7 +54,7 @@ BEGIN
   ) THEN
     CREATE POLICY "Authenticated users can create communities"
       ON communities FOR INSERT
-      WITH CHECK (auth.uid() IS NOT NULL);
+      WITH CHECK (auth.uid() = creator_id);
   END IF;
 
   IF NOT EXISTS (

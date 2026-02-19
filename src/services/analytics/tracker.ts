@@ -17,6 +17,7 @@ let posthogClient: any | null = null;
  */
 export async function initializeAnalytics(): Promise<void> {
   // eslint-disable-next-line @typescript-eslint/no-require-imports
+  if (!env.posthogApiKey) return;
   const posthogModule = require('posthog-react-native') as any;
   // モジュールレベルでシングルトンを管理（jest.resetModules() 後は新しいモジュールなのでリセットされる）
   if (posthogModule.__posthogInstance) {
