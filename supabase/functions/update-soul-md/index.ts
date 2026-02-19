@@ -25,6 +25,14 @@ type Profile = {
   timezone: string | null;
 };
 
+type OpenClawInstance = {
+  id: string;
+  user_id: string;
+  desired_state: string;
+  runtime_state: string;
+  soul_version: number;
+};
+
 const DEFAULT_SOUL_MD = `# AltMe Twin
 
 ## Core Identity
@@ -87,6 +95,71 @@ ${communicationSection}
 - プライバシーを尊重
 - 1回のレスポンスは100〜200文字程度
 `;
+};
+
+const writeToCloudflareKV = async (
+  userId: string,
+  soulMd: string,
+): Promise<{ success: boolean; error?: string }> => {
+  const accountId = Deno.env.get('CF_ACCOUNT_ID') ?? '';
+  const namespaceId = Deno.env.get('CF_KV_NAMESPACE_ID') ?? '';
+  const apiToken = Deno.env.get('CF_API_TOKEN') ?? '';
+
+  try {
+    const response = await fetch(
+      `https://api.cloudflare.com/client/v4/accounts/${accountId}/storage/kv/namespaces/${namespaceId}/values/soul:${userId}`,
+      {
+        method: 'PUT',
+        headers: {
+          'Authorization': `Bearer ${apiToken}`,
+          'Content-Type': 'text/plain',
+        },
+        body: soulMd,
+      },
+    );
+
+    if (!response.ok) {
+      const body = await response.text();
+      console.error(`Cloudflare KV write failed (${response.status}):`, body);
+      return { success: false, error: `Cloudflare KV error: ${response.status}` };
+    }
+
+    return { success: true };
+  } catch (error) {
+    console.error('Cloudflare KV write request failed:', error);
+    return { success: false, error: String(error) };
+  }
+};
+
+const callCFWorkerRestart = async (
+  userId: string,
+  cfWorkerUrl: string,
+): Promise<{ success: boolean; error?: string }> => {
+  const serviceRoleKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '';
+
+  try {
+    const response = await fetch(
+      `${cfWorkerUrl}/admin/restart/${userId}`,
+      {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${serviceRoleKey}`,
+          'Content-Type': 'application/json',
+        },
+      },
+    );
+
+    if (!response.ok) {
+      const body = await response.text();
+      console.error(`CF Worker restart failed (${response.status}):`, body);
+      return { success: false, error: `CF Worker error: ${response.status}` };
+    }
+
+    return { success: true };
+  } catch (error) {
+    console.error('CF Worker restart request failed:', error);
+    return { success: false, error: String(error) };
+  }
 };
 
 Deno.serve(async (req: Request) => {
@@ -177,17 +250,16 @@ Deno.serve(async (req: Request) => {
       ? generateSoulMd(displayName, twinName, traits, personalitySummary, locale)
       : DEFAULT_SOUL_MD;
 
-    // 5. Update openclaw_instances.soul_md using service client (bypasses RLS)
+    // 5. Update DB: soul_md column + increment soul_version
     const serviceClient = createServiceClient();
 
     const { data: instance, error: instanceFetchError } = await serviceClient
       .from('openclaw_instances')
-      .select('id, status, droplet_id')
+      .select('id, desired_state, runtime_state, soul_version')
       .eq('user_id', userId)
       .single();
 
     if (instanceFetchError && instanceFetchError.code !== 'PGRST116') {
-      // PGRST116 = no rows found, which is acceptable
       console.error('Failed to fetch openclaw instance:', instanceFetchError);
       return new Response(
         JSON.stringify({ error: 'Failed to fetch instance' }),
@@ -199,10 +271,12 @@ Deno.serve(async (req: Request) => {
     }
 
     if (instance) {
-      // Update existing instance's soul_md
+      const typedInstance = instance as OpenClawInstance;
+      const newSoulVersion = typedInstance.soul_version + 1;
+
       const { error: updateError } = await serviceClient
         .from('openclaw_instances')
-        .update({ soul_md: soulMd })
+        .update({ soul_md: soulMd, soul_version: newSoulVersion })
         .eq('user_id', userId);
 
       if (updateError) {
@@ -216,38 +290,46 @@ Deno.serve(async (req: Request) => {
         );
       }
 
-      // 6. If instance is running, trigger a restart to apply the new SOUL.md
-      if (instance.status === 'running' && instance.droplet_id) {
-        try {
-          const supabaseUrl = Deno.env.get('SUPABASE_URL') ?? '';
-          const serviceRoleKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '';
+      // 6. Write new SOUL.md to Cloudflare KV
+      const kvResult = await writeToCloudflareKV(userId, soulMd);
+      if (!kvResult.success) {
+        console.error('Failed to write SOUL.md to Cloudflare KV:', kvResult.error);
+        // Non-fatal: DB is updated, KV will be synced on next restart
+      }
 
-          // Call restart-openclaw edge function to apply changes
-          const restartResponse = await fetch(
-            `${supabaseUrl}/functions/v1/restart-openclaw`,
-            {
-              method: 'POST',
-              headers: {
-                'Authorization': req.headers.get('Authorization') ?? '',
-                'Content-Type': 'application/json',
-                'apikey': serviceRoleKey,
-              },
-              body: JSON.stringify({ user_id: userId }),
-            },
-          );
-
-          if (!restartResponse.ok) {
-            const restartError = await restartResponse.text();
-            console.error('restart-openclaw call failed:', restartError);
-            // Non-fatal: SOUL.md is saved in DB, will be applied on next restart
-          } else {
-            console.log('restart-openclaw triggered successfully for SOUL.md update');
+      // 7. If instance is active and healthy, call CF Worker to apply new SOUL.md
+      if (
+        typedInstance.desired_state === 'active' &&
+        typedInstance.runtime_state === 'healthy'
+      ) {
+        const cfWorkerUrl = Deno.env.get('CF_WORKER_URL') ?? '';
+        if (cfWorkerUrl) {
+          try {
+            const restartResult = await callCFWorkerRestart(userId, cfWorkerUrl);
+            if (!restartResult.success) {
+              console.error('CF Worker restart failed:', restartResult.error);
+              // Non-fatal: SOUL.md is saved in DB and KV, will be applied on next restart
+            } else {
+              console.log('CF Worker restart triggered successfully for SOUL.md update');
+            }
+          } catch (restartErr) {
+            console.error('Failed to call CF Worker restart:', restartErr);
+            // Non-fatal: SOUL.md is saved in DB and KV, will be applied on next restart
           }
-        } catch (restartErr) {
-          console.error('Failed to call restart-openclaw:', restartErr);
-          // Non-fatal: SOUL.md is saved in DB, will be applied on next restart
         }
       }
+
+      return new Response(
+        JSON.stringify({
+          success: true,
+          message: 'SOUL.md updated',
+          instanceStatus: typedInstance.desired_state,
+        }),
+        {
+          status: 200,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        },
+      );
     } else {
       // No instance exists yet — just upsert the soul_md for when the instance is provisioned
       const { error: upsertError } = await serviceClient
@@ -256,7 +338,8 @@ Deno.serve(async (req: Request) => {
           {
             user_id: userId,
             soul_md: soulMd,
-            status: 'stopped',
+            desired_state: 'suspended',
+            runtime_state: 'cold',
           },
           { onConflict: 'user_id' },
         );
@@ -271,19 +354,19 @@ Deno.serve(async (req: Request) => {
           },
         );
       }
-    }
 
-    return new Response(
-      JSON.stringify({
-        success: true,
-        message: 'SOUL.md updated',
-        instanceStatus: instance?.status ?? 'no_instance',
-      }),
-      {
-        status: 200,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      },
-    );
+      return new Response(
+        JSON.stringify({
+          success: true,
+          message: 'SOUL.md updated',
+          instanceStatus: 'no_instance',
+        }),
+        {
+          status: 200,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        },
+      );
+    }
   } catch (error) {
     console.error('Unexpected error in update-soul-md:', error);
     return new Response(

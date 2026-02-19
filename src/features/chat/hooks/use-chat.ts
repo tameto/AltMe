@@ -142,7 +142,7 @@ export function useChat(): UseChatReturn {
       const inst = await getMyInstance();
       if (cancelled.current) return;
 
-      if (!inst || inst.status !== 'running' || !inst.ipAddress) {
+      if (!inst || inst.status !== 'running' || !inst.cfWorkerUrl) {
         updateConnectionMode('edge_function');
         return;
       }
@@ -161,7 +161,8 @@ export function useChat(): UseChatReturn {
       setActiveClient(null);
 
       const client = new OpenClawWebSocketClient({
-        ipAddress: inst.ipAddress,
+        cfWorkerUrl: inst.cfWorkerUrl,
+        userId: inst.userId,
         gatewayToken: token,
         deviceId,
         onTextDelta: (delta, _sessionId) => {

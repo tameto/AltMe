@@ -3,16 +3,26 @@
 
 export type OpenClawStatus = 'provisioning' | 'running' | 'stopped' | 'error' | 'destroying';
 
+export type DesiredState = 'active' | 'suspended' | 'deleting';
+export type RuntimeState = 'cold' | 'waking' | 'healthy' | 'sleeping' | 'error';
+
 export type OpenClawInstance = {
   id: string;
   userId: string;
   dropletId: number | null;
   ipAddress: string | null;
   status: OpenClawStatus;
+  infraProvider: string;
+  containerName: string | null;
+  desiredState: DesiredState;
+  runtimeState: RuntimeState;
+  soulVersion: number;
+  cfWorkerUrl: string | null;
   region: string;
   dropletSize: string;
   soulMd: string | null;
   lastHealthCheck: string | null;
+  lastWakeAt: string | null;
   errorMessage: string | null;
   createdAt: string;
   updatedAt: string;
@@ -73,6 +83,6 @@ export type WsOutgoingMessage =
   | WsMessagePayload;
 
 // Connection state for Zustand store
-export type WsConnectionStatus = 'connecting' | 'connected' | 'disconnected' | 'reconnecting';
+export type WsConnectionStatus = 'connecting' | 'connected' | 'disconnected' | 'reconnecting' | 'waking';
 
 export type ConnectionMode = 'websocket' | 'edge_function' | 'disconnected';
