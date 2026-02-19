@@ -1,12 +1,11 @@
 /**
- * TDD-RED: OpenClaw WebSocket Client TLS/WSS Tests
+ * OpenClaw WebSocket Client - Cloudflare Worker Proxy Tests
  *
- * These tests define the expected behavior of TLS/WSS WebSocket connections
- * BEFORE implementation. Tests should FAIL initially (Red phase).
+ * Tests for CF Worker proxy connection behavior.
+ * Before: wss://{ip}:443 with TLS fallback
+ * After: wss://{cfWorkerUrl}/ws/{userId} (TLS provided by Cloudflare)
  *
- * SDD Spec: .sdd/specs/20260220-tls-wss/spec.md
- * FR-004: Mobile app MUST connect to wss://{ip}:443
- * FR-007: Fallback to ws:// for backward compatibility
+ * SDD Spec: specs/features/chat.md
  */
 
 import { OpenClawWebSocketClient } from '../websocket-client';
@@ -53,9 +52,10 @@ class MockWebSocket {
 // Replace global WebSocket
 (global as any).WebSocket = MockWebSocket;
 
-describe('OpenClawWebSocketClient - TLS/WSS', () => {
+describe('OpenClawWebSocketClient - CF Worker Proxy', () => {
   const defaultOptions = {
-    ipAddress: '203.0.113.1',
+    cfWorkerUrl: 'my-worker.workers.dev',
+    userId: 'user-123',
     gatewayToken: 'test-token-uuid',
     deviceId: 'test-device-id',
     onTextDelta: jest.fn(),
@@ -75,7 +75,7 @@ describe('OpenClawWebSocketClient - TLS/WSS', () => {
     jest.useRealTimers();
   });
 
-  describe('TLS connection (FR-004)', () => {
+  describe('CF Worker WSS connection', () => {
     it('should connect using wss:// protocol', () => {
       const client = new OpenClawWebSocketClient(defaultOptions);
       client.connect();
@@ -84,44 +84,49 @@ describe('OpenClawWebSocketClient - TLS/WSS', () => {
       expect(mockWSInstances[0].url).toMatch(/^wss:\/\//);
     });
 
-    it('should connect to port 443 instead of 18789', () => {
+    it('should connect to the CF Worker URL with /ws/{userId} path', () => {
       const client = new OpenClawWebSocketClient(defaultOptions);
       client.connect();
 
       expect(mockWSInstances).toHaveLength(1);
-      expect(mockWSInstances[0].url).toBe('wss://203.0.113.1:443');
+      expect(mockWSInstances[0].url).toBe('wss://my-worker.workers.dev/ws/user-123');
     });
 
-    it('should use OPENCLAW.wsPort constant for the port', () => {
-      expect(OPENCLAW).toHaveProperty('wsPort');
-      expect((OPENCLAW as any).wsPort).toBe(443);
+    it('should use coldStartTimeoutMs constant', () => {
+      expect(OPENCLAW).toHaveProperty('coldStartTimeoutMs');
+      expect((OPENCLAW as any).coldStartTimeoutMs).toBe(8000);
+    });
+
+    it('should use coldStartWarningMs constant', () => {
+      expect(OPENCLAW).toHaveProperty('coldStartWarningMs');
+      expect((OPENCLAW as any).coldStartWarningMs).toBe(5000);
     });
   });
 
-  describe('Backward compatibility fallback (FR-007)', () => {
-    it('should fall back to ws:// if wss:// connection fails', () => {
+  describe('No TLS fallback', () => {
+    it('should not fall back to ws:// if connection fails', () => {
       const client = new OpenClawWebSocketClient(defaultOptions);
       client.connect();
 
-      // Simulate wss:// connection failure
-      const wssInstance = mockWSInstances[0];
-      wssInstance.readyState = MockWebSocket.CLOSED;
-      wssInstance.onerror?.();
-      wssInstance.onclose?.();
+      // Simulate connection failure
+      const wsInstance = mockWSInstances[0];
+      wsInstance.readyState = MockWebSocket.CLOSED;
+      wsInstance.onerror?.();
+      wsInstance.onclose?.();
 
       // Advance timers for reconnect
       jest.advanceTimersByTime(1500);
 
-      // Should have attempted a second connection with ws:// fallback
+      // Reconnect should still use wss://
       expect(mockWSInstances.length).toBeGreaterThanOrEqual(2);
-      const fallbackInstance = mockWSInstances[mockWSInstances.length - 1];
-      expect(fallbackInstance.url).toMatch(/^ws:\/\//);
-      expect(fallbackInstance.url).toContain(':18789');
+      const reconnectedInstance = mockWSInstances[mockWSInstances.length - 1];
+      expect(reconnectedInstance.url).toMatch(/^wss:\/\//);
+      expect(reconnectedInstance.url).not.toMatch(/^ws:\/\//);
     });
   });
 
-  describe('Successful TLS handshake', () => {
-    it('should complete handshake over wss:// and send gateway_token encrypted', () => {
+  describe('Successful handshake via CF Worker', () => {
+    it('should complete handshake over wss:// and send gateway_token', () => {
       const client = new OpenClawWebSocketClient(defaultOptions);
       client.connect();
 
@@ -135,7 +140,7 @@ describe('OpenClawWebSocketClient - TLS/WSS', () => {
       expect(handshake.type).toBe('connect');
       expect(handshake.params.auth.token).toBe('test-token-uuid');
 
-      // The URL should be wss:// (encrypted)
+      // The URL should be wss:// (TLS provided by Cloudflare)
       expect(ws.url).toMatch(/^wss:\/\//);
     });
   });

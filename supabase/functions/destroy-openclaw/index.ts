@@ -1,7 +1,9 @@
 import { corsHeaders } from '../_shared/cors.ts';
 import { createSupabaseClient, createServiceClient } from '../_shared/supabase.ts';
 
-const DIGITALOCEAN_API_TOKEN = Deno.env.get('DIGITALOCEAN_API_TOKEN') ?? '';
+const CF_ACCOUNT_ID = Deno.env.get('CF_ACCOUNT_ID') ?? '';
+const CF_KV_NAMESPACE_ID = Deno.env.get('CF_KV_NAMESPACE_ID') ?? '';
+const CF_API_TOKEN = Deno.env.get('CF_API_TOKEN') ?? '';
 const INTERNAL_FUNCTION_TOKEN = Deno.env.get('INTERNAL_FUNCTION_TOKEN') ?? '';
 
 Deno.serve(async (req: Request) => {
@@ -44,89 +46,42 @@ Deno.serve(async (req: Request) => {
     // Look up openclaw_instances by user_id
     const { data: instance, error: fetchError } = await supabase
       .from('openclaw_instances')
-      .select('*')
+      .select('id, user_id, desired_state, runtime_state, cf_worker_url, gateway_token')
       .eq('user_id', user_id)
       .single();
 
     if (fetchError || !instance) {
-      // No record found: return success (idempotent no-op)
-      // No instance found: idempotent no-op
+      // No record found: idempotent no-op
       return new Response(
         JSON.stringify({ success: true, message: 'no instance found' }),
         { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
       );
     }
 
-    // If status is already destroying or stopped: return success (idempotent)
-    if (instance.status === 'destroying' || instance.status === 'stopped') {
-      // Already destroying/stopped: idempotent
+    // If already suspended or deleting: idempotent
+    if (instance.desired_state === 'suspended' || instance.desired_state === 'deleting') {
       return new Response(
-        JSON.stringify({ success: true, message: `already ${instance.status}` }),
+        JSON.stringify({ success: true, message: `already ${instance.desired_state}` }),
         { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
       );
     }
 
-    // Update status to destroying
+    // Update desired_state to 'suspended' and runtime_state to 'cold'
     await supabase
       .from('openclaw_instances')
-      .update({ status: 'destroying' })
+      .update({ desired_state: 'suspended', runtime_state: 'cold' })
       .eq('user_id', user_id);
 
-    // Proceed with Droplet deletion
+    // Delete KV entry soul:{userId}
+    await deleteSoulFromKv(user_id);
 
-    // Call DigitalOcean API to delete the Droplet
-    const doResponse = await fetch(
-      `https://api.digitalocean.com/v2/droplets/${instance.droplet_id}`,
-      {
-        method: 'DELETE',
-        headers: {
-          'Authorization': `Bearer ${DIGITALOCEAN_API_TOKEN}`,
-          'Content-Type': 'application/json',
-        },
-      },
-    );
-
-    if (doResponse.ok || doResponse.status === 204 || doResponse.status === 404) {
-      // Success or already deleted — mark as stopped and clear fields
-      if (doResponse.status === 404) {
-        // Droplet already deleted on DigitalOcean
-      }
-
-      await supabase
-        .from('openclaw_instances')
-        .update({
-          status: 'stopped',
-          ip_address: null,
-          gateway_token: null,
-        })
-        .eq('user_id', user_id);
-
-      // Instance successfully stopped
-
-      return new Response(
-        JSON.stringify({ success: true }),
-        { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
-      );
+    // Signal the CF Worker to stop the container immediately (best-effort)
+    if (instance.cf_worker_url) {
+      await stopCfContainer(instance.cf_worker_url, user_id);
     }
-
-    // DigitalOcean API failed with unexpected status
-    const errorBody = await doResponse.text();
-    const errorMessage = `DigitalOcean API error: ${doResponse.status} - ${errorBody}`;
-    console.error(errorMessage);
-
-    // Still mark as stopped but record the error
-    await supabase
-      .from('openclaw_instances')
-      .update({
-        status: 'stopped',
-        ip_address: null,
-        gateway_token: null,
-        error_message: errorMessage,
-      })
-      .eq('user_id', user_id);
 
     return new Response(
-      JSON.stringify({ success: true, warning: 'droplet deletion failed but instance marked stopped' }),
+      JSON.stringify({ success: true }),
       { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
     );
   } catch (error) {
@@ -137,3 +92,56 @@ Deno.serve(async (req: Request) => {
     );
   }
 });
+
+// -------------------------------------------------------------------
+// Helper: Delete SOUL.md from Cloudflare KV
+// -------------------------------------------------------------------
+async function deleteSoulFromKv(userId: string): Promise<void> {
+  if (!CF_ACCOUNT_ID || !CF_KV_NAMESPACE_ID || !CF_API_TOKEN) {
+    console.warn('Missing Cloudflare KV env vars, skipping KV deletion');
+    return;
+  }
+
+  const url =
+    `https://api.cloudflare.com/client/v4/accounts/${CF_ACCOUNT_ID}/storage/kv/namespaces/${CF_KV_NAMESPACE_ID}/values/soul:${userId}`;
+
+  try {
+    const resp = await fetch(url, {
+      method: 'DELETE',
+      headers: { Authorization: `Bearer ${CF_API_TOKEN}` },
+    });
+    if (!resp.ok && resp.status !== 404) {
+      const body = await resp.text();
+      console.error(`CF KV delete failed (${resp.status}):`, body);
+    }
+  } catch (err) {
+    console.error('CF KV delete error:', err);
+  }
+}
+
+// -------------------------------------------------------------------
+// Helper: Signal CF Worker to stop the container (best-effort)
+// -------------------------------------------------------------------
+async function stopCfContainer(cfWorkerUrl: string, userId: string): Promise<void> {
+  const serviceRoleKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '';
+  const stopUrl = `${cfWorkerUrl}/admin/stop/${userId}`;
+
+  try {
+    const resp = await fetch(stopUrl, {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${serviceRoleKey}`,
+        'Content-Type': 'application/json',
+      },
+    });
+    if (!resp.ok) {
+      const body = await resp.text();
+      console.warn(`CF Worker stop signal failed (${resp.status}):`, body);
+    } else {
+      console.log(`CF Worker stop signal sent for user ${userId}`);
+    }
+  } catch (err) {
+    // best-effort: log and continue
+    console.warn('CF Worker stop signal error (non-fatal):', err);
+  }
+}

@@ -68,4 +68,9 @@ export const OPENCLAW = {
     maxDelayMs: 30000,
   },
   connectionTimeoutMs: 10000,
+  // Cloudflare Container settings
+  sleepAfterMs: 10 * 60 * 1000,
+  coldStartTimeoutMs: 8000,
+  coldStartWarningMs: 5000,
+  wakingPollIntervalMs: 500,
 } as const;

@@ -16,20 +16,18 @@ jest.mock('react-native-purchases', () => ({
   LOG_LEVEL: { DEBUG: 4 },
 }));
 
-// Mock expo-notifications
-jest.mock('expo-notifications', () => ({
-  setNotificationHandler: jest.fn(),
-  getPermissionsAsync: jest.fn().mockResolvedValue({ status: 'granted' }),
-  requestPermissionsAsync: jest.fn().mockResolvedValue({ status: 'granted' }),
-  getExpoPushTokenAsync: jest.fn().mockResolvedValue({ data: 'ExponentPushToken[xxx]' }),
-  scheduleNotificationAsync: jest.fn(),
-  addNotificationResponseReceivedListener: jest.fn(() => ({ remove: jest.fn() })),
-  addNotificationReceivedListener: jest.fn(() => ({ remove: jest.fn() })),
-  getBadgeCountAsync: jest.fn().mockResolvedValue(0),
-  setBadgeCountAsync: jest.fn(),
-  setNotificationChannelAsync: jest.fn(),
-  AndroidImportance: { HIGH: 4 },
-  SchedulableTriggerInputTypes: { TIME_INTERVAL: 1 },
+// Mock react-native-onesignal
+jest.mock('react-native-onesignal', () => ({
+  OneSignal: {
+    initialize: jest.fn(),
+    login: jest.fn(),
+    logout: jest.fn(),
+    Notifications: {
+      requestPermission: jest.fn().mockResolvedValue(true),
+      getPermissionAsync: jest.fn().mockResolvedValue(true),
+      addEventListener: jest.fn(() => ({ remove: jest.fn() })),
+    },
+  },
 }));
 
 // Mock expo-device

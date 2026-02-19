@@ -6,4 +6,5 @@ export const env = {
   googleWebClientId: process.env.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID ?? '',
   posthogApiKey: process.env.EXPO_PUBLIC_POSTHOG_API_KEY ?? '',
   onesignalAppId: process.env.EXPO_PUBLIC_ONESIGNAL_APP_ID ?? '',
+  cfWorkerUrl: process.env.EXPO_PUBLIC_CF_WORKER_URL ?? '',
 } as const;

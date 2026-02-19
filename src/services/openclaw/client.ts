@@ -1,5 +1,6 @@
+import { OPENCLAW } from '@/src/config/constants';
 import { supabase } from '@/src/services/supabase/client';
-import type { OpenClawInstance, OpenClawStatus } from '@/src/shared/types/openclaw';
+import type { DesiredState, OpenClawInstance, OpenClawStatus, RuntimeState } from '@/src/shared/types/openclaw';
 
 /**
  * Fetch the current user's OpenClaw instance from the public view.
@@ -94,6 +95,21 @@ export const subscribeToInstanceChanges = (
   };
 };
 
+/**
+ * Get the WebSocket URL for the user's OpenClaw instance.
+ * Returns CF Worker URL if available, falls back to IP-based URL.
+ */
+export const getWebSocketUrl = (instance: OpenClawInstance): string | null => {
+  if (instance.cfWorkerUrl) {
+    return instance.cfWorkerUrl;
+  }
+  // Legacy fallback (should not be needed after migration)
+  if (instance.ipAddress) {
+    return `wss://${instance.ipAddress}:${OPENCLAW.wsPort}`;
+  }
+  return null;
+};
+
 // Map DB snake_case to camelCase
 const mapToInstance = (row: Record<string, unknown>): OpenClawInstance => ({
   id: row.id as string,
@@ -101,10 +117,17 @@ const mapToInstance = (row: Record<string, unknown>): OpenClawInstance => ({
   dropletId: (row.droplet_id as number) ?? null,
   ipAddress: (row.ip_address as string) ?? null,
   status: row.status as OpenClawStatus,
+  infraProvider: (row.infra_provider as string) ?? 'cloudflare',
+  containerName: (row.container_name as string) ?? null,
+  desiredState: (row.desired_state as DesiredState) ?? 'active',
+  runtimeState: (row.runtime_state as RuntimeState) ?? 'cold',
+  soulVersion: (row.soul_version as number) ?? 1,
+  cfWorkerUrl: (row.cf_worker_url as string) ?? null,
   region: row.region as string,
   dropletSize: row.droplet_size as string,
   soulMd: (row.soul_md as string) ?? null,
   lastHealthCheck: (row.last_health_check as string) ?? null,
+  lastWakeAt: (row.last_wake_at as string) ?? null,
   errorMessage: (row.error_message as string) ?? null,
   createdAt: row.created_at as string,
   updatedAt: row.updated_at as string,

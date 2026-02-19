@@ -1,5 +1,5 @@
-import React, { useState, useEffect, useCallback } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert, Linking, ActivityIndicator, Pressable, Platform } from 'react-native';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert, Linking, ActivityIndicator, Pressable, Platform, Animated } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Feather from '@expo/vector-icons/Feather';
 import { useRouter } from 'expo-router';
@@ -146,6 +146,8 @@ export default function SettingsScreen() {
   const [instance, setInstance] = useState<OpenClawInstance | null>(null);
   const [isLoadingInstance, setIsLoadingInstance] = useState(false);
   const [isRestarting, setIsRestarting] = useState(false);
+  const [isWaking, setIsWaking] = useState(false);
+  const pulseAnim = useRef(new Animated.Value(1)).current;
 
   // Load OpenClaw instance for Pro users
   useEffect(() => {
@@ -176,6 +178,36 @@ export default function SettingsScreen() {
       unsubscribe?.();
     };
   }, [isPro, user?.id]);
+
+  // Pulse animation for 'waking' state
+  useEffect(() => {
+    if (instance?.runtimeState === 'waking') {
+      const loop = Animated.loop(
+        Animated.sequence([
+          Animated.timing(pulseAnim, { toValue: 0.3, duration: 600, useNativeDriver: true }),
+          Animated.timing(pulseAnim, { toValue: 1, duration: 600, useNativeDriver: true }),
+        ]),
+      );
+      loop.start();
+      return () => loop.stop();
+    } else {
+      pulseAnim.setValue(1);
+    }
+  }, [instance?.runtimeState, pulseAnim]);
+
+  const handleWakeInstance = useCallback(async () => {
+    setIsWaking(true);
+    try {
+      const result = await restartInstance();
+      if (!result.success) {
+        Alert.alert(t('common.error'), result.error || t('settings.instance.restartError'));
+      }
+    } catch {
+      Alert.alert(t('common.error'), t('settings.instance.restartError'));
+    } finally {
+      setIsWaking(false);
+    }
+  }, [t]);
 
   const handleRestartInstance = useCallback(async () => {
     Alert.alert(
@@ -227,8 +259,8 @@ export default function SettingsScreen() {
             .eq('id', user.id);
           updateUser({ twinName: trimmed });
 
-          // Update SOUL.md if instance is running
-          if (instance?.status === 'running') {
+          // Update SOUL.md if instance is active
+          if (instance?.desiredState === 'active') {
             updateSoulMd().catch((err) =>
               console.error('Failed to update SOUL.md:', err),
             );
@@ -323,13 +355,19 @@ export default function SettingsScreen() {
                   <View style={styles.settingRowContent}>
                     <Text style={styles.settingLabel}>{t('settings.instance.title')}</Text>
                     <View style={styles.instanceStatusRow}>
-                      <View style={[styles.instanceStatusDot, instanceStatusStyle(instance.status)]} />
+                      {instance.runtimeState === 'waking' ? (
+                        <Animated.View
+                          style={[styles.instanceStatusDot, instanceStatusStyle(instance.runtimeState), { opacity: pulseAnim }]}
+                        />
+                      ) : (
+                        <View style={[styles.instanceStatusDot, instanceStatusStyle(instance.runtimeState)]} />
+                      )}
                       <Text style={styles.instanceStatusText}>
-                        {t(`settings.instance.status${capitalize(instance.status)}`)}
+                        {t(`settings.instance.runtime${capitalize(instance.runtimeState)}`)}
                       </Text>
                     </View>
                   </View>
-                  {instance.status === 'running' ? (
+                  {(instance.runtimeState === 'healthy' || instance.runtimeState === 'sleeping') ? (
                     <Pressable
                       onPress={handleRestartInstance}
                       disabled={isRestarting}
@@ -341,9 +379,27 @@ export default function SettingsScreen() {
                         <Feather name="refresh-cw" size={18} color={colors.primary} />
                       )}
                     </Pressable>
+                  ) : instance.runtimeState === 'waking' ? (
+                    <ActivityIndicator size="small" color={colors.primary} style={styles.restartButton} />
                   ) : null}
                 </View>
-                {instance.status === 'error' && instance.errorMessage ? (
+                {(instance.runtimeState === 'cold' || instance.runtimeState === 'sleeping') ? (
+                  <Pressable
+                    onPress={handleWakeInstance}
+                    disabled={isWaking}
+                    style={styles.wakeButton}
+                  >
+                    {isWaking ? (
+                      <ActivityIndicator size="small" color={colors.textInverse} />
+                    ) : (
+                      <Text style={styles.wakeButtonText}>{t('settings.instance.wake')}</Text>
+                    )}
+                  </Pressable>
+                ) : null}
+                {instance.runtimeState === 'sleeping' ? (
+                  <Text style={styles.sleepInfoText}>{t('settings.instance.sleepInfo')}</Text>
+                ) : null}
+                {instance.runtimeState === 'error' && instance.errorMessage ? (
                   <Text style={styles.instanceError}>{instance.errorMessage}</Text>
                 ) : null}
               </View>
@@ -387,13 +443,14 @@ function capitalize(s: string): string {
   return s.charAt(0).toUpperCase() + s.slice(1);
 }
 
-function instanceStatusStyle(status: string) {
-  switch (status) {
-    case 'running': return { backgroundColor: '#34D399' };
-    case 'provisioning': return { backgroundColor: '#FBBF24' };
-    case 'error': return { backgroundColor: colors.error };
-    case 'destroying': return { backgroundColor: '#F97316' };
-    default: return { backgroundColor: colors.textTertiary };
+function instanceStatusStyle(runtimeState: string) {
+  switch (runtimeState) {
+    case 'healthy': return { backgroundColor: '#22C55E' };
+    case 'waking': return { backgroundColor: '#F59E0B' };
+    case 'sleeping': return { backgroundColor: '#3B82F6' };
+    case 'cold': return { backgroundColor: '#6B7280' };
+    case 'error': return { backgroundColor: '#EF4444' };
+    default: return { backgroundColor: '#6B7280' };
   }
 }
 
@@ -641,6 +698,29 @@ const styles = StyleSheet.create({
     height: 36,
     justifyContent: 'center',
     alignItems: 'center',
+  },
+  wakeButton: {
+    marginTop: spacing.sm,
+    marginLeft: 36,
+    backgroundColor: colors.primary,
+    borderRadius: 8,
+    paddingVertical: spacing.xs,
+    paddingHorizontal: spacing.md,
+    alignSelf: 'flex-start',
+    minHeight: 32,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  wakeButtonText: {
+    fontSize: fontSize.sm,
+    fontFamily: fontFamily.semiBold,
+    color: colors.textInverse,
+  },
+  sleepInfoText: {
+    fontSize: fontSize.xs,
+    color: colors.textTertiary,
+    marginTop: spacing.xs,
+    marginLeft: 36,
   },
   instanceError: {
     fontSize: fontSize.xs,

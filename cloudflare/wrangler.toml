@@ -1,0 +1,18 @@
+name = "altme-openclaw"
+main = "src/index.ts"
+compatibility_date = "2024-12-01"
+
+[containers]
+[containers.OPENCLAW]
+image = "./Dockerfile"
+instance_type = "basic"
+max_instances = 100
+sleep_after = "10m"
+
+[[kv_namespaces]]
+binding = "SOUL_KV"
+id = ""  # Will be set after KV namespace creation
+
+[vars]
+SUPABASE_URL = ""
+SUPABASE_SERVICE_ROLE_KEY = ""
