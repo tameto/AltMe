@@ -20,7 +20,11 @@
       "buildNumber": "1",
       "infoPlist": {
         "NSUserTrackingUsageDescription": "パーソナライズされた体験を提供するために使用します",
-        "ITSAppUsesNonExemptEncryption": false
+        "ITSAppUsesNonExemptEncryption": false,
+        "UIBackgroundModes": ["remote-notification"]
+      },
+      "entitlements": {
+        "aps-environment": "development"
       },
       "config": {
         "usesNonExemptEncryption": false
@@ -47,8 +51,13 @@
       "favicon": "./assets/images/favicon.png"
     },
     "plugins": [
+      [
+        "onesignal-expo-plugin",
+        {
+          "mode": "development"
+        }
+      ],
       "expo-router",
-      "expo-notifications",
       "expo-apple-authentication",
       "expo-secure-store",
       "@react-native-google-signin/google-signin",

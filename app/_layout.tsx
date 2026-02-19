@@ -17,9 +17,11 @@ import '@/src/shared/i18n';
 import { useAuthStore } from '@/src/features/auth/stores/auth-store';
 import { useUser } from '@/src/shared/hooks/use-user';
 import {
-  registerForPushNotifications,
-  addNotificationResponseListener,
-  clearBadgeCount,
+  initializeOneSignal,
+  loginOneSignal,
+  logoutOneSignal,
+  requestNotificationPermission,
+  addNotificationClickListener,
 } from '@/src/services/notifications/client';
 import { initializeAnalytics } from '@/src/services/analytics/tracker';
 
@@ -39,6 +41,11 @@ export default function RootLayout() {
     Outfit_600SemiBold,
     Outfit_700Bold,
   });
+
+  // Initialize OneSignal once at app startup
+  useEffect(() => {
+    initializeOneSignal();
+  }, []);
 
   useEffect(() => {
     if (error) throw error;
@@ -70,23 +77,28 @@ function RootLayoutNav() {
     initializeAnalytics();
   }, [initialize]);
 
-  // Register push notifications when authenticated
+  // Register OneSignal when authenticated
   useEffect(() => {
     if (!isAuthenticated || !user?.id || !user?.onboardingCompleted) return;
 
-    registerForPushNotifications(user.id).catch((err) => {
-      console.warn('Push notification registration failed:', err);
+    loginOneSignal(user.id);
+    requestNotificationPermission().catch((err) => {
+      console.warn('Notification permission request failed:', err);
     });
 
-    clearBadgeCount();
-
-    const subscription = addNotificationResponseListener((response) => {
-      // Navigate to chat when notification is tapped
+    const cleanup = addNotificationClickListener(() => {
       router.push('/(tabs)');
     });
 
-    return () => subscription.remove();
+    return cleanup;
   }, [isAuthenticated, user?.id, user?.onboardingCompleted, router]);
+
+  // Logout from OneSignal when user signs out (skip for guest mode)
+  useEffect(() => {
+    if (!isAuthenticated && !isGuest) {
+      logoutOneSignal();
+    }
+  }, [isAuthenticated, isGuest]);
 
   // Routing guard
   useEffect(() => {

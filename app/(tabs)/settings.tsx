@@ -245,7 +245,7 @@ export default function SettingsScreen() {
   };
 
   const handleNotificationSettings = () => {
-    Alert.alert(t('settings.notifications.title'), t('settings.notifications.comingSoon'));
+    router.push('/notification-settings');
   };
 
   const handleSignOut = () => {

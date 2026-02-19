@@ -5,4 +5,5 @@ export const env = {
   revenuecatAndroidKey: process.env.EXPO_PUBLIC_REVENUECAT_ANDROID_KEY ?? '',
   googleWebClientId: process.env.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID ?? '',
   posthogApiKey: process.env.EXPO_PUBLIC_POSTHOG_API_KEY ?? '',
+  onesignalAppId: process.env.EXPO_PUBLIC_ONESIGNAL_APP_ID ?? '',
 } as const;
