@@ -125,6 +125,7 @@
     "inputPlaceholder": "メッセージを入力...",
     "inputPlaceholderDefault": "今日の出来事を教えて...",
     "inputPlaceholderAtLimit": "Proにアップグレードして続けよう",
+    "inputPlaceholderJournal": "今日の出来事を書いてみよう...",
     "send": "送信",
     "freeLimit": "残り {{count}}/{{total}} 回",
     "freeLimitReached": "本日の無料チャット回数に達しました",

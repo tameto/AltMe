@@ -262,8 +262,8 @@ describe('M155: Memory leak detection', () => {
     expect(clearTimeoutCount).toBeGreaterThanOrEqual(3);
   });
 
-  it('use-chat hook cleans up WebSocket on unmount', () => {
-    const chatHook = readFile(path.join(SRC_DIR, 'features/chat/hooks/use-chat.ts'));
+  it('use-chat-transport hook cleans up WebSocket on unmount', () => {
+    const chatHook = readFile(path.join(SRC_DIR, 'features/chat/hooks/use-chat-transport.ts'));
     // The WebSocket connection useEffect must have a cleanup
     expect(chatHook).toContain('wsClientRef.current?.disconnect()');
     expect(chatHook).toContain('setActiveClient(null)');

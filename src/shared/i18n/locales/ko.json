@@ -120,6 +120,7 @@
     "inputPlaceholder": "메시지를 입력하세요...",
     "inputPlaceholderDefault": "오늘 있었던 일을 이야기해주세요...",
     "inputPlaceholderAtLimit": "Pro로 업그레이드하여 계속하세요",
+    "inputPlaceholderJournal": "오늘 있었던 일을 적어보세요...",
     "send": "보내기",
     "freeLimit": "{{count}}/{{total}}회 남음",
     "freeLimitReached": "오늘의 무료 채팅 횟수를 모두 사용했습니다",

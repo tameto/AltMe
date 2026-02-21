@@ -125,6 +125,7 @@
     "inputPlaceholder": "Type a message...",
     "inputPlaceholderDefault": "Tell me about your day...",
     "inputPlaceholderAtLimit": "Upgrade to Pro to continue",
+    "inputPlaceholderJournal": "Write about your day...",
     "send": "Send",
     "freeLimit": "{{count}}/{{total}} remaining",
     "freeLimitReached": "You've reached today's free chat limit",
