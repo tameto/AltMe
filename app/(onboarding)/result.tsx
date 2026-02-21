@@ -1,7 +1,8 @@
-import { StyleSheet, View, Text, ActivityIndicator, ScrollView } from 'react-native';
+import { StyleSheet, View, Text, ActivityIndicator, ScrollView, Pressable } from 'react-native';
 import { router } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
+import Feather from '@expo/vector-icons/Feather';
 import { CosmicBackground } from '@/src/shared/components/cosmic-background';
 import { GlassCard } from '@/src/shared/components/glass-card';
 import { GoldButton } from '@/src/shared/components/gold-button';
@@ -62,6 +63,13 @@ export default function ResultScreen() {
   return (
     <CosmicBackground>
       <SafeAreaView style={styles.container}>
+        <View style={styles.header}>
+          <Pressable style={styles.backButton} onPress={() => router.back()}>
+            <Feather name="arrow-left" size={24} color="#F8FAFC" />
+          </Pressable>
+          <Text style={styles.headerTitle}>{t('onboarding.result.headerTitle')}</Text>
+          <Text style={styles.headerStep}>3 / 6</Text>
+        </View>
         <ScrollView
           style={styles.scrollView}
           contentContainerStyle={styles.scrollContent}
@@ -73,6 +81,9 @@ export default function ResultScreen() {
           </Text>
 
           <GlassCard style={styles.summaryCard}>
+            <Text style={styles.summaryLabel}>
+              {t('onboarding.result.summaryLabel')}
+            </Text>
             <Text style={styles.summaryText}>{personalityResult.summary}</Text>
           </GlassCard>
 
@@ -153,8 +164,8 @@ const traitStyles = StyleSheet.create({
   },
   barBackground: {
     height: 8,
-    backgroundColor: '#FFFFFF15',
-    borderRadius: 9999,
+    backgroundColor: 'rgba(255,255,255,0.08)',
+    borderRadius: 4,
     overflow: 'hidden',
   },
   barFill: {
@@ -167,6 +178,33 @@ const traitStyles = StyleSheet.create({
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+  },
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: spacing.xl,
+    marginTop: spacing.md,
+    marginBottom: spacing.md,
+  },
+  backButton: {
+    padding: spacing.xs,
+    width: 40,
+    alignItems: 'flex-start',
+  },
+  headerTitle: {
+    flex: 1,
+    fontFamily: fontFamily.semiBold,
+    fontSize: 18,
+    fontWeight: '600',
+    color: '#F8FAFC',
+    textAlign: 'center',
+  },
+  headerStep: {
+    width: 40,
+    fontFamily: fontFamily.regular,
+    fontSize: 14,
+    color: 'rgba(255,255,255,0.38)',
+    textAlign: 'right',
   },
   loadingContainer: {
     flex: 1,
@@ -195,7 +233,8 @@ const styles = StyleSheet.create({
   },
   title: {
     fontFamily: fontFamily.bold,
-    fontSize: 28,
+    fontSize: 22,
+    fontWeight: '700',
     color: '#F8FAFC',
     textAlign: 'center',
     marginTop: spacing.lg,
@@ -204,12 +243,19 @@ const styles = StyleSheet.create({
   summaryCard: {
     padding: spacing.xl,
     marginBottom: spacing.lg,
+    gap: 8,
+  },
+  summaryLabel: {
+    fontFamily: fontFamily.semiBold,
+    fontSize: 13,
+    fontWeight: '600',
+    color: '#7DD3FC',
   },
   summaryText: {
     fontFamily: fontFamily.regular,
-    fontSize: 16,
-    color: '#F8FAFC',
-    lineHeight: 26,
+    fontSize: 14,
+    color: 'rgba(255,255,255,0.8)',
+    lineHeight: 22.4,
   },
   traitsCard: {
     padding: spacing.xl,

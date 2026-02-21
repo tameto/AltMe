@@ -70,12 +70,12 @@ const styles = StyleSheet.create({
     borderWidth: 1,
   },
   chipActive: {
-    backgroundColor: '#7DD3FC20',
-    borderColor: '#7DD3FC50',
+    backgroundColor: 'rgba(125,211,252,0.13)',
+    borderColor: 'rgba(125,211,252,0.31)',
   },
   chipInactive: {
-    backgroundColor: '#FFFFFF10',
-    borderColor: '#FFFFFF20',
+    backgroundColor: 'rgba(255,255,255,0.06)',
+    borderColor: 'rgba(255,255,255,0.13)',
   },
   chipText: {
     fontSize: 12,

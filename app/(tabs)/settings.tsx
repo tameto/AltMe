@@ -6,14 +6,14 @@ import { useRouter } from 'expo-router';
 import Constants from 'expo-constants';
 import { useTranslation } from 'react-i18next';
 
+import { LinearGradient } from 'expo-linear-gradient';
+
 import { CosmicBackground } from '@/src/shared/components/cosmic-background';
-import { GoldButton } from '@/src/shared/components/gold-button';
 import { colors, spacing, borderRadius, fontSize, fontFamily } from '@/src/config/theme';
 import { useIsPro } from '@/src/shared/hooks/use-subscription';
 import { useUser } from '@/src/shared/hooks/use-user';
 import { useAuthStore } from '@/src/features/auth/stores/auth-store';
 import { supabase } from '@/src/services/supabase/client';
-import { APP_NAME } from '@/src/config/constants';
 import {
   getMyInstance,
   updateSoulMd,
@@ -37,6 +37,7 @@ function GuestSettingsScreen() {
   const signInWithApple = useAuthStore((s) => s.signInWithApple);
   const signInWithGoogle = useAuthStore((s) => s.signInWithGoogle);
   const appVersion = Constants.expoConfig?.version ?? '1.0.0';
+  const buildNumber = Constants.expoConfig?.ios?.buildNumber ?? Constants.expoConfig?.android?.versionCode?.toString() ?? '1';
   const [isSigningIn, setIsSigningIn] = useState<'apple' | 'google' | null>(null);
 
   const handleAppleSignIn = async () => {
@@ -120,12 +121,12 @@ function GuestSettingsScreen() {
 
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>{t('settings.support.title')}</Text>
-            <SettingRow icon="help-circle" label={t('settings.support.help')} onPress={() => Linking.openURL(HELP_URL)} />
+            <SettingRow icon="info" label={t('settings.support.help')} onPress={() => Linking.openURL(HELP_URL)} />
             <SettingRow icon="file-text" label={t('settings.support.terms')} onPress={() => Linking.openURL(TERMS_URL)} />
             <SettingRow icon="shield" label={t('settings.support.privacy')} onPress={() => Linking.openURL(PRIVACY_URL)} />
           </View>
 
-          <Text style={styles.version}>{APP_NAME} v{appVersion}</Text>
+          <Text style={styles.version}>v{appVersion} (Build {buildNumber})</Text>
         </ScrollView>
       </SafeAreaView>
     </CosmicBackground>
@@ -142,6 +143,7 @@ export default function SettingsScreen() {
   const signOut = useAuthStore((s) => s.signOut);
 
   const appVersion = Constants.expoConfig?.version ?? '1.0.0';
+  const buildNumber = Constants.expoConfig?.ios?.buildNumber ?? Constants.expoConfig?.android?.versionCode?.toString() ?? '1';
 
   // OpenClaw instance state (must be before any conditional returns)
   const [instance, setInstance] = useState<OpenClawInstance | null>(null);
@@ -306,17 +308,23 @@ export default function SettingsScreen() {
               </View>
               <Text style={styles.profileEmail}>{user?.email || ''}</Text>
             </View>
+            {!isPro ? (
+              <Pressable
+                testID="upgrade-to-pro-button"
+                style={styles.upgradeButton}
+                onPress={() => router.push('/(paywall)')}
+              >
+                <LinearGradient
+                  colors={['#E8C567', '#C9A033', '#A07B1A']}
+                  start={{ x: 0, y: 0 }}
+                  end={{ x: 0, y: 1 }}
+                  style={styles.upgradeButtonGradient}
+                >
+                  <Text style={styles.upgradeButtonText}>{t('settings.upgradeToPro')}</Text>
+                </LinearGradient>
+              </Pressable>
+            ) : null}
           </View>
-
-          {/* Pro Upgrade Button - Free users only */}
-          {!isPro ? (
-            <GoldButton
-              testID="upgrade-to-pro-button"
-              title={t('settings.upgradeToPro')}
-              onPress={() => router.push('/(paywall)')}
-              style={styles.upgradeButton}
-            />
-          ) : null}
 
           {/* Settings List */}
           <View style={styles.settingsList}>
@@ -363,7 +371,7 @@ export default function SettingsScreen() {
             />
             <SettingRow
               testID="setting-row-help"
-              icon="help-circle"
+              icon="info"
               label={t('settings.support.help')}
               onPress={() => Linking.openURL(HELP_URL)}
             />
@@ -391,7 +399,7 @@ export default function SettingsScreen() {
             <Text style={styles.logoutText}>{t('settings.account.logout')}</Text>
           </Pressable>
 
-          <Text style={styles.version}>{APP_NAME} v{appVersion}</Text>
+          <Text style={styles.version}>v{appVersion} (Build {buildNumber})</Text>
         </ScrollView>
       </SafeAreaView>
     </CosmicBackground>
@@ -452,27 +460,27 @@ const styles = StyleSheet.create({
     backgroundColor: 'transparent',
   },
   content: {
-    padding: spacing.md,
+    paddingVertical: spacing.md,
+    paddingHorizontal: 20,
     paddingBottom: spacing.xxl,
+    gap: 14,
   },
   title: {
     fontSize: 20,
     fontFamily: fontFamily.bold,
     color: colors.text,
     textAlign: 'center',
-    marginBottom: spacing.lg,
   },
   profileCard: {
-    backgroundColor: '#FFFFFF08',
+    backgroundColor: 'rgba(255,255,255,0.03)',
     borderRadius: 16,
     borderWidth: 1,
-    borderColor: '#7DD3FC40',
+    borderColor: 'rgba(125,211,252,0.25)',
     paddingVertical: 14,
     paddingHorizontal: 16,
     flexDirection: 'row',
     alignItems: 'center',
     gap: 14,
-    marginBottom: spacing.lg,
   },
   profileAvatar: {
     width: 56,
@@ -497,26 +505,42 @@ const styles = StyleSheet.create({
     color: colors.text,
   },
   proBadge: {
-    backgroundColor: colors.accent,
-    borderRadius: 6,
-    paddingHorizontal: 8,
-    paddingVertical: 2,
+    backgroundColor: 'rgba(212,168,83,0.19)',
+    borderRadius: 999,
+    paddingHorizontal: 12,
+    paddingVertical: 4,
+    borderWidth: 1,
+    borderColor: 'rgba(212,168,83,0.38)',
   },
   proBadgeText: {
-    fontSize: fontSize.xs,
+    fontSize: 12,
     fontFamily: fontFamily.bold,
-    color: colors.textInverse,
+    fontWeight: '700',
+    color: '#D4A853',
   },
   profileEmail: {
     fontSize: 13,
     color: '#94A3B8',
   },
   upgradeButton: {
-    marginBottom: spacing.lg,
+    borderRadius: 20,
+    overflow: 'hidden',
+    borderWidth: 1,
+    borderColor: '#D4A853',
+  },
+  upgradeButtonGradient: {
+    paddingVertical: 8,
+    paddingHorizontal: 14,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  upgradeButtonText: {
+    fontSize: 12,
+    fontFamily: fontFamily.bold,
+    color: '#1A1A2E',
   },
   settingsList: {
     gap: spacing.sm,
-    marginBottom: spacing.lg,
   },
   settingRow: {
     flexDirection: 'row',
@@ -556,7 +580,6 @@ const styles = StyleSheet.create({
     height: 48,
     justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: spacing.sm,
   },
   deleteAccountText: {
     fontSize: 16,
@@ -571,7 +594,6 @@ const styles = StyleSheet.create({
     height: 48,
     justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: spacing.lg,
   },
   logoutText: {
     fontSize: 16,

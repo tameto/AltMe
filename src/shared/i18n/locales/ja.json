@@ -55,6 +55,7 @@
       }
     },
     "result": {
+      "headerTitle": "診断結果",
       "title": "あなたの性格タイプ",
       "analyzing": "あなたの性格を分析中...",
       "pleaseWait": "少々お待ちください",
@@ -64,6 +65,7 @@
       "extraversion": "外向性",
       "agreeableness": "協調性",
       "neuroticism": "神経質傾向",
+      "summaryLabel": "性格サマリー",
       "summaryTitle": "あなたの特徴",
       "detailedAnalysis": "詳細分析を見る",
       "proBadge": "Pro限定",

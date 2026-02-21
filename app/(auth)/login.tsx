@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { StyleSheet, View, Text, Pressable, ActivityIndicator, Alert, Platform, Image, ScrollView } from 'react-native';
+import { StyleSheet, View, Text, Pressable, ActivityIndicator, Alert, Platform, Image, ScrollView, Dimensions } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import FontAwesome from '@expo/vector-icons/FontAwesome';
@@ -275,7 +275,7 @@ const styles = StyleSheet.create({
   guestLink: {
     fontFamily: fontFamily.regular,
     fontSize: 14,
-    color: '#FFFFFFAA',
+    color: 'rgba(255,255,255,0.67)',
     textAlign: 'center',
   },
   legalContainer: {
@@ -285,14 +285,14 @@ const styles = StyleSheet.create({
   legalText: {
     fontFamily: fontFamily.regular,
     fontSize: 12,
-    color: '#FFFFFF50',
+    color: 'rgba(255,255,255,0.31)',
     textAlign: 'center',
   },
   // ========== LOGIN STATE ==========
   loginContent: {
     flex: 1,
     paddingHorizontal: spacing.lg,
-    paddingTop: spacing.md,
+    paddingTop: Math.min(300, Dimensions.get('window').height * 0.3),
     paddingBottom: spacing.xl,
   },
   backButton: {
@@ -333,7 +333,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     borderWidth: 1,
-    borderColor: '#FFFFFF30',
+    borderColor: 'rgba(255,255,255,0.19)',
   },
   appleButtonText: {
     fontFamily: fontFamily.semiBold,
@@ -346,12 +346,8 @@ const styles = StyleSheet.create({
     height: 54,
     justifyContent: 'center',
     alignItems: 'center',
-    // stroke outside: shadow で代替（RN は borderWidth が inside のため）
-    shadowColor: '#7DD3FC',
-    shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 0.5,
-    shadowRadius: 2,
-    elevation: 2,
+    borderWidth: 2,
+    borderColor: 'rgba(125,211,252,0.5)',
   },
   googleIconWrapper: {
     width: 24,

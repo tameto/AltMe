@@ -5,7 +5,7 @@ import Feather from '@expo/vector-icons/Feather';
 import { useTranslation } from 'react-i18next';
 import { CosmicBackground } from '@/src/shared/components/cosmic-background';
 import { GoldButton } from '@/src/shared/components/gold-button';
-import { spacing, fontFamily, borderRadius, glassmorphism } from '@/src/config/theme';
+import { spacing, fontFamily, borderRadius } from '@/src/config/theme';
 import {
   useOnboardingStore,
   type ToneStyle,
@@ -37,10 +37,9 @@ export default function ChooseToneScreen() {
             <Pressable style={styles.backButton} onPress={() => router.back()}>
               <Feather name="arrow-left" size={24} color="#F8FAFC" />
             </Pressable>
-            <Text style={styles.step}>5/6</Text>
+            <Text style={styles.headerTitle}>{t('onboarding.tone.title')}</Text>
+            <Text style={styles.step}>6 / 6</Text>
           </View>
-
-          <Text style={styles.title}>{t('onboarding.tone.title')}</Text>
 
           <ScrollView
             style={styles.scrollView}
@@ -103,17 +102,18 @@ const styles = StyleSheet.create({
   backButton: {
     padding: spacing.xs,
   },
+  headerTitle: {
+    fontFamily: fontFamily.semiBold,
+    fontSize: 18,
+    fontWeight: '600',
+    color: '#F8FAFC',
+    flex: 1,
+    textAlign: 'center',
+  },
   step: {
     fontFamily: fontFamily.medium,
     fontSize: 14,
-    color: '#94A3B8',
-  },
-  title: {
-    fontFamily: fontFamily.bold,
-    fontSize: 28,
-    color: '#F8FAFC',
-    textAlign: 'center',
-    marginBottom: spacing.lg,
+    color: 'rgba(255,255,255,0.38)',
   },
   scrollView: {
     flex: 1,
@@ -123,33 +123,36 @@ const styles = StyleSheet.create({
     paddingBottom: spacing.md,
   },
   toneCard: {
-    backgroundColor: glassmorphism.card.bg,
-    borderRadius: borderRadius.md,
-    padding: spacing.lg,
+    backgroundColor: 'rgba(255,255,255,0.03)',
+    borderRadius: borderRadius.lg,
+    paddingVertical: 14,
+    paddingHorizontal: 18,
     borderWidth: 1,
-    borderColor: glassmorphism.card.border,
+    borderColor: 'rgba(255,255,255,0.13)',
+    gap: 8,
   },
   toneCardSelected: {
-    backgroundColor: '#FFFFFF',
-    borderColor: '#FFFFFF',
+    backgroundColor: 'rgba(125,211,252,0.08)',
+    borderWidth: 1.5,
+    borderColor: 'rgba(125,211,252,0.31)',
   },
   toneLabel: {
     fontFamily: fontFamily.semiBold,
-    fontSize: 18,
-    color: '#F8FAFC',
-    marginBottom: spacing.sm,
+    fontSize: 14,
+    fontWeight: '600',
+    color: 'rgba(255,255,255,0.5)',
   },
   toneLabelSelected: {
-    color: '#0F172A',
+    color: '#7DD3FC',
   },
   toneSample: {
     fontFamily: fontFamily.regular,
-    fontSize: 14,
-    color: '#94A3B8',
-    lineHeight: 22,
+    fontSize: 13,
+    color: 'rgba(255,255,255,0.6)',
+    lineHeight: 20,
   },
   toneSampleSelected: {
-    color: '#334155',
+    color: 'rgba(255,255,255,0.8)',
   },
   footer: {
     paddingTop: spacing.lg,

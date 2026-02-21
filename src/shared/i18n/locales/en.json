@@ -55,6 +55,7 @@
       }
     },
     "result": {
+      "headerTitle": "Results",
       "title": "Your Personality Type",
       "analyzing": "Analyzing your personality...",
       "pleaseWait": "Please wait",
@@ -64,6 +65,7 @@
       "extraversion": "Extraversion",
       "agreeableness": "Agreeableness",
       "neuroticism": "Neuroticism",
+      "summaryLabel": "Personality Summary",
       "summaryTitle": "Your Traits",
       "detailedAnalysis": "View Detailed Analysis",
       "proBadge": "Pro Only",

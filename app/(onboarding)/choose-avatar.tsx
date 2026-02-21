@@ -43,10 +43,9 @@ export default function ChooseAvatarScreen() {
             <Pressable style={styles.backButton} onPress={() => router.back()}>
               <Feather name="arrow-left" size={24} color="#F8FAFC" />
             </Pressable>
-            <Text style={styles.step}>4/6</Text>
+            <Text style={styles.headerTitle}>{t('onboarding.avatar.title')}</Text>
+            <Text style={styles.step}>5 / 6</Text>
           </View>
-
-          <Text style={styles.title}>{t('onboarding.avatar.title')}</Text>
 
           <View style={styles.previewContainer}>
             <View style={[styles.previewCircle, avatarStyle ? styles.previewCircleActive : null]}>
@@ -122,17 +121,18 @@ const styles = StyleSheet.create({
   backButton: {
     padding: spacing.xs,
   },
+  headerTitle: {
+    fontFamily: fontFamily.semiBold,
+    fontSize: 18,
+    fontWeight: '600',
+    color: '#F8FAFC',
+    flex: 1,
+    textAlign: 'center',
+  },
   step: {
     fontFamily: fontFamily.medium,
     fontSize: 14,
-    color: '#94A3B8',
-  },
-  title: {
-    fontFamily: fontFamily.bold,
-    fontSize: 28,
-    color: '#F8FAFC',
-    textAlign: 'center',
-    marginBottom: spacing.xl,
+    color: 'rgba(255,255,255,0.38)',
   },
   previewContainer: {
     alignItems: 'center',
@@ -142,19 +142,15 @@ const styles = StyleSheet.create({
     width: 160,
     height: 160,
     borderRadius: 80,
-    backgroundColor: '#FFFFFF0D',
-    borderWidth: 1,
-    borderColor: '#FFFFFF25',
+    backgroundColor: 'rgba(125,211,252,0.08)',
+    borderWidth: 2,
+    borderColor: 'rgba(125,211,252,0.25)',
     justifyContent: 'center',
     alignItems: 'center',
   },
   previewCircleActive: {
-    borderColor: '#7DD3FC',
-    borderWidth: 3,
-    shadowColor: '#7DD3FC',
-    shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 0.4,
-    shadowRadius: 12,
+    borderColor: 'rgba(125,211,252,0.25)',
+    borderWidth: 2,
   },
   grid: {
     flexDirection: 'row',
@@ -164,27 +160,24 @@ const styles = StyleSheet.create({
     marginBottom: spacing.xl,
   },
   gridItem: {
-    width: 100,
-    height: 100,
-    borderRadius: borderRadius.md,
-    backgroundColor: '#FFFFFF0D',
+    width: 64,
+    height: 64,
+    borderRadius: borderRadius.lg,
+    backgroundColor: 'rgba(255,255,255,0.03)',
     borderWidth: 1,
-    borderColor: '#FFFFFF25',
+    borderColor: 'rgba(255,255,255,0.13)',
     justifyContent: 'center',
     alignItems: 'center',
     gap: spacing.xs,
   },
   gridItemSelected: {
-    borderColor: '#7DD3FC',
-    borderWidth: 3,
-    shadowColor: '#7DD3FC',
-    shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 0.4,
-    shadowRadius: 12,
+    backgroundColor: 'rgba(125,211,252,0.08)',
+    borderWidth: 2,
+    borderColor: 'rgba(125,211,252,0.31)',
   },
   gridLabel: {
     fontFamily: fontFamily.medium,
-    fontSize: 12,
+    fontSize: 11,
     color: '#94A3B8',
     textAlign: 'center',
   },

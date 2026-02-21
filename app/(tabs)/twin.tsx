@@ -36,7 +36,7 @@ function getIndicatorColor(runtimeState: RuntimeState | null, isPro: boolean): s
   if (!isPro || runtimeState === null) return '#6B7280';
   switch (runtimeState) {
     case 'healthy':
-      return colors.success;
+      return '#22C55E';
     case 'waking':
       return '#F59E0B';
     case 'error':
@@ -225,9 +225,11 @@ const styles = StyleSheet.create({
     backgroundColor: 'transparent',
   },
   content: {
-    padding: spacing.md,
+    paddingVertical: spacing.md,
+    paddingHorizontal: 20,
     paddingBottom: spacing.xxl,
     alignItems: 'center',
+    gap: 20,
   },
   headerTitle: {
     fontSize: 20,
@@ -235,19 +237,17 @@ const styles = StyleSheet.create({
     color: colors.text,
     textAlign: 'center',
     alignSelf: 'stretch',
-    marginBottom: spacing.lg,
   },
   avatarCard: {
     width: '100%',
-    backgroundColor: '#FFFFFF08',
+    backgroundColor: 'rgba(255,255,255,0.03)',
     borderRadius: 16,
     borderWidth: 1,
-    borderColor: '#7DD3FC40',
+    borderColor: 'rgba(125,211,252,0.25)',
     paddingVertical: 20,
     paddingHorizontal: 24,
     alignItems: 'center',
     gap: 12,
-    marginBottom: spacing.lg,
   },
   avatar: {
     width: 100,
@@ -298,7 +298,6 @@ const styles = StyleSheet.create({
     fontFamily: fontFamily.bold,
     color: colors.text,
     alignSelf: 'flex-start',
-    marginBottom: spacing.md,
   },
   loadingContainer: {
     width: '100%',
@@ -328,7 +327,6 @@ const styles = StyleSheet.create({
   bigFiveContainer: {
     width: '100%',
     gap: spacing.sm,
-    marginBottom: spacing.lg,
   },
   traitCard: {
     backgroundColor: '#FFFFFF08',

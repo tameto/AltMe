@@ -13,6 +13,7 @@ import { useState, useRef, useCallback, useEffect } from 'react';
 import { router } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
+import Feather from '@expo/vector-icons/Feather';
 import { CosmicBackground } from '@/src/shared/components/cosmic-background';
 import { GoldButton } from '@/src/shared/components/gold-button';
 import { spacing, fontFamily, borderRadius, glassmorphism } from '@/src/config/theme';
@@ -239,11 +240,11 @@ export default function MeetTwinScreen() {
           keyboardVerticalOffset={0}
         >
           <View style={styles.header}>
+            <View style={styles.avatarWrapper}>
+              <Feather name="cpu" size={48} color="#7DD3FC" />
+            </View>
             <Text style={styles.headerTitle}>
               {t('onboarding.meetTwin.title')}
-            </Text>
-            <Text style={styles.headerSubtitle}>
-              {t('onboarding.meetTwin.subtitle')}
             </Text>
           </View>
 
@@ -331,17 +332,22 @@ const styles = StyleSheet.create({
     paddingVertical: spacing.md,
     borderBottomWidth: 1,
     borderBottomColor: glassmorphism.card.border,
+    gap: spacing.sm,
+  },
+  avatarWrapper: {
+    width: 100,
+    height: 100,
+    borderRadius: 50,
+    backgroundColor: 'rgba(125,211,252,0.08)',
+    borderWidth: 2,
+    borderColor: 'rgba(125,211,252,0.25)',
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   headerTitle: {
     fontFamily: fontFamily.semiBold,
     fontSize: 18,
     color: '#F8FAFC',
-  },
-  headerSubtitle: {
-    fontFamily: fontFamily.regular,
-    fontSize: 12,
-    color: '#94A3B8',
-    marginTop: spacing.xs / 2,
   },
   messageList: {
     flex: 1,
@@ -439,7 +445,7 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     fontFamily: fontFamily.regular,
     fontSize: 12,
-    color: '#64748B',
+    color: 'rgba(255,255,255,0.25)',
     paddingBottom: spacing.sm,
   },
   endSection: {
