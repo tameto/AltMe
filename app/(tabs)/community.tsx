@@ -14,7 +14,6 @@ import { useTranslation } from 'react-i18next';
 import { useRouter, type Href } from 'expo-router';
 
 import { CosmicBackground } from '@/src/shared/components/cosmic-background';
-import { GlassCard } from '@/src/shared/components/glass-card';
 import { GoldButton } from '@/src/shared/components/gold-button';
 import { colors, spacing, fontSize, fontFamily, borderRadius } from '@/src/config/theme';
 import { useAuthStore } from '@/src/features/auth/stores/auth-store';
@@ -38,27 +37,15 @@ export default function CommunityScreen() {
   };
 
   const renderCommunity = ({ item }: { item: Community }) => (
-    <Pressable style={styles.communityCardWrapper}>
-      <View style={styles.communityCard}>
-        <View style={styles.communityThumbnail}>
-          <Feather name="users" size={24} color={colors.textSecondary} />
-        </View>
-        <View style={styles.communityInfo}>
-          <Text style={styles.communityName}>{item.name}</Text>
-          {item.description !== null ? (
-            <Text style={styles.communityDescription} numberOfLines={1}>
-              {item.description}
-            </Text>
-          ) : null}
-          <View style={styles.communityStats}>
-            <View style={styles.communityStat}>
-              <Feather name="users" size={14} color={colors.textSecondary} />
-              <Text style={styles.communityStatText}>{item.memberCount}</Text>
-            </View>
-          </View>
-        </View>
-        <Feather name="chevron-right" size={20} color={colors.textTertiary} />
+    <Pressable style={styles.communityCard} onPress={() => router.push(`/community/${item.id}` as Href)}>
+      <View style={styles.communityThumbnail}>
+        <Feather name="users" size={28} color={colors.textSecondary} />
       </View>
+      <View style={styles.communityInfo}>
+        <Text style={styles.communityName}>{item.name}</Text>
+        <Text style={styles.communityStatText}>{'👥 '}{item.memberCount}{t('community.memberCount')}</Text>
+      </View>
+      <Feather name="chevron-right" size={20} color="#7DD3FC60" />
     </Pressable>
   );
 
@@ -69,35 +56,14 @@ export default function CommunityScreen() {
         <Text style={styles.headerTitle}>AltMe</Text>
         {/* Language Switcher */}
         <View style={styles.languageSwitcher}>
-          <Pressable
-            style={[
-              styles.languageButton,
-              language === 'jp' ? styles.languageButtonActive : styles.languageButtonInactive,
-            ]}
-            onPress={() => setLanguage('jp')}
-          >
-            <Text
-              style={[
-                styles.languageButtonText,
-                language === 'jp' ? styles.languageButtonTextActive : styles.languageButtonTextInactive,
-              ]}
-            >
+          <Pressable onPress={() => setLanguage('jp')}>
+            <Text style={[styles.languageButtonText, language === 'jp' ? styles.languageTextActive : styles.languageTextInactive]}>
               JP
             </Text>
           </Pressable>
-          <Pressable
-            style={[
-              styles.languageButton,
-              language === 'en' ? styles.languageButtonActive : styles.languageButtonInactive,
-            ]}
-            onPress={() => setLanguage('en')}
-          >
-            <Text
-              style={[
-                styles.languageButtonText,
-                language === 'en' ? styles.languageButtonTextActive : styles.languageButtonTextInactive,
-              ]}
-            >
+          <Text style={styles.languageSeparator}>/</Text>
+          <Pressable onPress={() => setLanguage('en')}>
+            <Text style={[styles.languageButtonText, language === 'en' ? styles.languageTextActive : styles.languageTextInactive]}>
               EN
             </Text>
           </Pressable>
@@ -106,9 +72,9 @@ export default function CommunityScreen() {
 
       {/* Popular Communities Section */}
       <View style={styles.sectionHeader}>
-        <Text style={styles.sectionTitle}>人気のコミュニティ</Text>
+        <Text style={styles.sectionTitle}>{t('community.popularTitle')}</Text>
         <Pressable style={styles.addButton} onPress={() => router.push('/community-create' as Href)}>
-          <Feather name="plus" size={20} color={colors.primary} />
+          <Feather name="plus" size={24} color={colors.primary} />
         </Pressable>
       </View>
 
@@ -122,19 +88,16 @@ export default function CommunityScreen() {
     <>
       {/* Pro Upgrade Banner */}
       {!isPro ? (
-        <GlassCard style={styles.proUpgradeBanner}>
+        <View style={styles.proUpgradeBanner}>
           <Text style={styles.proUpgradeTitle}>
-            Proメンバーになってもっと楽しもう
-          </Text>
-          <Text style={styles.proUpgradeSubtitle}>
-            すべてのコミュニティに参加できます
+            {t('community.proBannerTitle')}
           </Text>
           <GoldButton
-            title="Proにアップグレード"
+            title={t('community.proBannerCta')}
             onPress={handleUpgradeToPro}
             style={styles.proUpgradeButton}
           />
-        </GlassCard>
+        </View>
       ) : null}
 
       {/* Guest Banner */}
@@ -181,130 +144,117 @@ const styles = StyleSheet.create({
   content: {
     padding: spacing.md,
     paddingBottom: spacing.xxl,
+    gap: 12,
   },
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: spacing.lg,
+    marginBottom: spacing.sm,
   },
   headerTitle: {
-    fontSize: 24,
+    fontSize: 20,
     fontFamily: fontFamily.bold,
     color: colors.text,
   },
   languageSwitcher: {
     flexDirection: 'row',
-    gap: spacing.xs,
-  },
-  languageButton: {
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.xs,
-    borderRadius: borderRadius.md,
-  },
-  languageButtonActive: {
-    backgroundColor: colors.primary,
-  },
-  languageButtonInactive: {
-    backgroundColor: 'transparent',
+    alignItems: 'center',
+    gap: spacing.sm,
+    backgroundColor: '#FFFFFF10',
     borderWidth: 1,
-    borderColor: '#FFFFFF25',
+    borderColor: '#FFFFFF20',
+    borderRadius: 20,
+    paddingVertical: 6,
+    paddingHorizontal: 12,
   },
   languageButtonText: {
-    fontSize: fontSize.sm,
+    fontSize: 14,
     fontFamily: fontFamily.semiBold,
   },
-  languageButtonTextActive: {
-    color: colors.textInverse,
+  languageTextActive: {
+    color: '#00D4FF',
   },
-  languageButtonTextInactive: {
-    color: colors.text,
+  languageTextInactive: {
+    color: '#64748B',
+  },
+  languageSeparator: {
+    fontSize: 14,
+    color: '#64748B',
   },
   sectionHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: spacing.md,
+    marginBottom: spacing.sm,
   },
   sectionTitle: {
-    fontSize: fontSize.lg,
-    fontFamily: fontFamily.semiBold,
+    fontSize: 22,
+    fontFamily: fontFamily.bold,
     color: colors.text,
   },
   addButton: {
-    width: 32,
-    height: 32,
+    width: 36,
+    height: 36,
     justifyContent: 'center',
     alignItems: 'center',
   },
   loader: {
     marginVertical: spacing.lg,
   },
-  communityCardWrapper: {
-    marginBottom: spacing.md,
-  },
   communityCard: {
     backgroundColor: '#FFFFFF08',
     borderColor: '#7DD3FC40',
     borderWidth: 1,
     borderRadius: 16,
-    padding: spacing.md,
+    paddingVertical: 12,
+    paddingHorizontal: 14,
     flexDirection: 'row',
     alignItems: 'center',
-    gap: spacing.md,
+    gap: 14,
   },
   communityThumbnail: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
+    width: 64,
+    height: 64,
+    borderRadius: 12,
     backgroundColor: '#FFFFFF15',
     justifyContent: 'center',
     alignItems: 'center',
   },
   communityInfo: {
     flex: 1,
-    gap: spacing.xs,
+    gap: 4,
   },
   communityName: {
-    fontSize: fontSize.md,
+    fontSize: 16,
     fontFamily: fontFamily.semiBold,
     color: colors.text,
   },
-  communityDescription: {
-    fontSize: fontSize.sm,
-    color: colors.textSecondary,
-  },
-  communityStats: {
-    flexDirection: 'row',
-    gap: spacing.md,
-  },
-  communityStat: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-  },
   communityStatText: {
-    fontSize: fontSize.xs,
-    color: colors.textSecondary,
+    fontSize: 12,
+    color: '#94A3B8',
   },
   proUpgradeBanner: {
-    padding: spacing.lg,
-    marginTop: spacing.lg,
-    marginBottom: spacing.md,
+    backgroundColor: '#FFFFFF08',
+    borderWidth: 1.5,
+    borderColor: '#D4A85360',
+    borderRadius: 16,
+    paddingVertical: 20,
+    paddingHorizontal: 24,
+    gap: 12,
+    alignItems: 'center',
+    marginTop: spacing.sm,
   },
   proUpgradeTitle: {
-    fontSize: fontSize.lg,
-    fontFamily: fontFamily.bold,
+    fontSize: 16,
+    fontFamily: fontFamily.semiBold,
     color: colors.text,
-    marginBottom: spacing.xs,
-  },
-  proUpgradeSubtitle: {
-    fontSize: fontSize.sm,
-    color: colors.textSecondary,
-    marginBottom: spacing.md,
+    textAlign: 'center',
   },
   proUpgradeButton: {
-    marginTop: spacing.xs,
+    width: 220,
+    height: 44,
+    borderRadius: 22,
   },
   guestBanner: {
     flexDirection: 'row',
@@ -314,7 +264,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.md,
     borderRadius: borderRadius.md,
-    marginTop: spacing.md,
+    marginTop: spacing.sm,
   },
   guestBannerText: {
     fontSize: fontSize.sm,

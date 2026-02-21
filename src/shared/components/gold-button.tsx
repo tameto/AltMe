@@ -10,11 +10,13 @@ type Props = {
   disabled?: boolean;
   loading?: boolean;
   style?: ViewStyle;
+  testID?: string;
 };
 
-export function GoldButton({ title, onPress, disabled, loading, style }: Props) {
+export function GoldButton({ title, onPress, disabled, loading, style, testID }: Props) {
   return (
     <Pressable
+      testID={testID}
       onPress={onPress}
       disabled={disabled || loading}
       style={({ pressed }) => [
@@ -52,9 +54,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   text: {
-    color: '#0F172A',
+    color: '#1A1A2E',
     fontFamily: fontFamily.bold,
-    fontSize: 18,
+    fontSize: 17,
   },
   disabled: {
     opacity: 0.6,

@@ -16,7 +16,8 @@ GoogleSignin.configure({
  * Uses native Apple Authentication on iOS
  */
 export const signInWithApple = async (): Promise<UserProfile> => {
-  const nonce = Math.random().toString(36).substring(2, 15);
+  const bytes = await Crypto.getRandomBytesAsync(32);
+  const nonce = Array.from(bytes, (b) => b.toString(16).padStart(2, '0')).join('');
   const hashedNonce = await Crypto.digestStringAsync(
     Crypto.CryptoDigestAlgorithm.SHA256,
     nonce,
@@ -155,6 +156,11 @@ export const deleteAccount = async (): Promise<void> => {
   });
 
   if (error) throw error;
+
+  await Promise.allSettled([
+    supabase.auth.signOut({ scope: 'local' }),
+    logOutRevenueCat(),
+  ]);
 };
 
 // -- Internal helpers --
@@ -195,13 +201,37 @@ const AGE_RANGES = new Set(['18-24', '25-34', '35-44', '45+']);
 const isAgeRange = (v: unknown): v is UserProfile['ageRange'] =>
   typeof v === 'string' && AGE_RANGES.has(v);
 
-const AVATAR_ICONS = new Set(['default', 'geometric', 'cosmic', 'organic', 'techno', 'zen']);
+const AVATAR_ICONS = new Set<UserProfile['avatarIcon']>([
+  'default', 'geometric', 'cosmic', 'organic', 'tech', 'zen',
+  'robot', 'cat', 'bunny', 'star', 'owl', 'fox', 'penguin', 'bear', 'dragon',
+  'unicorn', 'panda', 'dolphin', 'phoenix', 'deer', 'koala', 'wolf', 'hamster',
+  'butterfly', 'jellyfish', 'mushroom', 'crystal', 'cloud', 'moon', 'octopus',
+  'flower', 'ghost', 'slime', 'sakura', 'flame', 'alien',
+]);
+// Migration map for legacy DB values that differ from current type
+const AVATAR_ICON_MIGRATION: Record<string, UserProfile['avatarIcon']> = {
+  techno: 'tech',
+};
 const isAvatarIcon = (v: unknown): v is UserProfile['avatarIcon'] =>
-  typeof v === 'string' && AVATAR_ICONS.has(v);
+  typeof v === 'string' && AVATAR_ICONS.has(v as UserProfile['avatarIcon']);
+const normalizeAvatarIcon = (v: unknown): UserProfile['avatarIcon'] => {
+  if (typeof v !== 'string') return 'default';
+  if (v in AVATAR_ICON_MIGRATION) return AVATAR_ICON_MIGRATION[v];
+  return isAvatarIcon(v) ? v : 'default';
+};
 
-const SPEECH_TONES = new Set(['polite', 'casual', 'intellectual', 'mentor', 'tsundere', 'friendly']);
+const SPEECH_TONES = new Set<UserProfile['speechTone']>(['polite', 'friendly', 'intellectual', 'mentor', 'tsundere']);
+// Migration map for legacy DB values that differ from current type
+const SPEECH_TONE_MIGRATION: Record<string, UserProfile['speechTone']> = {
+  casual: 'friendly',
+};
 const isSpeechTone = (v: unknown): v is UserProfile['speechTone'] =>
-  typeof v === 'string' && SPEECH_TONES.has(v);
+  typeof v === 'string' && SPEECH_TONES.has(v as UserProfile['speechTone']);
+const normalizeSpeechTone = (v: unknown): UserProfile['speechTone'] => {
+  if (typeof v !== 'string') return 'friendly';
+  if (v in SPEECH_TONE_MIGRATION) return SPEECH_TONE_MIGRATION[v];
+  return isSpeechTone(v) ? v : 'friendly';
+};
 
 const mapDbProfile = (data: Record<string, unknown>): UserProfile => ({
   id: asStr(data.id) ?? '',
@@ -213,8 +243,8 @@ const mapDbProfile = (data: Record<string, unknown>): UserProfile => ({
   timezone: asStr(data.timezone) ?? 'Asia/Tokyo',
   onboardingCompleted: asBool(data.onboarding_completed),
   twinName: asStr(data.twin_name),
-  avatarIcon: isAvatarIcon(data.avatar_icon) ? data.avatar_icon : 'default',
-  speechTone: isSpeechTone(data.speech_tone) ? data.speech_tone : 'friendly',
+  avatarIcon: normalizeAvatarIcon(data.avatar_icon),
+  speechTone: normalizeSpeechTone(data.speech_tone),
   mbtiType: asStr(data.mbti_type),
   createdAt: asStr(data.created_at) ?? new Date().toISOString(),
   updatedAt: asStr(data.updated_at) ?? new Date().toISOString(),

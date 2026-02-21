@@ -11,8 +11,13 @@ const SecureStoreAdapter = {
   getItem: (key: string): Promise<string | null> => {
     return SecureStore.getItemAsync(key);
   },
-  setItem: (key: string, value: string): Promise<void> => {
-    return SecureStore.setItemAsync(key, value);
+  setItem: async (key: string, value: string): Promise<void> => {
+    try {
+      await SecureStore.setItemAsync(key, value);
+    } catch (error) {
+      console.error('SecureStore.setItem failed:', error);
+      throw error;
+    }
   },
   removeItem: (key: string): Promise<void> => {
     return SecureStore.deleteItemAsync(key);

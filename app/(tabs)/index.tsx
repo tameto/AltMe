@@ -1,7 +1,6 @@
 import React, { useCallback } from 'react';
 import {
   View,
-  Text,
   TextInput,
   FlatList,
   KeyboardAvoidingView,
@@ -9,13 +8,14 @@ import {
   StyleSheet,
   ActivityIndicator,
   Pressable,
+  Text,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Feather, MaterialCommunityIcons } from '@expo/vector-icons';
+import { Feather } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
 import { LinearGradient } from 'expo-linear-gradient';
 
-import { colors, spacing, borderRadius, fontSize, fontFamily, sendGradient, glassmorphism } from '@/src/config/theme';
+import { colors, fontFamily, sendGradient } from '@/src/config/theme';
 import { CosmicBackground } from '@/src/shared/components/cosmic-background';
 import { FREE_DAILY_LIMIT, APP_NAME, CHAT } from '@/src/config/constants';
 import { useIsPro } from '@/src/shared/hooks/use-subscription';
@@ -24,6 +24,12 @@ import { useNetwork } from '@/src/shared/hooks/use-network';
 import { useAuthStore } from '@/src/features/auth/stores/auth-store';
 import { GuestPromptOverlay } from '@/src/shared/components/guest-prompt-overlay';
 import { useChat, type DisplayMessage } from '@/src/features/chat/hooks/use-chat';
+import { ChatHeader } from '@/src/features/chat/components/chat-header';
+import { TopicChipsRow } from '@/src/features/chat/components/topic-chips-row';
+import { ChatBubble } from '@/src/features/chat/components/chat-bubble';
+import { DateSeparator } from '@/src/features/chat/components/date-separator';
+import { RemainingCounter } from '@/src/features/chat/components/remaining-counter';
+import { useTopics } from '@/src/features/chat/hooks/use-topics';
 
 export default function ChatScreen() {
   const { t } = useTranslation();
@@ -47,33 +53,23 @@ export default function ChatScreen() {
     flatListRef,
   } = useChat();
 
-  const renderMessage = useCallback(({ item }: { item: DisplayMessage }) => {
-    const isUser = item.role === 'user';
-    const isStreaming = item.id === 'streaming';
-    return (
-      <View style={[styles.messageBubble, isUser ? styles.userBubble : styles.aiBubble]}>
-        {!isUser && (
-          <View style={styles.aiAvatarContainer}>
-            <MaterialCommunityIcons name="robot-outline" size={14} color={colors.primary} />
-          </View>
-        )}
-        <View style={[styles.messageContent, isUser ? styles.userContent : styles.aiContent]}>
-          <Text style={[styles.messageText, isUser && styles.userText]}>
-            {item.content}
-            {isStreaming && <Text style={styles.cursor}>|</Text>}
-          </Text>
-          <Text style={styles.messageTimestamp}>
-            {new Date(item.createdAt).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}
-          </Text>
-        </View>
-      </View>
-    );
-  }, []);
+  const { topics, activeTopic, setActiveTopic } = useTopics();
 
-  // Connection status dot color
-  const statusDotColor = connectionMode === 'websocket'
-    ? (wsStatus === 'connected' ? colors.success : wsStatus === 'reconnecting' ? colors.warning : colors.textTertiary)
-    : colors.success;
+  const renderItem = useCallback(({ item }: { item: DisplayMessage | { type: 'separator'; date: string; id: string } }) => {
+    if ('type' in item && item.type === 'separator') {
+      return <DateSeparator date={item.date} />;
+    }
+    const msg = item as DisplayMessage;
+    return (
+      <ChatBubble
+        role={msg.role}
+        content={msg.content}
+        createdAt={msg.createdAt}
+        twinName={user?.twinName ?? APP_NAME}
+        isStreaming={msg.id === 'streaming'}
+      />
+    );
+  }, [user?.twinName]);
 
   if (!isAuthenticated) {
     return (
@@ -100,23 +96,25 @@ export default function ChatScreen() {
   return (
     <CosmicBackground>
       <SafeAreaView style={styles.container} edges={['top']}>
-        <View style={styles.header}>
-          <View style={styles.headerLeft}>
-            <View style={styles.avatarWrapper}>
-              <MaterialCommunityIcons name="robot-outline" size={20} color={colors.primary} />
-            </View>
-            <Text style={styles.headerTitle}>{user?.twinName || APP_NAME}</Text>
-            <View style={[styles.statusDot, { backgroundColor: statusDotColor }]} />
-          </View>
-          {!isPro && (
-            <View style={styles.remainingBadge}>
-              <Text style={styles.remainingBadgeText}>
-                {Math.max(0, FREE_DAILY_LIMIT - todayUserCount)}
-              </Text>
-            </View>
-          )}
-        </View>
+        {/* Header */}
+        <ChatHeader
+          twinName={user?.twinName ?? APP_NAME}
+          isOnline={isOnline}
+          isPro={isPro}
+          todayUserCount={todayUserCount}
+          freeLimit={FREE_DAILY_LIMIT}
+          connectionMode={connectionMode}
+          wsStatus={wsStatus}
+        />
 
+        {/* Topic chips */}
+        <TopicChipsRow
+          topics={topics}
+          activeTopic={activeTopic}
+          onSelect={setActiveTopic}
+        />
+
+        {/* Offline/reconnect banners */}
         {!isOnline && (
           <View style={styles.offlineBanner}>
             <Feather name="wifi-off" size={12} color={colors.error} />
@@ -131,53 +129,69 @@ export default function ChatScreen() {
           </View>
         )}
 
-      <FlatList
-        ref={flatListRef}
-        data={displayData}
-        renderItem={renderMessage}
-        keyExtractor={(item) => item.id}
-        contentContainerStyle={styles.messageList}
-        showsVerticalScrollIndicator={false}
-      />
+        {/* Remaining counter (free users only) */}
+        {!isPro && (
+          <RemainingCounter
+            remaining={Math.max(0, FREE_DAILY_LIMIT - todayUserCount)}
+            total={FREE_DAILY_LIMIT}
+          />
+        )}
 
-      {isLoading && !streamingText && (
-        <View style={styles.typingIndicator}>
-          <ActivityIndicator size="small" color={colors.primary} />
-          <Text style={styles.typingText}>{t('chat.thinking')}</Text>
-        </View>
-      )}
+        {/* Message list */}
+        <FlatList
+          ref={flatListRef}
+          data={displayData}
+          renderItem={renderItem}
+          keyExtractor={(item) => item.id}
+          contentContainerStyle={styles.messageList}
+          showsVerticalScrollIndicator={false}
+        />
 
-      <KeyboardAvoidingView
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        keyboardVerticalOffset={90}>
-        <View style={styles.inputContainer}>
-          <View style={styles.inputWrapper}>
+        {isLoading && !streamingText && (
+          <View style={styles.typingIndicator}>
+            <ActivityIndicator size="small" color={colors.primary} />
+            <Text style={styles.typingText}>{t('chat.thinking')}</Text>
+          </View>
+        )}
+
+        {/* Input bar */}
+        <KeyboardAvoidingView
+          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+          keyboardVerticalOffset={0}
+        >
+          <View style={styles.inputBar}>
+            {/* Plus button */}
+            <Pressable style={styles.plusButton}>
+              <Feather name="plus" size={18} color="#FFFFFF70" />
+            </Pressable>
+
+            {/* Input field */}
             <TextInput
               style={styles.textInput}
               value={inputText}
               onChangeText={setInputText}
-              placeholder={isAtLimit ? t('chat.inputPlaceholderAtLimit') : t('chat.inputPlaceholderDefault')}
-              placeholderTextColor={colors.textTertiary}
+              placeholder={isAtLimit ? t('chat.inputPlaceholderAtLimit') : t('chat.inputPlaceholder')}
+              placeholderTextColor="#FFFFFF50"
               multiline
               maxLength={CHAT.maxMessageLength}
               editable={!isAtLimit}
             />
+
+            {/* Send button */}
             {inputText.trim() && !isLoading && isOnline ? (
-              <Pressable
-                style={styles.sendButton}
-                onPress={handleSend}>
+              <Pressable style={styles.sendButton} onPress={handleSend}>
                 <LinearGradient
                   colors={sendGradient.colors}
-                  start={sendGradient.start}
-                  end={sendGradient.end}
-                  style={styles.sendGradient}>
-                  <Feather name="send" size={18} color={colors.text} />
+                  start={{ x: 0, y: 0 }}
+                  end={{ x: 1, y: 1 }}
+                  style={styles.sendGradient}
+                >
+                  <Feather name="send" size={18} color="#0F172A" />
                 </LinearGradient>
               </Pressable>
             ) : null}
           </View>
-        </View>
-      </KeyboardAvoidingView>
+        </KeyboardAvoidingView>
       </SafeAreaView>
     </CosmicBackground>
   );
@@ -193,61 +207,16 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
-  header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.md,
-  },
-  headerLeft: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.sm,
-  },
-  avatarWrapper: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    borderWidth: 2,
-    borderColor: colors.primary,
-    backgroundColor: glassmorphism.input.bg,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  headerTitle: {
-    fontSize: fontSize.lg,
-    fontFamily: fontFamily.bold,
-    color: colors.text,
-  },
-  statusDot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-  },
-  remainingBadge: {
-    backgroundColor: colors.primary,
-    borderRadius: borderRadius.full,
-    paddingHorizontal: spacing.sm,
-    paddingVertical: spacing.xs,
-    minWidth: 32,
-    alignItems: 'center',
-  },
-  remainingBadgeText: {
-    fontSize: fontSize.sm,
-    fontFamily: fontFamily.semiBold,
-    color: colors.textInverse,
-  },
   offlineBanner: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    gap: spacing.sm,
+    gap: 8,
     backgroundColor: colors.error + '15',
-    paddingVertical: spacing.xs,
+    paddingVertical: 4,
   },
   offlineText: {
-    fontSize: fontSize.xs,
+    fontSize: 12,
     fontFamily: fontFamily.medium,
     color: colors.error,
   },
@@ -255,133 +224,75 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    gap: spacing.sm,
+    gap: 8,
     backgroundColor: colors.warning + '15',
-    paddingVertical: spacing.xs,
+    paddingVertical: 4,
   },
   reconnectText: {
-    fontSize: fontSize.xs,
+    fontSize: 12,
     fontFamily: fontFamily.medium,
     color: colors.warning,
   },
   messageList: {
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.sm,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
     flexGrow: 1,
-  },
-  messageBubble: {
-    flexDirection: 'row',
-    marginBottom: spacing.md,
-    alignItems: 'flex-end',
-  },
-  userBubble: {
-    justifyContent: 'flex-end',
-  },
-  aiBubble: {
-    justifyContent: 'flex-start',
-  },
-  aiAvatarContainer: {
-    width: 24,
-    height: 24,
-    borderRadius: 12,
-    backgroundColor: glassmorphism.input.bg,
-    borderWidth: 1,
-    borderColor: colors.primary,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginRight: spacing.sm,
-  },
-  messageContent: {
-    maxWidth: '75%',
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.sm + 2,
-    gap: spacing.xs,
-  },
-  userContent: {
-    backgroundColor: glassmorphism.bubble.user.bg,
-    borderWidth: 1,
-    borderColor: glassmorphism.bubble.user.border,
-    borderTopLeftRadius: borderRadius.lg,
-    borderTopRightRadius: 4,
-    borderBottomRightRadius: borderRadius.lg,
-    borderBottomLeftRadius: borderRadius.lg,
-  },
-  aiContent: {
-    backgroundColor: glassmorphism.bubble.ai.bg,
-    borderWidth: 1,
-    borderColor: glassmorphism.bubble.ai.border,
-    borderTopLeftRadius: 4,
-    borderTopRightRadius: borderRadius.lg,
-    borderBottomRightRadius: borderRadius.lg,
-    borderBottomLeftRadius: borderRadius.lg,
-  },
-  messageText: {
-    fontSize: fontSize.md,
-    fontFamily: fontFamily.regular,
-    color: colors.text,
-    lineHeight: 22,
-  },
-  userText: {
-    color: colors.text,
-  },
-  messageTimestamp: {
-    fontSize: 11,
-    fontFamily: fontFamily.regular,
-    color: '#FFFFFF60',
-    alignSelf: 'flex-end',
-  },
-  cursor: {
-    color: colors.primary,
-    fontFamily: fontFamily.bold,
   },
   typingIndicator: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.xs,
-    gap: spacing.sm,
+    paddingHorizontal: 16,
+    paddingVertical: 4,
+    gap: 8,
   },
   typingText: {
-    fontSize: fontSize.sm,
+    fontSize: 14,
     fontFamily: fontFamily.regular,
     color: colors.textSecondary,
   },
-  inputContainer: {
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.md,
-    backgroundColor: 'transparent',
-  },
-  inputWrapper: {
+  // ---- Input bar ----
+  inputBar: {
     flexDirection: 'row',
     alignItems: 'flex-end',
-    backgroundColor: glassmorphism.input.bg,
+    paddingHorizontal: 14,
+    paddingVertical: 10,
+    gap: 10,
+    backgroundColor: '#0F172ADD',
+    borderTopWidth: 1,
+    borderTopColor: '#FFFFFF10',
+  },
+  plusButton: {
+    width: 34,
+    height: 34,
+    borderRadius: 17,
+    backgroundColor: '#FFFFFF10',
     borderWidth: 1,
-    borderColor: glassmorphism.input.border,
-    borderRadius: borderRadius.full,
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.sm,
-    gap: spacing.sm,
+    borderColor: '#FFFFFF20',
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   textInput: {
     flex: 1,
-    minHeight: 24,
-    maxHeight: 120,
-    fontSize: fontSize.md,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: '#FFFFFF08',
+    borderWidth: 1,
+    borderColor: '#FFFFFF12',
+    paddingHorizontal: 14,
+    paddingVertical: 0,
+    fontSize: 14,
     fontFamily: fontFamily.regular,
     color: colors.text,
-    paddingTop: 0,
-    paddingBottom: 0,
   },
   sendButton: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
+    width: 36,
+    height: 36,
+    borderRadius: 18,
     overflow: 'hidden',
   },
   sendGradient: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
+    width: 36,
+    height: 36,
     justifyContent: 'center',
     alignItems: 'center',
   },
