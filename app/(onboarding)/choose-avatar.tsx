@@ -1,4 +1,5 @@
-import { StyleSheet, View, Text, Pressable } from 'react-native';
+import { useCallback } from 'react';
+import { StyleSheet, View, Text, Pressable, FlatList, Image, ImageSourcePropType } from 'react-native';
 import { router } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
@@ -7,33 +8,51 @@ import { useTranslation } from 'react-i18next';
 import { CosmicBackground } from '@/src/shared/components/cosmic-background';
 import { GoldButton } from '@/src/shared/components/gold-button';
 import { spacing, fontFamily, borderRadius } from '@/src/config/theme';
-import {
-  useOnboardingStore,
-  type AvatarStyle,
-} from '@/src/features/onboarding/stores/onboarding-store';
+import { useOnboardingStore } from '@/src/features/onboarding/stores/onboarding-store';
+import { AVATAR_SOURCES } from '@/src/config/avatar-map';
+import type { AvatarIcon } from '@/src/shared/types/user';
 
-const AVATAR_OPTIONS: {
-  key: AvatarStyle;
-  icon: React.ComponentProps<typeof MaterialCommunityIcons>['name'];
-}[] = [
-  { key: 'geometric', icon: 'hexagon-outline' },
-  { key: 'cosmic', icon: 'creation' },
-  { key: 'organic', icon: 'waves' },
-  { key: 'techno', icon: 'cpu-64-bit' },
-  { key: 'zen', icon: 'leaf' },
-];
+const AVATAR_ENTRIES = Object.entries(AVATAR_SOURCES) as [string, ImageSourcePropType][];
+
+type AvatarItem = {
+  key: string;
+  source: ImageSourcePropType;
+};
+
+const avatarData: AvatarItem[] = AVATAR_ENTRIES.map(([key, source]) => ({ key, source }));
 
 export default function ChooseAvatarScreen() {
   const { t } = useTranslation();
-  const avatarStyle = useOnboardingStore((s) => s.avatarStyle);
-  const setAvatarStyle = useOnboardingStore((s) => s.setAvatarStyle);
-
-  const selectedOption = AVATAR_OPTIONS.find((o) => o.key === avatarStyle);
+  const avatarIcon = useOnboardingStore((s) => s.avatarIcon);
+  const setAvatarIcon = useOnboardingStore((s) => s.setAvatarIcon);
 
   const handleNext = () => {
-    if (!avatarStyle) return;
+    if (!avatarIcon) return;
     router.push('/(onboarding)/choose-tone');
   };
+
+  const renderItem = useCallback(
+    ({ item }: { item: AvatarItem }) => {
+      const isSelected = avatarIcon === item.key;
+      return (
+        <Pressable
+          style={[styles.gridItem, isSelected ? styles.gridItemSelected : null]}
+          onPress={() => setAvatarIcon(item.key as AvatarIcon)}
+        >
+          <Image
+            source={item.source}
+            style={styles.avatarImage}
+            resizeMode="cover"
+          />
+        </Pressable>
+      );
+    },
+    [avatarIcon, setAvatarIcon],
+  );
+
+  const keyExtractor = useCallback((item: AvatarItem) => item.key, []);
+
+  const selectedSource = avatarIcon ? AVATAR_SOURCES[avatarIcon] : null;
 
   return (
     <CosmicBackground>
@@ -48,12 +67,12 @@ export default function ChooseAvatarScreen() {
           </View>
 
           <View style={styles.previewContainer}>
-            <View style={[styles.previewCircle, avatarStyle ? styles.previewCircleActive : null]}>
-              {selectedOption ? (
-                <MaterialCommunityIcons
-                  name={selectedOption.icon}
-                  size={72}
-                  color="#7DD3FC"
+            <View style={[styles.previewCircle, avatarIcon ? styles.previewCircleActive : null]}>
+              {selectedSource ? (
+                <Image
+                  source={selectedSource}
+                  style={styles.previewImage}
+                  resizeMode="cover"
                 />
               ) : (
                 <MaterialCommunityIcons
@@ -65,35 +84,22 @@ export default function ChooseAvatarScreen() {
             </View>
           </View>
 
-          <View style={styles.grid}>
-            {AVATAR_OPTIONS.map((option) => {
-              const isSelected = avatarStyle === option.key;
-              return (
-                <Pressable
-                  key={option.key}
-                  style={[styles.gridItem, isSelected ? styles.gridItemSelected : null]}
-                  onPress={() => setAvatarStyle(option.key)}
-                >
-                  <MaterialCommunityIcons
-                    name={option.icon}
-                    size={36}
-                    color={isSelected ? '#7DD3FC' : '#94A3B8'}
-                  />
-                  <Text
-                    style={[styles.gridLabel, isSelected ? styles.gridLabelSelected : null]}
-                  >
-                    {t(`onboarding.avatar.styles.${option.key}`)}
-                  </Text>
-                </Pressable>
-              );
-            })}
-          </View>
+          <FlatList
+            data={avatarData}
+            renderItem={renderItem}
+            keyExtractor={keyExtractor}
+            numColumns={5}
+            columnWrapperStyle={styles.columnWrapper}
+            contentContainerStyle={styles.gridContent}
+            showsVerticalScrollIndicator={false}
+            style={styles.grid}
+          />
 
           <View style={styles.footer}>
             <GoldButton
               title={t('onboarding.avatar.cta')}
               onPress={handleNext}
-              disabled={!avatarStyle}
+              disabled={!avatarIcon}
               style={styles.ctaButton}
             />
           </View>
@@ -136,28 +142,38 @@ const styles = StyleSheet.create({
   },
   previewContainer: {
     alignItems: 'center',
-    marginBottom: spacing.xxl,
+    marginBottom: spacing.lg,
   },
   previewCircle: {
-    width: 160,
-    height: 160,
-    borderRadius: 80,
+    width: 120,
+    height: 120,
+    borderRadius: 60,
     backgroundColor: 'rgba(125,211,252,0.08)',
     borderWidth: 2,
     borderColor: 'rgba(125,211,252,0.25)',
     justifyContent: 'center',
     alignItems: 'center',
+    overflow: 'hidden',
   },
   previewCircleActive: {
-    borderColor: 'rgba(125,211,252,0.25)',
+    borderColor: 'rgba(125,211,252,0.31)',
     borderWidth: 2,
   },
+  previewImage: {
+    width: 120,
+    height: 120,
+    borderRadius: 60,
+  },
   grid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
+    flex: 1,
+  },
+  gridContent: {
+    gap: spacing.sm,
+    paddingBottom: spacing.md,
+  },
+  columnWrapper: {
+    gap: spacing.sm,
     justifyContent: 'center',
-    gap: spacing.md,
-    marginBottom: spacing.xl,
   },
   gridItem: {
     width: 64,
@@ -166,29 +182,21 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(255,255,255,0.03)',
     borderWidth: 1,
     borderColor: 'rgba(255,255,255,0.13)',
-    justifyContent: 'center',
-    alignItems: 'center',
-    gap: spacing.xs,
+    overflow: 'hidden',
   },
   gridItemSelected: {
     backgroundColor: 'rgba(125,211,252,0.08)',
     borderWidth: 2,
     borderColor: 'rgba(125,211,252,0.31)',
   },
-  gridLabel: {
-    fontFamily: fontFamily.medium,
-    fontSize: 11,
-    color: '#94A3B8',
-    textAlign: 'center',
-  },
-  gridLabelSelected: {
-    fontFamily: fontFamily.semiBold,
-    color: '#7DD3FC',
+  avatarImage: {
+    width: 64,
+    height: 64,
   },
   footer: {
-    flex: 1,
     justifyContent: 'flex-end',
     paddingBottom: spacing.lg,
+    paddingTop: spacing.md,
   },
   ctaButton: {
     alignSelf: 'stretch',

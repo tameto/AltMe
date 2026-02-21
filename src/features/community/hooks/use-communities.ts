@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback, useEffect, useRef } from 'react';
 import { listCommunities, type Community } from '@/src/services/community/client';
 
 export type UseCommunitiesReturn = {
@@ -8,15 +8,19 @@ export type UseCommunitiesReturn = {
   refresh: () => Promise<void>;
 };
 
-export function useCommunities(): UseCommunitiesReturn {
+export function useCommunities(language?: string): UseCommunitiesReturn {
   const [communities, setCommunities] = useState<Community[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const reqIdRef = useRef(0);
 
   const fetchCommunities = useCallback(async () => {
-    const data = await listCommunities();
-    setCommunities(data);
-  }, []);
+    const reqId = ++reqIdRef.current;
+    const data = await listCommunities(language);
+    if (reqId === reqIdRef.current) {
+      setCommunities(data);
+    }
+  }, [language]);
 
   useEffect(() => {
     setIsLoading(true);
