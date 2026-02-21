@@ -15,7 +15,7 @@ import { useTranslation } from 'react-i18next';
 
 import { CosmicBackground } from '@/src/shared/components/cosmic-background';
 import { GoldButton } from '@/src/shared/components/gold-button';
-import { spacing, borderRadius, fontSize, fontFamily, glassmorphism } from '@/src/config/theme';
+import { spacing, borderRadius, fontSize, fontFamily } from '@/src/config/theme';
 import { createCommunity } from '@/src/services/community/client';
 
 type LanguageCode = 'ja' | 'en' | 'ko';
@@ -67,7 +67,7 @@ export default function CommunityCreateScreen() {
       <SafeAreaView style={styles.container} edges={['top']}>
         <View style={styles.header}>
           <Pressable onPress={() => router.back()} hitSlop={12}>
-            <Feather name="x" size={24} color="#94A3B8" />
+            <Feather name="arrow-left" size={24} color="#F8FAFC" />
           </Pressable>
           <Text style={styles.headerTitle}>コミュニティを作成</Text>
           <View style={styles.headerSpacer} />
@@ -76,9 +76,9 @@ export default function CommunityCreateScreen() {
         <ScrollView contentContainerStyle={styles.content}>
           {/* Thumbnail Picker */}
           <View style={styles.thumbnailSection}>
-            <Text style={styles.label}>{t('community.create.thumbnail')}</Text>
             <Pressable style={styles.thumbnailPicker}>
-              <Feather name="image" size={32} color="#64748B" />
+              <Feather name="camera" size={32} color="rgba(255,255,255,0.25)" />
+              <Text style={styles.thumbnailLabel}>{t('community.create.thumbnail')}</Text>
             </Pressable>
           </View>
 
@@ -205,39 +205,43 @@ const styles = StyleSheet.create({
   thumbnailPicker: {
     width: 120,
     height: 120,
-    borderRadius: borderRadius.lg,
-    borderWidth: 2,
-    borderColor: '#FFFFFF25',
-    borderStyle: 'dashed',
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.13)',
     justifyContent: 'center',
     alignItems: 'center',
-    marginTop: spacing.sm,
-    backgroundColor: glassmorphism.input.bg,
+    gap: 8,
+    backgroundColor: 'rgba(255,255,255,0.03)',
+  },
+  thumbnailLabel: {
+    fontSize: 11,
+    fontFamily: fontFamily.regular,
+    color: 'rgba(255,255,255,0.25)',
   },
   fieldSection: {
     marginBottom: spacing.lg,
   },
   label: {
-    fontSize: 14,
-    fontFamily: fontFamily.medium,
-    color: '#94A3B8',
+    fontSize: 13,
+    fontFamily: fontFamily.semiBold,
+    color: 'rgba(255,255,255,0.5)',
     marginBottom: 8,
   },
   input: {
     borderWidth: 1,
-    borderColor: '#FFFFFF15',
+    borderColor: 'rgba(255,255,255,0.13)',
     borderRadius: 12,
     paddingHorizontal: spacing.md,
-    paddingVertical: spacing.md,
     fontSize: fontSize.md,
     fontFamily: fontFamily.regular,
     color: '#F8FAFC',
-    backgroundColor: glassmorphism.input.bg,
+    backgroundColor: 'rgba(255,255,255,0.03)',
     height: 48,
   },
   textArea: {
-    height: 100,
-    paddingTop: spacing.md,
+    height: 80,
+    paddingTop: 12,
+    paddingHorizontal: 16,
   },
   chipRow: {
     flexDirection: 'row',
@@ -247,14 +251,15 @@ const styles = StyleSheet.create({
   chip: {
     paddingHorizontal: 16,
     paddingVertical: 8,
-    borderRadius: 9999,
-    backgroundColor: '#FFFFFF10',
+    borderRadius: 20,
+    backgroundColor: '#FFFFFF08',
     borderWidth: 1,
-    borderColor: '#FFFFFF25',
+    borderColor: 'rgba(255,255,255,0.13)',
   },
   chipSelected: {
-    backgroundColor: '#7DD3FC',
-    borderWidth: 0,
+    backgroundColor: 'rgba(125,211,252,0.08)',
+    borderWidth: 1.5,
+    borderColor: 'rgba(125,211,252,0.31)',
   },
   chipText: {
     fontSize: fontSize.sm,
@@ -262,7 +267,7 @@ const styles = StyleSheet.create({
     color: '#F8FAFC',
   },
   chipTextSelected: {
-    color: '#0F172A',
-    fontFamily: fontFamily.medium,
+    color: '#7DD3FC',
+    fontFamily: fontFamily.semiBold,
   },
 });

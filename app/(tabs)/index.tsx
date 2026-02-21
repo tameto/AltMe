@@ -235,7 +235,7 @@ const styles = StyleSheet.create({
   },
   messageList: {
     paddingHorizontal: 16,
-    paddingVertical: 12,
+    paddingVertical: 16,
     flexGrow: 1,
   },
   typingIndicator: {

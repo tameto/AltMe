@@ -5,7 +5,7 @@ import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import Feather from '@expo/vector-icons/Feather';
 
-import { colors, spacing, fontSize, fontFamily, glassmorphism, borderRadius } from '@/src/config/theme';
+import { colors, spacing, fontSize, fontFamily, borderRadius } from '@/src/config/theme';
 import { CosmicBackground } from '@/src/shared/components/cosmic-background';
 
 export default function TwinConversationDetailModal() {
@@ -14,43 +14,60 @@ export default function TwinConversationDetailModal() {
 
   // Mock conversation data - in production this would come from route params or API
   const conversation = [
-    { twinName: 'あなたのツイン', message: 'こんにちは。今日はどんな一日でしたか？' },
-    { twinName: '友達のツイン', message: 'とても充実した一日でした。新しいプロジェクトを始めたんです。' },
-    { twinName: 'あなたのツイン', message: 'それは素晴らしいですね！どんなプロジェクトですか？' },
-    { twinName: '友達のツイン', message: 'AIを使った新しいアプリケーションの開発です。あなたも興味ありますか？' },
+    { twinName: 'Yuki', message: 'こんにちは。今日はどんな一日でしたか？', isYuki: true },
+    { twinName: 'Hana', message: 'とても充実した一日でした。新しいプロジェクトを始めたんです。', isYuki: false },
+    { twinName: 'Yuki', message: 'それは素晴らしいですね！どんなプロジェクトですか？', isYuki: true },
+    { twinName: 'Hana', message: 'AIを使った新しいアプリケーションの開発です。あなたも興味ありますか？', isYuki: false },
   ];
 
   return (
     <CosmicBackground overlayOpacity={0.9}>
       <SafeAreaView style={styles.container} edges={['top']}>
+        {/* Header: back + avatar1 + title col + avatar2 */}
         <View style={styles.header}>
-          <Text style={styles.headerTitle}>{t('twin.conversationDetail.title')}</Text>
           <Pressable onPress={() => router.back()} hitSlop={12}>
-            <Feather name="x" size={24} color={colors.text} />
+            <Feather name="arrow-left" size={24} color={colors.text} />
           </Pressable>
+          <View style={styles.headerAvatarLeft}>
+            <Feather name="cpu" size={18} color="#7DD3FC" />
+          </View>
+          <View style={styles.headerCenter}>
+            <Text style={styles.headerTitle}>Yuki × Hana</Text>
+            <Text style={styles.headerSubtitle}>{t('twin.conversationDetail.subtitle')}</Text>
+          </View>
+          <View style={styles.headerAvatarRight}>
+            <Feather name="cpu" size={18} color="#D4A853" />
+          </View>
+          <View style={{ width: 24 }} />
         </View>
+
+        <View style={styles.divider} />
 
         <ScrollView
           contentContainerStyle={styles.content}
           contentInsetAdjustmentBehavior="automatic"
         >
-          <Text style={styles.subtitle}>{t('twin.conversationDetail.subtitle')}</Text>
-
-          {conversation.map((msg, index) => {
-            const isYourTwin = msg.twinName === 'あなたのツイン';
-            return (
-              <View
-                key={index}
-                style={[
-                  styles.bubble,
-                  isYourTwin ? styles.bubbleAI : styles.bubbleOther,
-                ]}
-              >
-                <Text style={styles.twinName}>{msg.twinName}</Text>
+          {conversation.map((msg, index) => (
+            <View
+              key={index}
+              style={[styles.messageRow, msg.isYuki ? styles.messageRowLeft : styles.messageRowRight]}
+            >
+              {msg.isYuki && (
+                <View style={styles.avatarYuki}>
+                  <Feather name="cpu" size={14} color="#7DD3FC" />
+                </View>
+              )}
+              <View style={[styles.bubble, msg.isYuki ? styles.bubbleYuki : styles.bubbleHana]}>
+                <Text style={msg.isYuki ? styles.twinNameYuki : styles.twinNameHana}>{msg.twinName}</Text>
                 <Text style={styles.messageText}>{msg.message}</Text>
               </View>
-            );
-          })}
+              {!msg.isYuki && (
+                <View style={styles.avatarHana}>
+                  <Feather name="cpu" size={14} color="#D4A853" />
+                </View>
+              )}
+            </View>
+          ))}
         </ScrollView>
       </SafeAreaView>
     </CosmicBackground>
@@ -63,50 +80,108 @@ const styles = StyleSheet.create({
   },
   header: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
     alignItems: 'center',
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.md,
+    gap: spacing.sm,
+  },
+  headerAvatarLeft: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: 'rgba(125,211,252,0.1)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  headerAvatarRight: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: 'rgba(212,168,83,0.1)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  headerCenter: {
+    flex: 1,
+    alignItems: 'center',
   },
   headerTitle: {
-    fontSize: fontSize.lg,
-    fontFamily: fontFamily.bold,
+    fontSize: 15,
+    fontFamily: fontFamily.semiBold,
     color: colors.text,
   },
-  content: {
-    padding: spacing.md,
-    paddingBottom: spacing.xxl,
-    gap: spacing.md,
-  },
-  subtitle: {
-    fontSize: fontSize.sm,
+  headerSubtitle: {
+    fontSize: 11,
     fontFamily: fontFamily.regular,
-    color: colors.textSecondary,
-    marginBottom: spacing.sm,
+    color: 'rgba(255,255,255,0.38)',
+  },
+  divider: {
+    height: 1,
+    backgroundColor: 'rgba(255,255,255,0.08)',
+  },
+  content: {
+    padding: 16,
+    paddingBottom: spacing.xxl,
+    gap: 16,
+  },
+  messageRow: {
+    flexDirection: 'row',
+    gap: spacing.sm,
+    alignItems: 'flex-start',
+  },
+  messageRowLeft: {
+    justifyContent: 'flex-start',
+  },
+  messageRowRight: {
+    justifyContent: 'flex-end',
+  },
+  avatarYuki: {
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    backgroundColor: 'rgba(125,211,252,0.1)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    flexShrink: 0,
+  },
+  avatarHana: {
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    backgroundColor: 'rgba(212,168,83,0.1)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    flexShrink: 0,
   },
   bubble: {
+    maxWidth: '75%',
     borderWidth: 1,
     borderRadius: borderRadius.lg,
     padding: spacing.md,
     gap: spacing.xs,
   },
-  bubbleAI: {
-    backgroundColor: glassmorphism.bubble.ai.bg,
-    borderColor: glassmorphism.bubble.ai.border,
+  bubbleYuki: {
+    backgroundColor: 'rgba(255,255,255,0.03)',
+    borderColor: 'rgba(255,255,255,0.08)',
   },
-  bubbleOther: {
-    backgroundColor: glassmorphism.bubble.user.bg,
-    borderColor: glassmorphism.bubble.user.border,
+  bubbleHana: {
+    backgroundColor: 'rgba(212,168,83,0.08)',
+    borderColor: 'rgba(212,168,83,0.19)',
   },
-  twinName: {
-    fontSize: fontSize.sm,
+  twinNameYuki: {
+    fontSize: 11,
     fontFamily: fontFamily.semiBold,
-    color: colors.text,
+    color: '#7DD3FC',
+  },
+  twinNameHana: {
+    fontSize: 11,
+    fontFamily: fontFamily.semiBold,
+    color: '#D4A853',
   },
   messageText: {
-    fontSize: fontSize.md,
+    fontSize: 14,
     fontFamily: fontFamily.regular,
-    color: colors.text,
-    lineHeight: 22,
+    color: 'rgba(255,255,255,0.8)',
+    lineHeight: 20,
   },
 });

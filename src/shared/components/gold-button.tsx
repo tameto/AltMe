@@ -47,6 +47,8 @@ const styles = StyleSheet.create({
     height: 54,
     borderRadius: 22,
     overflow: 'hidden',
+    borderWidth: 1,
+    borderColor: '#D4A853',
   },
   gradient: {
     flex: 1,

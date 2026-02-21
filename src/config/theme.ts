@@ -69,7 +69,7 @@ export const glassmorphism = {
 export const goldGradient = {
   colors: ['#E8C567', '#C9A033', '#A07B1A'] as const,
   start: { x: 0, y: 0 },
-  end: { x: 1, y: 0 },
+  end: { x: 0, y: 1 },
 } as const;
 
 export const sendGradient = {

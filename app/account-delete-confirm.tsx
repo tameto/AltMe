@@ -13,7 +13,7 @@ import { useRouter } from 'expo-router';
 import Feather from '@expo/vector-icons/Feather';
 import { useTranslation } from 'react-i18next';
 
-import { colors, spacing, borderRadius, fontSize, fontFamily, glassmorphism } from '@/src/config/theme';
+import { colors, spacing, borderRadius, fontSize, fontFamily } from '@/src/config/theme';
 import { CosmicBackground } from '@/src/shared/components/cosmic-background';
 import { useAuthStore } from '@/src/features/auth/stores/auth-store';
 
@@ -57,7 +57,7 @@ export default function AccountDeleteConfirmScreen() {
       <SafeAreaView style={styles.container} edges={['top']}>
         <View style={styles.header}>
           <Pressable onPress={() => router.back()} hitSlop={12} disabled={isDeleting}>
-            <Feather name="x" size={24} color={isDeleting ? colors.textTertiary : colors.text} />
+            <Feather name="arrow-left" size={24} color={isDeleting ? colors.textTertiary : colors.text} />
           </Pressable>
           <Text style={styles.headerTitle}>{t('settings.deleteConfirm.title')}</Text>
           <View style={{ width: 24 }} />
@@ -69,7 +69,9 @@ export default function AccountDeleteConfirmScreen() {
         >
           {/* Warning Section */}
           <View style={styles.warningSection}>
-            <Feather name="alert-triangle" size={48} color={colors.error} />
+            <View style={styles.warningIconContainer}>
+              <Feather name="alert-triangle" size={36} color={colors.error} />
+            </View>
             <Text style={styles.warningTitle}>{t('settings.deleteConfirm.warning')}</Text>
             <Text style={styles.warningDescription}>
               {t('settings.deleteConfirm.description')}
@@ -78,10 +80,9 @@ export default function AccountDeleteConfirmScreen() {
 
           {/* Deletion Data List */}
           <View style={styles.dataListSection}>
-            <Text style={styles.dataListTitle}>{t('settings.deleteConfirm.dataListTitle')}</Text>
             {deletionItems.map((item, index) => (
               <View key={index} style={styles.dataListItem}>
-                <Feather name="circle" size={6} color={colors.textSecondary} />
+                <Feather name="trash-2" size={16} color={colors.error} />
                 <Text style={styles.dataListItemText}>{item}</Text>
               </View>
             ))}
@@ -117,7 +118,7 @@ export default function AccountDeleteConfirmScreen() {
             disabled={!isConfirmed || isDeleting}
           >
             {isDeleting ? (
-              <ActivityIndicator color={colors.textInverse} />
+              <ActivityIndicator color="#FFFFFF" />
             ) : (
               <Text style={styles.deleteButtonText}>
                 {t('settings.deleteConfirm.cta')}
@@ -165,10 +166,20 @@ const styles = StyleSheet.create({
     gap: spacing.md,
     paddingVertical: spacing.lg,
   },
+  warningIconContainer: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    backgroundColor: 'rgba(239,68,68,0.13)',
+    borderWidth: 2,
+    borderColor: 'rgba(239,68,68,0.25)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
   warningTitle: {
-    fontSize: fontSize.xl,
+    fontSize: 22,
     fontFamily: fontFamily.bold,
-    color: colors.error,
+    color: colors.text,
     textAlign: 'center',
   },
   warningDescription: {
@@ -179,24 +190,23 @@ const styles = StyleSheet.create({
     lineHeight: 22,
   },
   dataListSection: {
-    gap: spacing.sm,
-  },
-  dataListTitle: {
-    fontSize: fontSize.md,
-    fontFamily: fontFamily.semiBold,
-    color: colors.text,
-    marginBottom: spacing.xs,
+    borderRadius: 12,
+    backgroundColor: 'rgba(239,68,68,0.06)',
+    borderWidth: 1,
+    borderColor: 'rgba(239,68,68,0.15)',
+    gap: 10,
+    padding: 16,
+    paddingHorizontal: 20,
   },
   dataListItem: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: spacing.sm,
-    paddingVertical: spacing.xs,
   },
   dataListItemText: {
-    fontSize: fontSize.sm,
+    fontSize: 14,
     fontFamily: fontFamily.regular,
-    color: colors.textSecondary,
+    color: 'rgba(255,255,255,0.8)',
     flex: 1,
   },
   confirmSection: {
@@ -208,12 +218,12 @@ const styles = StyleSheet.create({
     color: colors.textSecondary,
   },
   input: {
-    backgroundColor: glassmorphism.input.bg,
+    backgroundColor: '#FFFFFF08',
     borderWidth: 1,
-    borderColor: glassmorphism.input.border,
-    borderRadius: borderRadius.md,
+    borderColor: 'rgba(239,68,68,0.25)',
+    borderRadius: 12,
     paddingHorizontal: spacing.md,
-    paddingVertical: spacing.md,
+    height: 48,
     fontSize: fontSize.md,
     fontFamily: fontFamily.regular,
     color: colors.text,
@@ -230,9 +240,11 @@ const styles = StyleSheet.create({
     lineHeight: 20,
   },
   deleteButton: {
-    backgroundColor: colors.error,
+    backgroundColor: '#EF4444',
     height: 54,
-    borderRadius: 14,
+    borderRadius: 22,
+    borderWidth: 1,
+    borderColor: '#DC2626',
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -241,15 +253,16 @@ const styles = StyleSheet.create({
     opacity: 0.5,
   },
   deleteButtonText: {
-    color: colors.text,
+    color: '#FFFFFF',
     fontSize: fontSize.md,
     fontFamily: fontFamily.bold,
   },
   cancelButton: {
+    backgroundColor: 'rgba(255,255,255,0.03)',
     borderWidth: 1,
-    borderColor: '#FFFFFF25',
+    borderColor: 'rgba(255,255,255,0.13)',
     height: 48,
-    borderRadius: 14,
+    borderRadius: 22,
     alignItems: 'center',
     justifyContent: 'center',
   },

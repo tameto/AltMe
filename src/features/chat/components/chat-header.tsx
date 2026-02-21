@@ -112,9 +112,9 @@ const styles = StyleSheet.create({
   },
   freeBadge: {
     borderRadius: 999,
-    backgroundColor: '#FEF3C720',
+    backgroundColor: 'rgba(254,243,199,0.13)',
     borderWidth: 1,
-    borderColor: '#FEF3C740',
+    borderColor: 'rgba(254,243,199,0.25)',
     paddingVertical: 5,
     paddingHorizontal: 12,
   },

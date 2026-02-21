@@ -124,7 +124,7 @@ export default function SubscriptionManageScreen() {
       <SafeAreaView style={styles.container} edges={['top']}>
         <View style={styles.header}>
           <Pressable onPress={() => router.back()} hitSlop={12}>
-            <Feather name="x" size={24} color={colors.text} />
+            <Feather name="arrow-left" size={24} color={colors.text} />
           </Pressable>
           <Text style={styles.headerTitle}>{t('subscription.manage.title')}</Text>
           <View style={{ width: 24 }} />
@@ -136,20 +136,26 @@ export default function SubscriptionManageScreen() {
         >
           {/* Current plan card */}
           <View style={styles.planCard}>
+            <Text style={styles.planSectionLabel}>{t('subscription.manage.currentPlan')}</Text>
+            <View style={styles.planCardDivider} />
             <View style={styles.planHeader}>
-              <Text style={styles.planTitle}>{planLabel}</Text>
+              <View style={styles.crownCircle}>
+                <Feather name="award" size={20} color="#7DD3FC" />
+              </View>
+              <View style={styles.planInfo}>
+                <Text style={styles.planTitle}>{planLabel}</Text>
+                {entitlement.expiresAt ? (
+                  <Text style={styles.renewalDate}>
+                    {t('subscription.manage.renewsOn', { date: new Date(entitlement.expiresAt).toLocaleDateString() })}
+                  </Text>
+                ) : null}
+              </View>
               {entitlement.isPro ? (
                 <View style={styles.proBadge}>
-                  <Text style={styles.proBadgeText}>Pro</Text>
+                  <Text style={styles.proBadgeText}>{statusLabel}</Text>
                 </View>
               ) : null}
             </View>
-            <Text style={styles.statusLabel}>{statusLabel}</Text>
-            {entitlement.expiresAt ? (
-              <Text style={styles.renewalDate}>
-                {t('subscription.manage.renewsOn', { date: new Date(entitlement.expiresAt).toLocaleDateString() })}
-              </Text>
-            ) : null}
           </View>
 
           {/* Usage stats - churn prevention */}
@@ -174,22 +180,28 @@ export default function SubscriptionManageScreen() {
 
           {/* Action links */}
           <View style={styles.actionsSection}>
-            <Pressable style={styles.actionLink} onPress={openSubscriptionSettings}>
+            <Pressable style={styles.actionItem} onPress={openSubscriptionSettings}>
+              <Feather name="repeat" size={20} color="#7DD3FC" />
               <Text style={styles.actionLinkText}>{t('subscription.manage.changePlan')}</Text>
-              <Feather name="chevron-right" size={20} color={colors.primary} />
+              <Feather name="chevron-right" size={16} color={colors.textSecondary} />
             </Pressable>
-            <Pressable style={styles.actionLink} onPress={openSubscriptionSettings}>
+            <View style={styles.actionDivider} />
+            <Pressable style={styles.actionItem} onPress={openSubscriptionSettings}>
+              <Feather name="credit-card" size={20} color="#7DD3FC" />
               <Text style={styles.actionLinkText}>{t('subscription.manage.paymentMethod')}</Text>
-              <Feather name="chevron-right" size={20} color={colors.primary} />
+              <Feather name="chevron-right" size={16} color={colors.textSecondary} />
             </Pressable>
+            {entitlement.isPro && entitlement.status !== 'cancelled' ? (
+              <>
+                <View style={styles.actionDivider} />
+                <Pressable style={styles.actionItem} onPress={handleCancelSubscription}>
+                  <Feather name="x-circle" size={20} color="#EF4444" />
+                  <Text style={styles.actionLinkTextDestructive}>{t('subscription.manage.cancelSubscription')}</Text>
+                  <Feather name="chevron-right" size={16} color={colors.textSecondary} />
+                </Pressable>
+              </>
+            ) : null}
           </View>
-
-          {/* Cancel subscription */}
-          {entitlement.isPro && entitlement.status !== 'cancelled' ? (
-            <Pressable style={styles.cancelButton} onPress={handleCancelSubscription}>
-              <Text style={styles.cancelText}>{t('subscription.manage.cancelSubscription')}</Text>
-            </Pressable>
-          ) : null}
 
           {entitlement.status === 'cancelled' ? (
             <View style={styles.resubscribeSection}>
@@ -241,8 +253,8 @@ const styles = StyleSheet.create({
     paddingVertical: spacing.md,
   },
   headerTitle: {
-    fontSize: 24,
-    fontFamily: fontFamily.bold,
+    fontSize: fontSize.md,
+    fontFamily: fontFamily.semiBold,
     color: colors.text,
   },
   content: {
@@ -251,38 +263,55 @@ const styles = StyleSheet.create({
     gap: spacing.lg,
   },
   planCard: {
-    backgroundColor: glassmorphism.card.bg,
+    backgroundColor: '#FFFFFF08',
     borderWidth: 1,
-    borderColor: glassmorphism.card.border,
+    borderColor: 'rgba(255,255,255,0.13)',
     borderRadius: 16,
-    padding: spacing.md,
+    padding: 20,
     gap: spacing.sm,
+  },
+  planSectionLabel: {
+    fontSize: 12,
+    fontFamily: fontFamily.semiBold,
+    color: 'rgba(255,255,255,0.38)',
+  },
+  planCardDivider: {
+    height: 1,
+    backgroundColor: 'rgba(255,255,255,0.08)',
   },
   planHeader: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
+    alignItems: 'center',
+    gap: spacing.sm,
+  },
+  crownCircle: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: 'rgba(125,211,252,0.08)',
+    justifyContent: 'center',
     alignItems: 'center',
   },
+  planInfo: {
+    flex: 1,
+  },
   planTitle: {
-    fontSize: fontSize.lg,
-    fontFamily: fontFamily.semiBold,
+    fontSize: fontSize.md,
+    fontFamily: fontFamily.bold,
     color: colors.text,
   },
   proBadge: {
     paddingHorizontal: spacing.sm,
     paddingVertical: spacing.xs,
-    borderRadius: borderRadius.sm,
-    backgroundColor: colors.accent,
+    borderRadius: 99,
+    backgroundColor: 'rgba(34,197,94,0.15)',
+    borderWidth: 1,
+    borderColor: 'rgba(34,197,94,0.3)',
   },
   proBadgeText: {
     fontSize: fontSize.xs,
     fontFamily: fontFamily.bold,
-    color: colors.textInverse,
-  },
-  statusLabel: {
-    fontSize: fontSize.sm,
-    fontFamily: fontFamily.regular,
-    color: colors.textSecondary,
+    color: '#22C55E',
   },
   renewalDate: {
     fontSize: fontSize.sm,
@@ -332,32 +361,35 @@ const styles = StyleSheet.create({
     lineHeight: 20,
   },
   actionsSection: {
-    gap: spacing.xs,
+    backgroundColor: '#FFFFFF08',
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: '#FFFFFF20',
+    overflow: 'hidden',
   },
-  actionLink: {
+  actionItem: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
     alignItems: 'center',
+    gap: spacing.sm,
     paddingVertical: spacing.md,
-    paddingHorizontal: spacing.sm,
+    paddingHorizontal: spacing.md,
   },
   actionLinkText: {
+    flex: 1,
     fontSize: fontSize.md,
     fontFamily: fontFamily.regular,
-    color: colors.primary,
+    color: colors.text,
   },
-  cancelButton: {
-    paddingVertical: spacing.md,
-    alignItems: 'center',
-    borderWidth: 1,
-    borderColor: colors.error,
-    borderRadius: borderRadius.md,
-    marginTop: spacing.lg,
-  },
-  cancelText: {
+  actionLinkTextDestructive: {
+    flex: 1,
     fontSize: fontSize.md,
-    color: colors.error,
-    fontFamily: fontFamily.semiBold,
+    fontFamily: fontFamily.regular,
+    color: '#EF4444',
+  },
+  actionDivider: {
+    height: 1,
+    backgroundColor: 'rgba(255,255,255,0.06)',
+    marginHorizontal: spacing.md,
   },
   resubscribeSection: {
     alignItems: 'center',

@@ -180,7 +180,7 @@ export default function PaywallScreen() {
       <SafeAreaView style={styles.container} edges={['top', 'left', 'right']}>
         {/* Close button */}
         <Pressable style={styles.closeButton} onPress={handleClose} hitSlop={12}>
-          <Text style={styles.closeText}>×</Text>
+          <Feather name="x" size={24} color="rgba(255,255,255,0.38)" />
         </Pressable>
 
         <ScrollView
@@ -188,104 +188,66 @@ export default function PaywallScreen() {
           showsVerticalScrollIndicator={false}
           contentInsetAdjustmentBehavior="automatic"
         >
-          {/* Crown icon */}
-          <Feather name="award" size={64} color="#D4A853" style={styles.crownIcon} />
+          {/* Crown icon container */}
+          <View style={styles.crownContainer}>
+            <Feather name="award" size={36} color="#D4A853" />
+          </View>
 
           {/* Title */}
           <Text style={styles.title}>{t('subscription.paywall.subtitle')}</Text>
 
           {/* Countdown (intro offer) */}
           {showIntroOffer && (
-            <Text style={styles.countdown}>
-              初回限定 残り {formatCountdown(remainingMs)}
-            </Text>
+            <View style={styles.countdownContainer}>
+              <Text style={styles.countdown}>
+                🔥 初回限定: 残り {formatCountdown(remainingMs)}
+              </Text>
+            </View>
           )}
 
           {/* Feature list */}
           <View style={styles.featureList}>
             {FEATURE_KEYS.map((key) => (
               <View key={key} style={styles.featureRow}>
-                <Feather name="check" size={20} color="#7DD3FC" />
+                <Feather name="check" size={18} color="#7DD3FC" />
                 <Text style={styles.featureLabel}>{t(key)}</Text>
               </View>
             ))}
           </View>
 
-          {/* Plan options */}
+          {/* Plan options — 3 cards horizontal */}
           <View style={styles.plans}>
-            {/* FIRST TIME OFFER */}
-            {showIntroOffer && (
-              <Pressable
-                style={[
-                  styles.planCard,
-                  selectedPlan === 'intro_annual' && styles.planCardSelected,
-                ]}
-                onPress={() => setSelectedPlan('intro_annual')}
-              >
-                <View style={styles.introBadge}>
-                  <Text style={styles.introBadgeText}>{t('subscription.paywall.firstTimeOffer')}</Text>
-                </View>
-                <View style={styles.planHeader}>
-                  <View style={[styles.radioOuter, selectedPlan === 'intro_annual' && styles.radioOuterSelected]}>
-                    {selectedPlan === 'intro_annual' && <View style={styles.radioInner} />}
-                  </View>
-                  <View style={styles.planInfo}>
-                    <Text style={styles.planPrice}>
-                      ¥{PRICING.ANNUAL_INTRO.toLocaleString()}{t('subscription.paywall.perYear')}
-                    </Text>
-                    <Text style={styles.planPerMonth}>
-                      {t('subscription.paywall.perMonthParens', { price: Math.round(PRICING.ANNUAL_INTRO / 12).toLocaleString() })}
-                    </Text>
-                  </View>
-                  <Text style={styles.discountBadge}>{introDiscount}%OFF</Text>
-                </View>
-              </Pressable>
-            )}
+            {/* Monthly */}
+            <Pressable
+              style={[styles.planCard, selectedPlan === 'monthly' && styles.planCardSelected]}
+              onPress={() => setSelectedPlan('monthly')}
+            >
+              <Text style={styles.planName}>{t('subscription.paywall.plans.monthly')}</Text>
+              <Text style={styles.planPrice}>¥{PRICING.MONTHLY.toLocaleString()}</Text>
+              <Text style={styles.planUnit}>/月</Text>
+            </Pressable>
 
             {/* Annual */}
             <Pressable
-              style={[
-                styles.planCard,
-                selectedPlan === 'annual' && styles.planCardSelected,
-              ]}
+              style={[styles.planCard, selectedPlan === 'annual' && styles.planCardSelected]}
               onPress={() => setSelectedPlan('annual')}
             >
-              <View style={styles.planHeader}>
-                <View style={[styles.radioOuter, selectedPlan === 'annual' && styles.radioOuterSelected]}>
-                  {selectedPlan === 'annual' && <View style={styles.radioInner} />}
-                </View>
-                <View style={styles.planInfo}>
-                  <Text style={styles.planName}>{t('subscription.paywall.plans.yearly')}</Text>
-                  <Text style={styles.planPrice}>
-                    ¥{PRICING.ANNUAL.toLocaleString()}{t('subscription.paywall.perYear')}
-                  </Text>
-                  <Text style={styles.planPerMonth}>
-                    {t('subscription.paywall.perMonthParens', { price: Math.round(PRICING.ANNUAL / 12).toLocaleString() })}
-                  </Text>
-                </View>
-              </View>
+              <Text style={styles.planName}>{t('subscription.paywall.plans.yearly')}</Text>
+              <Text style={styles.planPrice}>¥{PRICING.ANNUAL.toLocaleString()}</Text>
+              <Text style={styles.planUnit}>¥{Math.round(PRICING.ANNUAL / 12).toLocaleString()}/月 (33%OFF)</Text>
             </Pressable>
 
-            {/* Monthly */}
-            <Pressable
-              style={[
-                styles.planCard,
-                selectedPlan === 'monthly' && styles.planCardSelected,
-              ]}
-              onPress={() => setSelectedPlan('monthly')}
-            >
-              <View style={styles.planHeader}>
-                <View style={[styles.radioOuter, selectedPlan === 'monthly' && styles.radioOuterSelected]}>
-                  {selectedPlan === 'monthly' && <View style={styles.radioInner} />}
-                </View>
-                <View style={styles.planInfo}>
-                  <Text style={styles.planName}>{t('subscription.paywall.plans.monthly')}</Text>
-                  <Text style={styles.planPrice}>
-                    ¥{PRICING.MONTHLY.toLocaleString()}{t('subscription.paywall.monthlyUnit')}
-                  </Text>
-                </View>
-              </View>
-            </Pressable>
+            {/* First Time Offer (intro annual) */}
+            {showIntroOffer && (
+              <Pressable
+                style={[styles.planCard, styles.planCardIntro, selectedPlan === 'intro_annual' && styles.planCardIntroSelected]}
+                onPress={() => setSelectedPlan('intro_annual')}
+              >
+                <Text style={styles.planNameIntro}>{t('subscription.paywall.firstTimeOffer')}</Text>
+                <Text style={styles.planPriceIntro}>¥{PRICING.ANNUAL_INTRO.toLocaleString()}</Text>
+                <Text style={styles.planUnitIntro}>¥{Math.round(PRICING.ANNUAL_INTRO / 12).toLocaleString()}/月 ({introDiscount}%OFF)</Text>
+              </Pressable>
+            )}
           </View>
 
           {/* CTA button */}
@@ -303,6 +265,9 @@ export default function PaywallScreen() {
               {isRestoring ? t('subscription.paywall.restoring') : t('subscription.paywall.restore')}
             </Text>
           </Pressable>
+
+          {/* Legal note */}
+          <Text style={styles.legalNote}>{t('subscription.paywall.trialNote')}</Text>
 
           {/* Terms | Privacy */}
           <View style={styles.legalRow}>
@@ -334,144 +299,130 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
-  closeText: {
-    fontSize: 32,
-    color: '#94A3B8',
-    lineHeight: 36,
-    fontFamily: fontFamily.regular,
-  },
   content: {
+    paddingTop: 60,
     paddingHorizontal: spacing.lg,
-    paddingTop: spacing.lg,
-    paddingBottom: spacing.xxl,
+    paddingBottom: spacing.xl,
     alignItems: 'center',
+    gap: 16,
   },
 
-  // Crown icon
-  crownIcon: {
-    marginBottom: spacing.md,
+  // Crown container
+  crownContainer: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    backgroundColor: 'rgba(212,168,83,0.13)',
+    borderWidth: 2,
+    borderColor: 'rgba(212,168,83,0.25)',
+    justifyContent: 'center',
+    alignItems: 'center',
   },
 
   // Title
   title: {
-    fontSize: 28,
+    fontSize: 26,
     fontFamily: fontFamily.bold,
     color: '#F8FAFC',
     textAlign: 'center',
-    marginBottom: spacing.md,
   },
 
   // Countdown
+  countdownContainer: {
+    borderRadius: 999,
+    backgroundColor: 'rgba(239,68,68,0.13)',
+    borderWidth: 1,
+    borderColor: 'rgba(239,68,68,0.25)',
+    paddingHorizontal: 16,
+    paddingVertical: 6,
+  },
   countdown: {
-    fontSize: fontSize.md,
+    fontSize: 13,
     fontFamily: fontFamily.semiBold,
-    color: '#EF4444',
+    color: '#FCA5A5',
     fontVariant: ['tabular-nums'],
-    marginBottom: spacing.lg,
   },
 
   // Feature list
   featureList: {
     alignSelf: 'stretch',
-    gap: spacing.sm,
-    marginBottom: spacing.xl,
+    gap: 10,
   },
   featureRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: spacing.sm,
+    gap: 12,
   },
   featureLabel: {
-    fontSize: fontSize.md,
-    color: '#F8FAFC',
+    fontSize: 14,
+    color: 'rgba(255,255,255,0.8)',
     fontFamily: fontFamily.regular,
     flex: 1,
   },
 
-  // Plans
+  // Plans — horizontal row
   plans: {
     alignSelf: 'stretch',
-    gap: spacing.md,
-    marginBottom: spacing.xl,
+    flexDirection: 'row',
+    gap: 10,
   },
   planCard: {
+    flex: 1,
     backgroundColor: '#FFFFFF08',
-    borderRadius: 16,
-    padding: spacing.md,
+    borderRadius: 12,
+    paddingVertical: 14,
+    paddingHorizontal: 12,
     borderWidth: 1,
-    borderColor: '#334155',
-    position: 'relative',
-    overflow: 'visible',
+    borderColor: '#FFFFFF20',
+    alignItems: 'center',
+    gap: 4,
   },
   planCardSelected: {
     borderColor: '#7DD3FC',
-    borderWidth: 2,
+    borderWidth: 1.5,
     backgroundColor: '#7DD3FC0A',
   },
-  planHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.sm,
-  },
-  radioOuter: {
-    width: 20,
-    height: 20,
-    borderRadius: 10,
-    borderWidth: 2,
-    borderColor: '#334155',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  radioOuterSelected: {
-    borderColor: '#7DD3FC',
-  },
-  radioInner: {
-    width: 10,
-    height: 10,
-    borderRadius: 5,
-    backgroundColor: '#7DD3FC',
-  },
-  planInfo: {
-    flex: 1,
-  },
   planName: {
-    fontSize: fontSize.sm,
-    fontFamily: fontFamily.medium,
-    color: '#94A3B8',
-    marginBottom: 2,
+    fontSize: 12,
+    fontFamily: fontFamily.semiBold,
+    color: 'rgba(255,255,255,0.5)',
   },
   planPrice: {
-    fontSize: fontSize.lg,
+    fontSize: 20,
     fontFamily: fontFamily.bold,
     color: '#F8FAFC',
   },
-  planPerMonth: {
-    fontSize: fontSize.sm,
+  planUnit: {
+    fontSize: 11,
     fontFamily: fontFamily.regular,
-    color: '#94A3B8',
-    marginTop: 2,
+    color: 'rgba(255,255,255,0.38)',
+    textAlign: 'center',
   },
-
-  // Intro offer badge
-  introBadge: {
-    position: 'absolute',
-    top: -10,
-    left: spacing.md,
-    backgroundColor: '#7DD3FC',
-    paddingHorizontal: spacing.sm,
-    paddingVertical: 4,
-    borderRadius: 8,
+  // Intro plan overrides
+  planCardIntro: {
+    backgroundColor: 'rgba(125,211,252,0.08)',
+    borderWidth: 1.5,
+    borderColor: 'rgba(125,211,252,0.31)',
   },
-  introBadgeText: {
-    color: '#0F172A',
-    fontSize: fontSize.xs,
-    fontFamily: fontFamily.bold,
-    letterSpacing: 0.5,
+  planCardIntroSelected: {
+    borderColor: '#7DD3FC',
+    borderWidth: 2,
   },
-  discountBadge: {
-    fontSize: fontSize.sm,
+  planNameIntro: {
+    fontSize: 10,
     fontFamily: fontFamily.bold,
     color: '#7DD3FC',
+  },
+  planPriceIntro: {
+    fontSize: 20,
+    fontFamily: fontFamily.bold,
+    color: '#7DD3FC',
+  },
+  planUnitIntro: {
+    fontSize: 11,
+    fontFamily: fontFamily.regular,
+    color: 'rgba(125,211,252,0.8)',
+    textAlign: 'center',
   },
 
   // CTA
@@ -483,13 +434,19 @@ const styles = StyleSheet.create({
   // Restore
   restoreButton: {
     paddingVertical: spacing.sm,
-    marginBottom: spacing.lg,
   },
   restoreText: {
-    fontSize: fontSize.sm,
+    fontSize: 13,
     fontFamily: fontFamily.regular,
-    color: '#94A3B8',
-    textDecorationLine: 'underline',
+    color: '#7DD3FC',
+  },
+
+  // Legal note
+  legalNote: {
+    fontSize: 11,
+    fontFamily: fontFamily.regular,
+    color: 'rgba(255,255,255,0.31)',
+    textAlign: 'center',
   },
 
   // Legal
@@ -499,14 +456,13 @@ const styles = StyleSheet.create({
     gap: spacing.sm,
   },
   legalLink: {
-    fontSize: 12,
+    fontSize: 11,
     fontFamily: fontFamily.regular,
-    color: '#64748B',
-    textDecorationLine: 'underline',
+    color: 'rgba(255,255,255,0.25)',
   },
   legalSeparator: {
-    fontSize: 12,
+    fontSize: 11,
     fontFamily: fontFamily.regular,
-    color: '#64748B',
+    color: 'rgba(255,255,255,0.25)',
   },
 });

@@ -149,10 +149,10 @@ export default function PersonalityQuizScreen() {
                 color={isFirstQuestion ? '#64748B' : '#F8FAFC'}
               />
             </Pressable>
-            <Text style={styles.counter}>
-              性格診断 {currentStep + 1}/{ONBOARDING_QUESTION_COUNT}
+            <Text style={styles.counterTitle}>性格診断</Text>
+            <Text style={styles.counterStep}>
+              {currentStep + 1} / {ONBOARDING_QUESTION_COUNT}
             </Text>
-            <View style={styles.placeholder} />
           </View>
 
           <View style={styles.progressBar}>
@@ -182,11 +182,18 @@ export default function PersonalityQuizScreen() {
                   >
                     <Text
                       style={[
+                        styles.optionPrefix,
+                        isSelected ? styles.optionPrefixSelected : styles.optionPrefixInactive,
+                      ]}
+                    >
+                      {optionLabel}.
+                    </Text>
+                    <Text
+                      style={[
                         styles.optionText,
                         isSelected && styles.optionTextSelected,
                       ]}
                     >
-                      <Text style={styles.optionPrefix}>{optionLabel}. </Text>
                       {option.label}
                     </Text>
                   </Pressable>
@@ -210,7 +217,6 @@ const styles = StyleSheet.create({
   },
   header: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
     alignItems: 'center',
     marginTop: spacing.md,
     marginBottom: spacing.lg,
@@ -220,17 +226,24 @@ const styles = StyleSheet.create({
     width: 40,
     alignItems: 'flex-start',
   },
-  counter: {
+  counterTitle: {
+    flex: 1,
     fontFamily: fontFamily.semiBold,
-    fontSize: 16,
+    fontSize: 18,
+    fontWeight: '600',
     color: '#F8FAFC',
+    textAlign: 'center',
   },
-  placeholder: {
+  counterStep: {
     width: 40,
+    fontFamily: fontFamily.regular,
+    fontSize: 14,
+    color: 'rgba(255,255,255,0.38)',
+    textAlign: 'right',
   },
   progressBar: {
-    height: 6,
-    backgroundColor: '#FFFFFF15',
+    height: 4,
+    backgroundColor: 'rgba(255,255,255,0.08)',
     borderRadius: 9999,
     marginBottom: spacing.xxl,
     overflow: 'hidden',
@@ -242,46 +255,60 @@ const styles = StyleSheet.create({
   },
   questionContainer: {
     flex: 1,
-    paddingTop: spacing.xxl,
+    paddingTop: spacing.xl,
+    gap: 20,
   },
   questionNumber: {
     fontFamily: fontFamily.bold,
-    fontSize: 32,
+    fontSize: 14,
+    fontWeight: '700',
     color: '#7DD3FC',
-    marginBottom: spacing.md,
   },
   question: {
-    fontFamily: fontFamily.regular,
-    fontSize: 18,
+    fontFamily: fontFamily.semiBold,
+    fontSize: 22,
+    fontWeight: '600',
     color: '#F8FAFC',
-    marginBottom: spacing.xxl,
-    lineHeight: 28,
+    lineHeight: 30.8,
   },
   options: {
-    gap: spacing.md,
+    gap: 14,
   },
   optionButton: {
-    backgroundColor: '#FFFFFF12',
-    borderRadius: 12,
-    paddingVertical: 16,
+    backgroundColor: 'rgba(255,255,255,0.03)',
+    borderRadius: 16,
+    paddingVertical: 18,
     paddingHorizontal: 20,
     borderWidth: 1,
-    borderColor: '#FFFFFF25',
+    borderColor: 'rgba(255,255,255,0.13)',
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
   },
   optionButtonSelected: {
-    backgroundColor: '#FFFFFF',
-    borderColor: '#FFFFFF',
+    backgroundColor: 'rgba(125,211,252,0.08)',
+    borderWidth: 1.5,
+    borderColor: 'rgba(125,211,252,0.31)',
   },
   optionPrefix: {
-    fontFamily: fontFamily.semiBold,
+    fontFamily: fontFamily.bold,
+    fontWeight: '700',
+    fontSize: 16,
+  },
+  optionPrefixInactive: {
+    color: 'rgba(255,255,255,0.38)',
   },
   optionText: {
     fontFamily: fontFamily.regular,
-    fontSize: 16,
-    color: '#F8FAFC',
-    lineHeight: 24,
+    fontSize: 15,
+    color: 'rgba(255,255,255,0.8)',
+    lineHeight: 22,
+    flex: 1,
   },
   optionTextSelected: {
-    color: '#0F172A',
+    color: '#F8FAFC',
+  },
+  optionPrefixSelected: {
+    color: '#7DD3FC',
   },
 });
