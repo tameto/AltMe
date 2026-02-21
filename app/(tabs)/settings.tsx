@@ -1,5 +1,5 @@
-import React, { useState, useEffect, useCallback, useRef } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert, Linking, ActivityIndicator, Pressable, Platform, Animated } from 'react-native';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert, Linking, ActivityIndicator, Pressable, Platform } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Feather from '@expo/vector-icons/Feather';
 import { useRouter } from 'expo-router';
@@ -7,6 +7,7 @@ import Constants from 'expo-constants';
 import { useTranslation } from 'react-i18next';
 
 import { CosmicBackground } from '@/src/shared/components/cosmic-background';
+import { GoldButton } from '@/src/shared/components/gold-button';
 import { colors, spacing, borderRadius, fontSize, fontFamily } from '@/src/config/theme';
 import { useIsPro } from '@/src/shared/hooks/use-subscription';
 import { useUser } from '@/src/shared/hooks/use-user';
@@ -15,7 +16,6 @@ import { supabase } from '@/src/services/supabase/client';
 import { APP_NAME } from '@/src/config/constants';
 import {
   getMyInstance,
-  restartInstance,
   updateSoulMd,
   subscribeToInstanceChanges,
 } from '@/src/services/openclaw/client';
@@ -65,13 +65,14 @@ function GuestSettingsScreen() {
     <CosmicBackground>
       <SafeAreaView style={styles.container} edges={['top']}>
         <ScrollView
+          testID="guest-settings-screen"
           contentContainerStyle={styles.content}
           contentInsetAdjustmentBehavior="automatic"
         >
           <Text style={styles.title}>AltMe</Text>
 
           <View style={styles.guestLoginCard}>
-            <Text style={styles.guestLoginTitle}>{t('guest.title')}</Text>
+            <Text testID="guest-login-title" style={styles.guestLoginTitle}>{t('guest.title')}</Text>
             <Text style={styles.guestLoginSubtitle}>{t('guest.subtitle')}</Text>
 
             <View style={styles.guestButtons}>
@@ -144,10 +145,6 @@ export default function SettingsScreen() {
 
   // OpenClaw instance state (must be before any conditional returns)
   const [instance, setInstance] = useState<OpenClawInstance | null>(null);
-  const [isLoadingInstance, setIsLoadingInstance] = useState(false);
-  const [isRestarting, setIsRestarting] = useState(false);
-  const [isWaking, setIsWaking] = useState(false);
-  const pulseAnim = useRef(new Animated.Value(1)).current;
 
   // Load OpenClaw instance for Pro users
   useEffect(() => {
@@ -156,14 +153,11 @@ export default function SettingsScreen() {
     let unsubscribe: (() => void) | null = null;
 
     const loadInstance = async () => {
-      setIsLoadingInstance(true);
       try {
         const data = await getMyInstance();
         setInstance(data);
       } catch (error) {
         console.error('Failed to load OpenClaw instance:', error);
-      } finally {
-        setIsLoadingInstance(false);
       }
     };
 
@@ -179,63 +173,46 @@ export default function SettingsScreen() {
     };
   }, [isPro, user?.id]);
 
-  // Pulse animation for 'waking' state
-  useEffect(() => {
-    if (instance?.runtimeState === 'waking') {
-      const loop = Animated.loop(
-        Animated.sequence([
-          Animated.timing(pulseAnim, { toValue: 0.3, duration: 600, useNativeDriver: true }),
-          Animated.timing(pulseAnim, { toValue: 1, duration: 600, useNativeDriver: true }),
-        ]),
-      );
-      loop.start();
-      return () => loop.stop();
+  const twinSettingsSubtitle = useMemo(() => {
+    const parts: string[] = [];
+
+    if (user?.mbtiType) {
+      parts.push(t('settings.twinSettingsSub.mbtiLabel', { type: user.mbtiType }));
     } else {
-      pulseAnim.setValue(1);
+      parts.push(t('settings.twinSettingsSub.mbtiNotSet'));
     }
-  }, [instance?.runtimeState, pulseAnim]);
 
-  const handleWakeInstance = useCallback(async () => {
-    setIsWaking(true);
-    try {
-      const result = await restartInstance();
-      if (!result.success) {
-        Alert.alert(t('common.error'), result.error || t('settings.instance.restartError'));
+    if (isPro && instance) {
+      if (instance.runtimeState === 'healthy') {
+        parts.push(t('settings.twinSettingsSub.openclawConnected'));
+      } else if (instance.runtimeState === 'waking') {
+        parts.push(t('settings.twinSettingsSub.openclawWaking'));
+      } else if (instance.runtimeState === 'error') {
+        parts.push(t('settings.twinSettingsSub.openclawError'));
+      } else {
+        parts.push(t('settings.twinSettingsSub.openclawDisconnected'));
       }
-    } catch {
-      Alert.alert(t('common.error'), t('settings.instance.restartError'));
-    } finally {
-      setIsWaking(false);
     }
-  }, [t]);
 
-  const handleRestartInstance = useCallback(async () => {
-    Alert.alert(
-      t('settings.instance.restartTitle'),
-      t('settings.instance.restartMessage'),
-      [
-        { text: t('common.cancel'), style: 'cancel' },
-        {
-          text: t('settings.instance.restart'),
-          onPress: async () => {
-            setIsRestarting(true);
-            try {
-              const result = await restartInstance();
-              if (result.success) {
-                Alert.alert(t('settings.instance.restartStarted'), t('settings.instance.restartStartedMessage'));
-              } else {
-                Alert.alert(t('common.error'), result.error || t('settings.instance.restartError'));
-              }
-            } catch {
-              Alert.alert(t('common.error'), t('settings.instance.restartError'));
-            } finally {
-              setIsRestarting(false);
-            }
-          },
-        },
-      ],
-    );
-  }, [t]);
+    return parts.join(', ');
+  }, [user?.mbtiType, isPro, instance, t]);
+
+  const twinSettingsSubtitleColors = useMemo(() => {
+    const colorList: string[] = [];
+    // MBTI color
+    colorList.push('#7DD3FC');
+    // OpenClaw status color
+    if (isPro && instance) {
+      if (instance.runtimeState === 'healthy') {
+        colorList.push('#22C55E');
+      } else if (instance.runtimeState === 'error') {
+        colorList.push('#EF4444');
+      } else {
+        colorList.push('#94A3B8');
+      }
+    }
+    return colorList;
+  }, [isPro, instance]);
 
   if (!isAuthenticated) {
     return <GuestSettingsScreen />;
@@ -276,9 +253,19 @@ export default function SettingsScreen() {
     );
   };
 
-  const handleNotificationSettings = () => {
-    router.push('/notification-settings');
-  };
+  const handleRetakeQuiz = useCallback(() => {
+    Alert.alert(
+      t('settings.retakeQuizConfirmTitle'),
+      t('settings.retakeQuizConfirmMessage'),
+      [
+        { text: t('common.cancel'), style: 'cancel' },
+        {
+          text: t('settings.retakeQuizConfirmButton'),
+          onPress: () => router.push('/(onboarding)/personality-quiz'),
+        },
+      ],
+    );
+  }, [t, router]);
 
   const handleSignOut = () => {
     Alert.alert(t('settings.account.logout'), t('settings.account.logoutConfirm'), [
@@ -294,14 +281,6 @@ export default function SettingsScreen() {
     ]);
   };
 
-  const handleOpenHelp = () => {
-    Linking.openURL(HELP_URL);
-  };
-
-  const handleOpenPrivacy = () => {
-    Linking.openURL(PRIVACY_URL);
-  };
-
   return (
     <CosmicBackground>
       <SafeAreaView style={styles.container} edges={['top']}>
@@ -312,124 +291,104 @@ export default function SettingsScreen() {
           <Text style={styles.title}>AltMe</Text>
 
           {/* Profile Card */}
-          <View style={styles.profileCard}>
+          <View testID="profile-card" style={styles.profileCard}>
             <View style={styles.profileAvatar}>
               <Feather name="user" size={28} color={colors.primary} />
             </View>
             <View style={styles.profileInfo}>
               <View style={styles.profileNameRow}>
                 <Text style={styles.profileName}>{user?.displayName || t('settings.guest')}</Text>
-                {isPro && (
-                  <View style={styles.proBadge}>
+                {isPro ? (
+                  <View testID="pro-badge" style={styles.proBadge}>
                     <Text style={styles.proBadgeText}>Pro</Text>
                   </View>
-                )}
+                ) : null}
               </View>
               <Text style={styles.profileEmail}>{user?.email || ''}</Text>
             </View>
           </View>
 
+          {/* Pro Upgrade Button - Free users only */}
+          {!isPro ? (
+            <GoldButton
+              testID="upgrade-to-pro-button"
+              title={t('settings.upgradeToPro')}
+              onPress={() => router.push('/(paywall)')}
+              style={styles.upgradeButton}
+            />
+          ) : null}
+
           {/* Settings List */}
           <View style={styles.settingsList}>
             <SettingRow
+              testID="setting-row-subscription"
+              icon="credit-card"
+              label={t('settings.subscriptionManage')}
+              onPress={() => router.push('/subscription-manage')}
+              accent
+            />
+            <SettingRow
+              testID="setting-row-notifications"
               icon="bell"
               label={t('settings.notifications.title')}
-              onPress={handleNotificationSettings}
+              onPress={() => router.push('/notification-settings')}
             />
             <SettingRow
+              testID="setting-row-privacy"
               icon="shield"
               label={t('settings.support.privacy')}
-              onPress={handleOpenPrivacy}
+              onPress={() => Linking.openURL(PRIVACY_URL)}
             />
             <SettingRow
+              testID="setting-row-twin-settings"
+              subtitleTestID="twin-settings-mbti-subtitle"
               icon="settings"
-              label={t('settings.twinSettings.title')}
-              subtitle={t('settings.twinSettings.subtitle')}
+              label={t('settings.twinSettingsWithInfo')}
+              subtitle={twinSettingsSubtitle}
+              subtitleColors={twinSettingsSubtitleColors}
               onPress={handleEditTwinName}
+              accent
             />
-            {/* OpenClaw Instance Status - Pro only */}
-            {isPro && instance ? (
-              <View style={styles.instanceSection}>
-                <View style={styles.instanceHeader}>
-                  <Feather name="server" size={20} color={colors.text} />
-                  <View style={styles.settingRowContent}>
-                    <Text style={styles.settingLabel}>{t('settings.instance.title')}</Text>
-                    <View style={styles.instanceStatusRow}>
-                      {instance.runtimeState === 'waking' ? (
-                        <Animated.View
-                          style={[styles.instanceStatusDot, instanceStatusStyle(instance.runtimeState), { opacity: pulseAnim }]}
-                        />
-                      ) : (
-                        <View style={[styles.instanceStatusDot, instanceStatusStyle(instance.runtimeState)]} />
-                      )}
-                      <Text style={styles.instanceStatusText}>
-                        {t(`settings.instance.runtime${capitalize(instance.runtimeState)}`)}
-                      </Text>
-                    </View>
-                  </View>
-                  {(instance.runtimeState === 'healthy' || instance.runtimeState === 'sleeping') ? (
-                    <Pressable
-                      onPress={handleRestartInstance}
-                      disabled={isRestarting}
-                      style={styles.restartButton}
-                    >
-                      {isRestarting ? (
-                        <ActivityIndicator size="small" color={colors.primary} />
-                      ) : (
-                        <Feather name="refresh-cw" size={18} color={colors.primary} />
-                      )}
-                    </Pressable>
-                  ) : instance.runtimeState === 'waking' ? (
-                    <ActivityIndicator size="small" color={colors.primary} style={styles.restartButton} />
-                  ) : null}
-                </View>
-                {(instance.runtimeState === 'cold' || instance.runtimeState === 'sleeping') ? (
-                  <Pressable
-                    onPress={handleWakeInstance}
-                    disabled={isWaking}
-                    style={styles.wakeButton}
-                  >
-                    {isWaking ? (
-                      <ActivityIndicator size="small" color={colors.textInverse} />
-                    ) : (
-                      <Text style={styles.wakeButtonText}>{t('settings.instance.wake')}</Text>
-                    )}
-                  </Pressable>
-                ) : null}
-                {instance.runtimeState === 'sleeping' ? (
-                  <Text style={styles.sleepInfoText}>{t('settings.instance.sleepInfo')}</Text>
-                ) : null}
-                {instance.runtimeState === 'error' && instance.errorMessage ? (
-                  <Text style={styles.instanceError}>{instance.errorMessage}</Text>
-                ) : null}
-              </View>
-            ) : isPro && isLoadingInstance ? (
-              <View style={styles.instanceSection}>
-                <ActivityIndicator size="small" color={colors.primary} />
-              </View>
-            ) : null}
             <SettingRow
+              testID="setting-row-personality-retake"
+              icon="refresh-cw"
+              label={t('settings.retakeQuiz')}
+              onPress={handleRetakeQuiz}
+            />
+            <SettingRow
+              testID="setting-row-language"
               icon="globe"
               label={t('settings.language')}
               onPress={() => Alert.alert(t('settings.language'), t('settings.languageComingSoon'))}
             />
             <SettingRow
+              testID="setting-row-help"
               icon="help-circle"
               label={t('settings.support.help')}
-              onPress={handleOpenHelp}
+              onPress={() => Linking.openURL(HELP_URL)}
+            />
+            <SettingRow
+              testID="setting-row-terms"
+              icon="file-text"
+              label={t('settings.termsAndPrivacy')}
+              onPress={() => Linking.openURL(TERMS_URL)}
             />
           </View>
 
-          {/* Logout Button */}
-          <Pressable style={styles.logoutButton} onPress={handleSignOut}>
-            <Text style={styles.logoutText}>{t('settings.account.logout')}</Text>
-          </Pressable>
-
-          {/* Delete Account Link */}
-          <Pressable onPress={() => router.push('/account-delete-confirm')}>
+          {/* Delete Account Button */}
+          <Pressable
+            testID="delete-account-link"
+            style={styles.deleteAccountButton}
+            onPress={() => router.push('/account-delete-confirm')}
+          >
             <Text style={styles.deleteAccountText}>
               {t('settings.account.deleteAccount')}
             </Text>
+          </Pressable>
+
+          {/* Logout Button */}
+          <Pressable testID="logout-button" style={styles.logoutButton} onPress={handleSignOut}>
+            <Text style={styles.logoutText}>{t('settings.account.logout')}</Text>
           </Pressable>
 
           <Text style={styles.version}>{APP_NAME} v{appVersion}</Text>
@@ -439,39 +398,47 @@ export default function SettingsScreen() {
   );
 }
 
-function capitalize(s: string): string {
-  return s.charAt(0).toUpperCase() + s.slice(1);
-}
-
-function instanceStatusStyle(runtimeState: string) {
-  switch (runtimeState) {
-    case 'healthy': return { backgroundColor: '#22C55E' };
-    case 'waking': return { backgroundColor: '#F59E0B' };
-    case 'sleeping': return { backgroundColor: '#3B82F6' };
-    case 'cold': return { backgroundColor: '#6B7280' };
-    case 'error': return { backgroundColor: '#EF4444' };
-    default: return { backgroundColor: '#6B7280' };
-  }
-}
-
 function SettingRow({
   icon,
   label,
   subtitle,
+  subtitleColors,
   onPress,
+  testID,
+  subtitleTestID,
+  accent,
 }: {
   icon: React.ComponentProps<typeof Feather>['name'];
   label: string;
   subtitle?: string;
+  subtitleColors?: string[];
   onPress: () => void;
+  testID?: string;
+  subtitleTestID?: string;
+  accent?: boolean;
 }) {
+  const subtitleParts = subtitle ? subtitle.split(', ') : [];
+
   return (
-    <TouchableOpacity style={styles.settingRow} onPress={onPress}>
-      <Feather name={icon} size={20} color={colors.text} />
+    <TouchableOpacity
+      testID={testID}
+      style={[styles.settingRow, accent ? styles.settingRowAccent : styles.settingRowDefault]}
+      onPress={onPress}
+    >
+      <Feather name={icon} size={24} color="#7DD3FC" />
       <View style={styles.settingRowContent}>
         <Text style={styles.settingLabel}>{label}</Text>
         {subtitle ? (
-          <Text style={styles.settingSubtitle}>{subtitle}</Text>
+          <Text testID={subtitleTestID} style={styles.settingSubtitle}>
+            {subtitleParts.map((part, index) => (
+              <Text
+                key={index}
+                style={{ color: subtitleColors?.[index] ?? '#94A3B8' }}
+              >
+                {index > 0 ? ', ' : ''}{part}
+              </Text>
+            ))}
+          </Text>
         ) : null}
       </View>
       <Feather name="chevron-right" size={20} color={colors.textTertiary} />
@@ -489,18 +456,22 @@ const styles = StyleSheet.create({
     paddingBottom: spacing.xxl,
   },
   title: {
-    fontSize: 24,
+    fontSize: 20,
     fontFamily: fontFamily.bold,
     color: colors.text,
+    textAlign: 'center',
     marginBottom: spacing.lg,
   },
   profileCard: {
     backgroundColor: '#FFFFFF08',
     borderRadius: 16,
-    padding: spacing.md,
+    borderWidth: 1,
+    borderColor: '#7DD3FC40',
+    paddingVertical: 14,
+    paddingHorizontal: 16,
     flexDirection: 'row',
     alignItems: 'center',
-    gap: spacing.md,
+    gap: 14,
     marginBottom: spacing.lg,
   },
   profileAvatar: {
@@ -521,8 +492,8 @@ const styles = StyleSheet.create({
     gap: spacing.sm,
   },
   profileName: {
-    fontSize: fontSize.md,
-    fontFamily: fontFamily.bold,
+    fontSize: 18,
+    fontFamily: fontFamily.semiBold,
     color: colors.text,
   },
   proBadge: {
@@ -537,56 +508,79 @@ const styles = StyleSheet.create({
     color: colors.textInverse,
   },
   profileEmail: {
-    fontSize: fontSize.sm,
-    color: colors.textSecondary,
+    fontSize: 13,
+    color: '#94A3B8',
+  },
+  upgradeButton: {
+    marginBottom: spacing.lg,
   },
   settingsList: {
-    marginBottom: spacing.xl,
+    gap: spacing.sm,
+    marginBottom: spacing.lg,
   },
   settingRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingVertical: spacing.md,
-    borderBottomWidth: 1,
-    borderBottomColor: '#FFFFFF0A',
-    gap: spacing.md,
+    borderRadius: 16,
+    backgroundColor: '#FFFFFF08',
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    gap: 14,
+  },
+  settingRowDefault: {
+    borderWidth: 1,
+    borderColor: '#FFFFFF15',
+  },
+  settingRowAccent: {
+    borderWidth: 1,
+    borderColor: '#7DD3FC40',
   },
   settingRowContent: {
     flex: 1,
   },
   settingLabel: {
-    fontSize: fontSize.md,
+    fontSize: 16,
     fontFamily: fontFamily.medium,
     color: colors.text,
   },
   settingSubtitle: {
-    fontSize: 14,
-    color: colors.textSecondary,
+    fontSize: 13,
+    color: '#94A3B8',
     marginTop: 2,
   },
+  deleteAccountButton: {
+    backgroundColor: '#EF444408',
+    borderWidth: 1,
+    borderColor: '#EF444440',
+    borderRadius: 12,
+    height: 48,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: spacing.sm,
+  },
+  deleteAccountText: {
+    fontSize: 16,
+    fontFamily: fontFamily.semiBold,
+    color: colors.error,
+  },
   logoutButton: {
-    borderColor: colors.error,
+    backgroundColor: '#EF444410',
+    borderColor: '#EF444460',
     borderWidth: 1,
     borderRadius: 12,
     height: 48,
     justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: spacing.md,
+    marginBottom: spacing.lg,
   },
   logoutText: {
-    fontSize: fontSize.md,
+    fontSize: 16,
     fontFamily: fontFamily.semiBold,
     color: colors.error,
   },
-  deleteAccountText: {
-    fontSize: 14,
-    color: colors.error,
-    textAlign: 'center',
-    marginBottom: spacing.lg,
-  },
   version: {
-    fontSize: fontSize.xs,
-    color: colors.textTertiary,
+    fontSize: 12,
+    color: '#64748B',
     textAlign: 'center',
   },
 
@@ -667,65 +661,5 @@ const styles = StyleSheet.create({
   },
   section: {
     marginBottom: spacing.lg,
-  },
-  instanceSection: {
-    paddingVertical: spacing.md,
-    borderBottomWidth: 1,
-    borderBottomColor: '#FFFFFF0A',
-  },
-  instanceHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.md,
-  },
-  instanceStatusRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-    marginTop: 2,
-  },
-  instanceStatusDot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-  },
-  instanceStatusText: {
-    fontSize: fontSize.sm,
-    color: colors.textSecondary,
-  },
-  restartButton: {
-    width: 36,
-    height: 36,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  wakeButton: {
-    marginTop: spacing.sm,
-    marginLeft: 36,
-    backgroundColor: colors.primary,
-    borderRadius: 8,
-    paddingVertical: spacing.xs,
-    paddingHorizontal: spacing.md,
-    alignSelf: 'flex-start',
-    minHeight: 32,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  wakeButtonText: {
-    fontSize: fontSize.sm,
-    fontFamily: fontFamily.semiBold,
-    color: colors.textInverse,
-  },
-  sleepInfoText: {
-    fontSize: fontSize.xs,
-    color: colors.textTertiary,
-    marginTop: spacing.xs,
-    marginLeft: 36,
-  },
-  instanceError: {
-    fontSize: fontSize.xs,
-    color: colors.error,
-    marginTop: spacing.xs,
-    marginLeft: 36,
   },
 });

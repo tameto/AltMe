@@ -32,6 +32,22 @@ type AuthStore = {
   devLogin: (skipOnboarding?: boolean) => Promise<void>;
 };
 
+// Single RC listener unsubscribe handle (module-level to survive re-renders)
+let rcListenerUnsubscribe: (() => void) | null = null;
+
+const bindRcListener = () => {
+  if (rcListenerUnsubscribe) {
+    rcListenerUnsubscribe();
+    rcListenerUnsubscribe = null;
+  }
+  rcListenerUnsubscribe = addCustomerInfoListener((info) => {
+    useSubscription.getState().setEntitlement(info);
+  });
+};
+
+// Auth state change unsubscribe handle
+let authStateUnsubscribe: (() => void) | null = null;
+
 export const useAuthStore = create<AuthStore>((set) => ({
   isAuthenticated: false,
   isGuest: false,
@@ -59,10 +75,8 @@ export const useAuthStore = create<AuthStore>((set) => ({
           useSubscription.getState().setEntitlement(entitlement);
           useSubscription.getState().setLoading(false);
 
-          // Listen for subscription updates
-          addCustomerInfoListener((info) => {
-            useSubscription.getState().setEntitlement(info);
-          });
+          // Listen for subscription updates (deduplicated)
+          bindRcListener();
 
           set({ isAuthenticated: true, isLoading: false });
         } else {
@@ -74,14 +88,18 @@ export const useAuthStore = create<AuthStore>((set) => ({
         useSubscription.getState().setLoading(false);
       }
 
-      // Listen for auth state changes
-      supabase.auth.onAuthStateChange(async (event, session) => {
+      // Listen for auth state changes (unsubscribe previous before re-subscribing)
+      if (authStateUnsubscribe) {
+        authStateUnsubscribe();
+      }
+      const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event) => {
         if (event === 'SIGNED_OUT') {
           useUser.getState().reset();
           useSubscription.getState().reset();
           set({ isAuthenticated: false });
         }
       });
+      authStateUnsubscribe = () => subscription.unsubscribe();
     } catch (error) {
       console.error('Auth initialization error:', error);
       set({ isLoading: false, error: 'アプリの初期化に失敗しました' });
@@ -90,7 +108,7 @@ export const useAuthStore = create<AuthStore>((set) => ({
 
   signInWithApple: async () => {
     try {
-      set({ error: null });
+      set({ isLoading: true, error: null });
       const profile = await authSignInWithApple();
       useUser.getState().setUser(profile);
 
@@ -98,9 +116,8 @@ export const useAuthStore = create<AuthStore>((set) => ({
       useSubscription.getState().setEntitlement(entitlement);
       useSubscription.getState().setLoading(false);
 
-      addCustomerInfoListener((info) => {
-        useSubscription.getState().setEntitlement(info);
-      });
+      // Listen for subscription updates (deduplicated)
+      bindRcListener();
 
       set({ isAuthenticated: true, isGuest: false });
     } catch (error: unknown) {
@@ -117,12 +134,14 @@ export const useAuthStore = create<AuthStore>((set) => ({
       if (message.includes('cancelled') || message.includes('ERR_CANCELED')) return;
       set({ error: message });
       throw error;
+    } finally {
+      set({ isLoading: false });
     }
   },
 
   signInWithGoogle: async () => {
     try {
-      set({ error: null });
+      set({ isLoading: true, error: null });
       const profile = await authSignInWithGoogle();
       useUser.getState().setUser(profile);
 
@@ -130,9 +149,8 @@ export const useAuthStore = create<AuthStore>((set) => ({
       useSubscription.getState().setEntitlement(entitlement);
       useSubscription.getState().setLoading(false);
 
-      addCustomerInfoListener((info) => {
-        useSubscription.getState().setEntitlement(info);
-      });
+      // Listen for subscription updates (deduplicated)
+      bindRcListener();
 
       set({ isAuthenticated: true, isGuest: false });
     } catch (error: unknown) {
@@ -149,6 +167,8 @@ export const useAuthStore = create<AuthStore>((set) => ({
       if (message.includes('cancelled') || message.includes('ERR_CANCELED')) return;
       set({ error: message });
       throw error;
+    } finally {
+      set({ isLoading: false });
     }
   },
 

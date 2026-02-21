@@ -31,7 +31,10 @@
     "agreeToTerms": "続行することで{{terms}}と{{privacy}}に同意します",
     "loginError": "ログインに失敗しました。もう一度お試しください。",
     "errorTitle": "エラー",
-    "legalText": "続行することで、利用規約とプライバシーポリシーに同意します"
+    "legalText": "続行することで、利用規約とプライバシーポリシーに同意します",
+    "loginCta": "ログインして始める",
+    "legalFull": "利用規約  ・  プライバシーポリシー",
+    "taglineSub": "もう一人の自分と、毎日を振り返る"
   },
   "onboarding": {
     "welcome": {
@@ -136,6 +139,11 @@
     "errorResponse": "ごめんね、うまく返事ができなかった。もう一度試してみて。",
     "offline": "オフライン",
     "remainingCount": "残り{{count}}回",
+    "statusOnline": "オンライン",
+    "statusOffline": "オフライン",
+    "translateLink": "翻訳",
+    "aiMessageLabel": "{{twinName}}  {{time}}",
+    "remainingFormat": "残り {{remaining}}/{{total}}回",
     "connectionStatus": {
       "connected": "接続済み",
       "connecting": "接続中...",
@@ -146,6 +154,11 @@
   "community": {
     "title": "コミュニティ",
     "subtitle": "みんなのAIツインを見てみよう",
+    "popularTitle": "人気のコミュニティ",
+    "memberCount": "人参加中",
+    "messageCount": "件の会話",
+    "proBannerTitle": "Proで全機能を解放",
+    "proBannerCta": "アップグレード",
     "createChannel": "チャンネルを作成",
     "channels": "チャンネル",
     "conversations": "会話",
@@ -313,6 +326,23 @@
       "subtitle": "MBTIタイプを選択してAIツインに反映"
     },
     "subscription": "サブスクリプション管理",
+    "subscriptionManage": "サブスクリプション管理",
+    "twinSettingsWithInfo": "AIツインの設定",
+    "retakeQuiz": "性格診断やり直し",
+    "retakeQuizConfirmTitle": "性格診断をやり直す",
+    "retakeQuizConfirmMessage": "性格診断をやり直すと、AIツインの性格も変わります。よろしいですか？",
+    "retakeQuizConfirmButton": "やり直す",
+    "termsAndPrivacy": "利用規約・プライバシーポリシー",
+    "language": "言語",
+    "languageComingSoon": "現在準備中です。今後のアップデートをお待ちください。",
+    "twinSettingsSub": {
+      "mbtiLabel": "MBTI: {{type}}",
+      "mbtiNotSet": "MBTI: 未設定",
+      "openclawConnected": "OpenClaw: 接続中",
+      "openclawDisconnected": "OpenClaw: 未接続",
+      "openclawError": "OpenClaw: エラー",
+      "openclawWaking": "OpenClaw: 起動中"
+    },
     "notifications": {
       "title": "通知設定",
       "push": "プッシュ通知",
@@ -415,7 +445,19 @@
       "subtitle": "会話の詳細と振り返り"
     },
     "defaultName": "AltMe",
-    "soulMdComingSoon": "SOUL.md の閲覧機能は近日公開予定です。"
+    "soulMdComingSoon": "SOUL.md の閲覧機能は近日公開予定です。",
+    "personalityTitle": "パーソナリティ特性",
+    "traits": {
+      "openness": "開放性",
+      "conscientiousness": "誠実性",
+      "extraversion": "外向性",
+      "agreeableness": "協調性",
+      "neuroticism": "神経症傾向"
+    },
+    "noDiagnosis": "性格診断を受けてください",
+    "noDiagnosisDescription": "診断を完了するとあなたのパーソナリティが表示されます",
+    "viewSoulMd": "SOUL.md を閲覧",
+    "soulMdNotGenerated": "SOUL.mdはまだ生成されていません"
   },
   "guest": {
     "title": "ログインして始めよう",

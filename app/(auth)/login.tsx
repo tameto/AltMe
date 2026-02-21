@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { StyleSheet, View, Text, Pressable, ActivityIndicator, Alert, Platform, Image, ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import Feather from '@expo/vector-icons/Feather';
+import { useRouter } from 'expo-router';
 import FontAwesome from '@expo/vector-icons/FontAwesome';
 import { useTranslation } from 'react-i18next';
 import { CosmicBackground } from '@/src/shared/components/cosmic-background';
@@ -11,19 +11,12 @@ import { fontFamily, spacing } from '@/src/config/theme';
 import { APP_NAME } from '@/src/config/constants';
 import { useAuthStore } from '@/src/features/auth/stores/auth-store';
 
-/** Google brand colors per V4 Dark Premium design */
-const GOOGLE_BUTTON = {
-  background: '#FFFFFF',
-  border: '#7DD3FC80',
-  text: '#1F1F1F',
-  height: 54,
-} as const;
-
 type AuthView = 'landing' | 'login';
 
 export default function LoginScreen() {
-  const { signInWithApple, signInWithGoogle, devLogin } = useAuthStore();
+  const { signInWithApple, signInWithGoogle, devLogin, enterGuestMode } = useAuthStore();
   const { t } = useTranslation();
+  const router = useRouter();
   const [currentView, setCurrentView] = useState<AuthView>('landing');
   const [isSigningIn, setIsSigningIn] = useState<'apple' | 'google' | null>(null);
 
@@ -57,6 +50,11 @@ export default function LoginScreen() {
     setCurrentView('landing');
   };
 
+  const handleGuestMode = () => {
+    enterGuestMode();
+    router.replace('/(tabs)');
+  };
+
   return (
     <CosmicBackground>
       <SafeAreaView style={styles.safeArea} edges={['top', 'bottom']}>
@@ -66,35 +64,33 @@ export default function LoginScreen() {
             contentContainerStyle={styles.landingContent}
             showsVerticalScrollIndicator={false}
           >
-            {/* Logo */}
+            {/* Title Area */}
             <View style={styles.landingHeader}>
               <Text style={styles.landingLogo}>{APP_NAME}</Text>
               <Text style={styles.landingTagline}>{t('auth.loginSubtitle')}</Text>
+              <Text style={styles.landingTaglineSub}>{t('auth.taglineSub')}</Text>
             </View>
 
             {/* Feature Cards */}
             <View style={styles.featuresContainer}>
               <GlassCard variant="card" style={styles.featureCard}>
-                <Feather name="cpu" size={28} color="#7DD3FC" />
-                <Text style={styles.featureTitle}>{t('guest.features.quiz')}</Text>
+                <Text style={styles.featureTitle}>{'💬  マイエージェントとチャット'}</Text>
                 <Text style={styles.featureDescription}>
-                  あなたの性格を分析し、世界に一つだけのAI分身を作成
+                  {'もう一人の自分と24時間いつでも会話できる'}
                 </Text>
               </GlassCard>
 
               <GlassCard variant="card" style={styles.featureCard}>
-                <Feather name="message-circle" size={28} color="#7DD3FC" />
-                <Text style={styles.featureTitle}>{t('guest.features.chat')}</Text>
+                <Text style={styles.featureTitle}>{'🤝  コミュニティ'}</Text>
                 <Text style={styles.featureDescription}>
-                  もう一人の自分と24時間いつでも会話できる
+                  {'他のユーザーのAIツインとつながろう'}
                 </Text>
               </GlassCard>
 
               <GlassCard variant="card" style={styles.featureCard}>
-                <Feather name="trending-up" size={28} color="#7DD3FC" />
-                <Text style={styles.featureTitle}>{t('guest.features.insights')}</Text>
+                <Text style={styles.featureTitle}>{'📊  自己分析 & インサイト'}</Text>
                 <Text style={styles.featureDescription}>
-                  自己理解を深め、より良い意思決定をサポート
+                  {'自己理解を深め、より良い意思決定をサポート'}
                 </Text>
               </GlassCard>
             </View>
@@ -102,21 +98,18 @@ export default function LoginScreen() {
             {/* CTA Button */}
             <View style={styles.ctaContainer}>
               <GoldButton
-                title={t('common.start')}
+                title={t('auth.loginCta')}
                 onPress={navigateToLogin}
               />
 
-              {/* Guest Link - Hidden for now as per requirements */}
-              {/* <Pressable onPress={() => {}}>
-                <Text style={styles.guestLink}>ゲストとして続ける</Text>
-              </Pressable> */}
+              <Pressable onPress={handleGuestMode}>
+                <Text style={styles.guestLink}>{'ゲストとして見てみる →'}</Text>
+              </Pressable>
             </View>
 
             {/* Legal */}
             <View style={styles.legalContainer}>
-              <Text style={styles.legalText}>
-                {t('auth.termsOfService')} | {t('auth.privacyPolicy')}
-              </Text>
+              <Text style={styles.legalText}>{t('auth.legalFull')}</Text>
             </View>
           </ScrollView>
         ) : (
@@ -126,7 +119,7 @@ export default function LoginScreen() {
               style={styles.backButton}
               onPress={navigateToLanding}
             >
-              <Feather name="arrow-left" size={24} color="#94A3B8" />
+              <FontAwesome name="chevron-left" size={18} color="#94A3B8" />
             </Pressable>
 
             {/* Logo */}
@@ -168,13 +161,15 @@ export default function LoginScreen() {
                 disabled={isSigningIn !== null}
               >
                 {isSigningIn === 'google' ? (
-                  <ActivityIndicator color={GOOGLE_BUTTON.text} />
+                  <ActivityIndicator color="#1A1A1A" />
                 ) : (
                   <View style={styles.buttonContent}>
-                    <Image
-                      source={require('@/assets/images/google-g-icon.png')}
-                      style={styles.googleIcon}
-                    />
+                    <View style={styles.googleIconWrapper}>
+                      <Image
+                        source={require('@/assets/images/google-g-icon.png')}
+                        style={styles.googleIcon}
+                      />
+                    </View>
                     <Text style={styles.googleButtonText}>
                       {t('auth.signInWithGoogle')}
                     </Text>
@@ -188,9 +183,7 @@ export default function LoginScreen() {
 
             {/* Legal */}
             <View style={styles.loginLegalContainer}>
-              <Text style={styles.legalText}>
-                {t('auth.termsOfService')} | {t('auth.privacyPolicy')}
-              </Text>
+              <Text style={styles.legalText}>{t('auth.legalFull')}</Text>
             </View>
 
             {/* Dev Buttons */}
@@ -241,20 +234,28 @@ const styles = StyleSheet.create({
     fontSize: 52,
     fontWeight: '200',
     color: '#F8FAFC',
+    letterSpacing: 4,
     marginBottom: spacing.sm,
   },
   landingTagline: {
     fontFamily: fontFamily.regular,
     fontSize: 16,
-    color: '#94A3B8',
+    color: '#FFFFFFCC',
+    marginBottom: 6,
+  },
+  landingTaglineSub: {
+    fontFamily: fontFamily.regular,
+    fontSize: 13,
+    color: '#FFFFFF80',
   },
   featuresContainer: {
     gap: spacing.md,
     marginBottom: spacing.xxl,
   },
   featureCard: {
-    padding: 20,
-    gap: 12,
+    padding: 16,
+    paddingHorizontal: 20,
+    gap: 6,
   },
   featureTitle: {
     fontFamily: fontFamily.semiBold,
@@ -263,9 +264,9 @@ const styles = StyleSheet.create({
   },
   featureDescription: {
     fontFamily: fontFamily.regular,
-    fontSize: 14,
-    color: '#94A3B8',
-    lineHeight: 20,
+    fontSize: 12,
+    color: '#FFFFFF80',
+    lineHeight: 18,
   },
   ctaContainer: {
     gap: spacing.md,
@@ -274,9 +275,8 @@ const styles = StyleSheet.create({
   guestLink: {
     fontFamily: fontFamily.regular,
     fontSize: 14,
-    color: '#94A3B8',
+    color: '#FFFFFFAA',
     textAlign: 'center',
-    textDecorationLine: 'underline',
   },
   legalContainer: {
     alignItems: 'center',
@@ -285,7 +285,7 @@ const styles = StyleSheet.create({
   legalText: {
     fontFamily: fontFamily.regular,
     fontSize: 12,
-    color: '#64748B',
+    color: '#FFFFFF50',
     textAlign: 'center',
   },
   // ========== LOGIN STATE ==========
@@ -310,12 +310,13 @@ const styles = StyleSheet.create({
     fontSize: 52,
     fontWeight: '200',
     color: '#F8FAFC',
+    letterSpacing: 4,
     marginBottom: spacing.sm,
   },
   loginTagline: {
     fontFamily: fontFamily.regular,
     fontSize: 16,
-    color: '#94A3B8',
+    color: '#FFFFFFCC',
   },
   buttons: {
     gap: spacing.md,
@@ -327,24 +328,38 @@ const styles = StyleSheet.create({
   },
   appleButton: {
     backgroundColor: '#000000',
-    borderRadius: 14,
+    borderRadius: 999,
     height: 54,
     justifyContent: 'center',
     alignItems: 'center',
+    borderWidth: 1,
+    borderColor: '#FFFFFF30',
   },
   appleButtonText: {
     fontFamily: fontFamily.semiBold,
-    fontSize: 16,
+    fontSize: 17,
     color: '#FFFFFF',
   },
   googleButton: {
-    backgroundColor: GOOGLE_BUTTON.background,
-    borderRadius: 14,
-    height: GOOGLE_BUTTON.height,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 999,
+    height: 54,
     justifyContent: 'center',
     alignItems: 'center',
-    borderWidth: 1,
-    borderColor: GOOGLE_BUTTON.border,
+    // stroke outside: shadow で代替（RN は borderWidth が inside のため）
+    shadowColor: '#7DD3FC',
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.5,
+    shadowRadius: 2,
+    elevation: 2,
+  },
+  googleIconWrapper: {
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+    backgroundColor: '#FFFFFF',
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   googleIcon: {
     width: 20,
@@ -352,8 +367,8 @@ const styles = StyleSheet.create({
   },
   googleButtonText: {
     fontFamily: fontFamily.semiBold,
-    fontSize: 16,
-    color: GOOGLE_BUTTON.text,
+    fontSize: 17,
+    color: '#1A1A1A',
   },
   buttonPressed: {
     opacity: 0.8,

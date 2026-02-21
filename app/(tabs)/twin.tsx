@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -7,6 +7,7 @@ import {
   Pressable,
   Modal,
   ActivityIndicator,
+  Image,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Feather from '@expo/vector-icons/Feather';
@@ -18,20 +19,58 @@ import { useAuthStore } from '@/src/features/auth/stores/auth-store';
 import { useUser } from '@/src/shared/hooks/use-user';
 import { GuestPromptOverlay } from '@/src/shared/components/guest-prompt-overlay';
 import { useTwinData } from '@/src/features/insights/hooks/use-twin-data';
+import { getAvatarSource } from '@/src/config/avatar-map';
+import { getMyInstance } from '@/src/services/openclaw/client';
+import { useIsPro } from '@/src/shared/hooks/use-subscription';
+import type { RuntimeState } from '@/src/shared/types/openclaw';
 
 type BigFiveTrait = {
+  id: string;
   label: string;
   value: number;
 };
+
+const TRAIT_KEYS = ['extraversion', 'agreeableness', 'conscientiousness', 'neuroticism', 'openness'] as const;
+
+function getIndicatorColor(runtimeState: RuntimeState | null, isPro: boolean): string {
+  if (!isPro || runtimeState === null) return '#6B7280';
+  switch (runtimeState) {
+    case 'healthy':
+      return colors.success;
+    case 'waking':
+      return '#F59E0B';
+    case 'error':
+      return colors.error;
+    default:
+      return '#6B7280';
+  }
+}
 
 export default function TwinScreen() {
   const { t } = useTranslation();
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
   const user = useUser((s) => s.user);
   const { isLoading, personalityTraits, hasData, fetchSoulMd } = useTwinData();
+  const isPro = useIsPro();
   const [soulMdVisible, setSoulMdVisible] = useState(false);
   const [soulMdContent, setSoulMdContent] = useState<string | null>(null);
   const [soulMdLoading, setSoulMdLoading] = useState(false);
+  const [runtimeState, setRuntimeState] = useState<RuntimeState | null>(null);
+
+  useEffect(() => {
+    if (!isPro || !user?.id) return;
+    let cancelled = false;
+
+    getMyInstance().then((instance) => {
+      if (!cancelled && instance) {
+        setRuntimeState(instance.runtimeState);
+      }
+    });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [isPro, user?.id]);
 
   if (!isAuthenticated) {
     return (
@@ -44,25 +83,26 @@ export default function TwinScreen() {
   }
 
   const twinName = user?.twinName || t('twin.defaultName');
-  const mbti = user?.mbtiType || 'INFP';
+  const mbti = user?.mbtiType;
 
   const bigFiveTraits: BigFiveTrait[] = personalityTraits
-    ? [
-        { label: '開放性', value: personalityTraits.openness / 100 },
-        { label: '誠実性', value: personalityTraits.conscientiousness / 100 },
-        { label: '外向性', value: personalityTraits.extraversion / 100 },
-        { label: '協調性', value: personalityTraits.agreeableness / 100 },
-        { label: '神経症傾向', value: personalityTraits.neuroticism / 100 },
-      ]
+    ? TRAIT_KEYS.map((key) => ({
+        id: key,
+        label: t(`twin.traits.${key}`),
+        value: personalityTraits[key] / 100,
+      }))
     : [];
 
   const handleViewSoulMd = async () => {
+    setSoulMdContent(null);
     setSoulMdLoading(true);
     setSoulMdVisible(true);
     const content = await fetchSoulMd();
     setSoulMdContent(content);
     setSoulMdLoading(false);
   };
+
+  const indicatorColor = getIndicatorColor(runtimeState, isPro);
 
   return (
     <CosmicBackground>
@@ -74,66 +114,77 @@ export default function TwinScreen() {
           {/* Header */}
           <Text style={styles.headerTitle}>AltMe</Text>
 
-          {/* Twin Avatar */}
-          <View style={styles.avatarContainer}>
+          {/* Avatar Card */}
+          <View testID="twin-avatar" style={styles.avatarCard}>
             <View style={styles.avatar}>
-              <Feather name="user" size={40} color={colors.primary} />
+              <Image
+                source={getAvatarSource(user?.avatarIcon ?? 'default')}
+                style={styles.avatarImage}
+              />
             </View>
-            <View style={styles.onlineIndicator} />
-          </View>
 
-          {/* Twin Name */}
-          <Text style={styles.twinName}>{twinName}</Text>
+            {/* Twin Name */}
+            <Text style={styles.twinName}>{twinName}</Text>
 
-          {/* MBTI Badge */}
-          <View style={styles.mbtiBadge}>
-            <Text style={styles.mbtiBadgeText}>{mbti}</Text>
+            {/* MBTI Badge - 設定時のみ表示 */}
+            {mbti ? (
+              <View testID="mbti-badge" style={styles.mbtiBadge}>
+                <Text style={styles.mbtiBadgeText}>{mbti}</Text>
+              </View>
+            ) : null}
+
+            {/* Online Indicator */}
+            <View style={styles.onlineRow}>
+              <View style={[styles.onlineDot, { backgroundColor: indicatorColor }]} />
+              <Text style={[styles.onlineText, { color: indicatorColor }]}>
+                {isPro && runtimeState === 'healthy'
+                  ? t('twin.status.online')
+                  : isPro && runtimeState === 'waking'
+                  ? t('twin.status.provisioning')
+                  : t('twin.status.offline')}
+              </Text>
+            </View>
           </View>
 
           {/* Personality Traits Section */}
-          <Text style={styles.sectionTitle}>パーソナリティ特性</Text>
+          <Text style={styles.sectionTitle}>{t('twin.personalityTitle')}</Text>
 
           {isLoading ? (
-            <View style={styles.loadingContainer}>
+            <View testID="loading-indicator" style={styles.loadingContainer}>
               <ActivityIndicator size="small" color={colors.primary} />
             </View>
           ) : !hasData ? (
-            <View style={styles.emptyContainer}>
+            <View testID="no-data-message" style={styles.emptyContainer}>
               <Feather name="alert-circle" size={32} color={colors.textSecondary} />
-              <Text style={styles.emptyText}>性格診断を受けてください</Text>
-              <Text style={styles.emptySubText}>
-                診断を完了するとあなたのパーソナリティが表示されます
-              </Text>
+              <Text style={styles.emptyText}>{t('twin.noDiagnosis')}</Text>
+              <Text style={styles.emptySubText}>{t('twin.noDiagnosisDescription')}</Text>
             </View>
           ) : (
             <View style={styles.bigFiveContainer}>
               {bigFiveTraits.map((trait) => (
-                <View key={trait.label} style={styles.traitRow}>
-                  <Text style={styles.traitLabel}>{trait.label}</Text>
-                  <View style={styles.progressBarContainer}>
-                    <View style={styles.progressBarTrack}>
-                      <View
-                        style={[
-                          styles.progressBarFill,
-                          { width: `${trait.value * 100}%` },
-                        ]}
-                      />
-                    </View>
-                    <Text style={styles.traitValue}>
-                      {Math.round(trait.value * 100)}%
-                    </Text>
+                <View key={trait.id} testID="trait-progress-bar" style={styles.traitCard}>
+                  <Text style={styles.traitLabel}>
+                    {trait.label} {Math.round(trait.value * 100)}%
+                  </Text>
+                  <View style={styles.progressBarTrack}>
+                    <View
+                      style={[
+                        styles.progressBarFill,
+                        { width: `${trait.value * 100}%` },
+                      ]}
+                    />
                   </View>
                 </View>
               ))}
             </View>
           )}
 
-          {/* View SOUL.md Button */}
-          <Pressable style={styles.viewSoulButton} onPress={handleViewSoulMd}>
-            <Feather name="file-text" size={16} color={colors.text} />
-            <Text style={styles.viewSoulButtonText}>SOUL.md を閲覧</Text>
-            <Feather name="chevron-right" size={16} color={colors.textSecondary} />
-          </Pressable>
+          {/* View SOUL.md Button - Proユーザーのみ表示 */}
+          {isPro ? (
+            <Pressable testID="view-soul-md-button" style={styles.viewSoulButton} onPress={handleViewSoulMd}>
+              <Text style={styles.viewSoulButtonText}>{t('twin.viewSoulMd')}</Text>
+            </Pressable>
+          ) : null}
         </ScrollView>
 
         {/* SOUL.md Modal */}
@@ -157,7 +208,7 @@ export default function TwinScreen() {
                 ) : soulMdContent ? (
                   <Text style={styles.soulMdText}>{soulMdContent}</Text>
                 ) : (
-                  <Text style={styles.emptyText}>SOUL.mdはまだ生成されていません</Text>
+                  <Text style={styles.emptyText}>{t('twin.soulMdNotGenerated')}</Text>
                 )}
               </ScrollView>
             </View>
@@ -179,64 +230,72 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   headerTitle: {
-    fontSize: 24,
+    fontSize: 20,
     fontFamily: fontFamily.bold,
     color: colors.text,
-    alignSelf: 'flex-start',
-    marginBottom: spacing.xl,
+    textAlign: 'center',
+    alignSelf: 'stretch',
+    marginBottom: spacing.lg,
   },
-  avatarContainer: {
-    position: 'relative',
-    marginBottom: spacing.md,
+  avatarCard: {
+    width: '100%',
+    backgroundColor: '#FFFFFF08',
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: '#7DD3FC40',
+    paddingVertical: 20,
+    paddingHorizontal: 24,
+    alignItems: 'center',
+    gap: 12,
+    marginBottom: spacing.lg,
   },
   avatar: {
-    width: 80,
-    height: 80,
-    borderRadius: 40,
-    borderColor: colors.primary,
-    borderWidth: 3,
-    backgroundColor: '#FFFFFF12',
-    justifyContent: 'center',
-    alignItems: 'center',
-    shadowColor: colors.primary,
-    shadowRadius: 16,
-    shadowOpacity: 0.4,
-    shadowOffset: { width: 0, height: 0 },
-  },
-  onlineIndicator: {
-    position: 'absolute',
-    bottom: 2,
-    right: 2,
-    width: 16,
-    height: 16,
-    borderRadius: 8,
-    backgroundColor: colors.success,
+    width: 100,
+    height: 100,
+    borderRadius: 50,
+    borderColor: '#7DD3FC40',
     borderWidth: 2,
-    borderColor: colors.background,
+    overflow: 'hidden',
+  },
+  avatarImage: {
+    width: 100,
+    height: 100,
+    borderRadius: 50,
   },
   twinName: {
-    fontSize: 24,
+    fontSize: 22,
     fontFamily: fontFamily.bold,
     color: colors.text,
-    marginBottom: spacing.sm,
+    textAlign: 'center',
   },
   mbtiBadge: {
-    backgroundColor: '#FFFFFF12',
-    borderColor: '#FFFFFF25',
-    borderWidth: 1,
-    borderRadius: 8,
-    paddingHorizontal: 8,
+    backgroundColor: '#7DD3FC15',
+    borderRadius: 12,
+    paddingHorizontal: 12,
     paddingVertical: 4,
-    marginBottom: spacing.xl,
   },
   mbtiBadgeText: {
-    fontSize: fontSize.sm,
+    fontSize: 14,
     fontFamily: fontFamily.semiBold,
-    color: colors.primary,
+    color: '#7DD3FC',
+  },
+  onlineRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+  },
+  onlineDot: {
+    width: 10,
+    height: 10,
+    borderRadius: 5,
+  },
+  onlineText: {
+    fontSize: 14,
+    fontFamily: fontFamily.semiBold,
   },
   sectionTitle: {
     fontSize: 18,
-    fontFamily: fontFamily.semiBold,
+    fontFamily: fontFamily.bold,
     color: colors.text,
     alignSelf: 'flex-start',
     marginBottom: spacing.md,
@@ -268,57 +327,48 @@ const styles = StyleSheet.create({
   },
   bigFiveContainer: {
     width: '100%',
-    gap: spacing.md,
-    marginBottom: spacing.xl,
+    gap: spacing.sm,
+    marginBottom: spacing.lg,
   },
-  traitRow: {
-    gap: spacing.xs,
+  traitCard: {
+    backgroundColor: '#FFFFFF08',
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: '#FFFFFF15',
+    paddingVertical: 14,
+    paddingHorizontal: 16,
+    gap: spacing.sm,
   },
   traitLabel: {
-    fontSize: fontSize.sm,
+    fontSize: 14,
     fontFamily: fontFamily.medium,
     color: colors.text,
   },
-  progressBarContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.sm,
-  },
   progressBarTrack: {
-    flex: 1,
-    height: 8,
+    height: 6,
     backgroundColor: '#FFFFFF15',
-    borderRadius: 4,
+    borderRadius: 3,
     overflow: 'hidden',
   },
   progressBarFill: {
     height: '100%',
-    backgroundColor: colors.primary,
-    borderRadius: 4,
-  },
-  traitValue: {
-    fontSize: fontSize.xs,
-    fontFamily: fontFamily.medium,
-    color: colors.textSecondary,
-    width: 40,
-    textAlign: 'right',
+    backgroundColor: '#7DD3FC',
+    borderRadius: 3,
   },
   viewSoulButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.sm,
-    borderColor: '#FFFFFF25',
+    backgroundColor: '#00D4FF12',
+    borderColor: '#00D4FF50',
     borderWidth: 1,
-    borderRadius: 12,
-    paddingVertical: spacing.md,
-    paddingHorizontal: spacing.md,
+    borderRadius: 24,
+    height: 48,
+    justifyContent: 'center',
+    alignItems: 'center',
     width: '100%',
   },
   viewSoulButtonText: {
-    flex: 1,
-    fontSize: fontSize.md,
-    fontFamily: fontFamily.medium,
-    color: colors.text,
+    fontSize: 16,
+    fontFamily: fontFamily.semiBold,
+    color: '#00D4FF',
   },
   modalOverlay: {
     flex: 1,

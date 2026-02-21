@@ -31,7 +31,10 @@
     "agreeToTerms": "By continuing, you agree to our {{terms}} and {{privacy}}",
     "loginError": "Login failed. Please try again.",
     "errorTitle": "Error",
-    "legalText": "By continuing, you agree to our Terms of Service and Privacy Policy"
+    "legalText": "By continuing, you agree to our Terms of Service and Privacy Policy",
+    "loginCta": "Start with Login",
+    "legalFull": "Terms of Service  ・  Privacy Policy",
+    "taglineSub": "Reflect on your day with your other self"
   },
   "onboarding": {
     "welcome": {
@@ -136,6 +139,11 @@
     "errorResponse": "Sorry, I couldn't respond properly. Please try again.",
     "offline": "Offline",
     "remainingCount": "{{count}} remaining",
+    "statusOnline": "Online",
+    "statusOffline": "Offline",
+    "translateLink": "Translate",
+    "aiMessageLabel": "{{twinName}}  {{time}}",
+    "remainingFormat": "{{remaining}}/{{total}} remaining",
     "connectionStatus": {
       "connected": "Connected",
       "connecting": "Connecting...",
@@ -146,6 +154,11 @@
   "community": {
     "title": "Community",
     "subtitle": "Explore everyone's AI twins",
+    "popularTitle": "Popular Communities",
+    "memberCount": " members",
+    "messageCount": " conversations",
+    "proBannerTitle": "Unlock all features with Pro",
+    "proBannerCta": "Upgrade",
     "createChannel": "Create Channel",
     "channels": "Channels",
     "conversations": "Conversations",
@@ -312,6 +325,23 @@
       "subtitle": "Select MBTI type to reflect on your AI twin"
     },
     "subscription": "Subscription Management",
+    "subscriptionManage": "Subscription Management",
+    "twinSettingsWithInfo": "AI Twin Settings",
+    "retakeQuiz": "Retake Personality Quiz",
+    "retakeQuizConfirmTitle": "Retake Personality Quiz",
+    "retakeQuizConfirmMessage": "Retaking the quiz will change your AI Twin's personality. Continue?",
+    "retakeQuizConfirmButton": "Retake",
+    "termsAndPrivacy": "Terms & Privacy Policy",
+    "language": "Language",
+    "languageComingSoon": "Coming soon. Stay tuned for updates.",
+    "twinSettingsSub": {
+      "mbtiLabel": "MBTI: {{type}}",
+      "mbtiNotSet": "MBTI: Not set",
+      "openclawConnected": "OpenClaw: Connected",
+      "openclawDisconnected": "OpenClaw: Disconnected",
+      "openclawError": "OpenClaw: Error",
+      "openclawWaking": "OpenClaw: Starting"
+    },
     "notifications": {
       "title": "Notification Settings",
       "push": "Push Notifications",
@@ -414,7 +444,19 @@
       "subtitle": "Conversation details and reflection"
     },
     "defaultName": "AltMe",
-    "soulMdComingSoon": "SOUL.md viewer is coming soon."
+    "soulMdComingSoon": "SOUL.md viewer is coming soon.",
+    "personalityTitle": "Personality Traits",
+    "traits": {
+      "openness": "Openness",
+      "conscientiousness": "Conscientiousness",
+      "extraversion": "Extraversion",
+      "agreeableness": "Agreeableness",
+      "neuroticism": "Neuroticism"
+    },
+    "noDiagnosis": "Take the personality quiz",
+    "noDiagnosisDescription": "Complete the quiz to see your personality traits",
+    "viewSoulMd": "View SOUL.md",
+    "soulMdNotGenerated": "SOUL.md has not been generated yet"
   },
   "guest": {
     "title": "Sign in to Get Started",

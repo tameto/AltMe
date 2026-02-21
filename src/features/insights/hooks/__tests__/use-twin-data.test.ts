@@ -234,4 +234,108 @@ describe('useTwinData hook', () => {
     expect(result.current.error).toBeTruthy();
     expect(result.current.personalityTraits).toBeNull();
   });
+
+  // TDD RED: 性格トレイトデータを正しく返すこと（全5トレイトが存在する）
+  it('returns all five personality traits with correct keys', async () => {
+    const selectMock = jest.fn().mockReturnValue({
+      eq: jest.fn().mockReturnValue({
+        order: jest.fn().mockReturnValue({
+          limit: jest.fn().mockReturnValue({
+            single: jest.fn().mockResolvedValue({
+              data: mockPersonalityResult,
+              error: null,
+            }),
+          }),
+        }),
+      }),
+    });
+    supabaseMock.from.mockReturnValue({ select: selectMock } as never);
+
+    const { result } = renderHook(() => useTwinData());
+
+    await waitFor(() => {
+      expect(result.current.isLoading).toBe(false);
+    });
+
+    const traits = result.current.personalityTraits!;
+    expect(traits).toHaveProperty('openness');
+    expect(traits).toHaveProperty('conscientiousness');
+    expect(traits).toHaveProperty('extraversion');
+    expect(traits).toHaveProperty('agreeableness');
+    expect(traits).toHaveProperty('neuroticism');
+  });
+
+  // TDD RED: fetchSoulMdがデータなし時にnullを返すこと
+  it('fetchSoulMd returns null when no openclaw_instances record exists', async () => {
+    const personalitySelect = jest.fn().mockReturnValue({
+      eq: jest.fn().mockReturnValue({
+        order: jest.fn().mockReturnValue({
+          limit: jest.fn().mockReturnValue({
+            single: jest.fn().mockResolvedValue({
+              data: mockPersonalityResult,
+              error: null,
+            }),
+          }),
+        }),
+      }),
+    });
+
+    const openclawSelect = jest.fn().mockReturnValue({
+      eq: jest.fn().mockReturnValue({
+        single: jest.fn().mockResolvedValue({
+          data: null,
+          error: { code: 'PGRST116', message: 'not found' },
+        }),
+      }),
+    });
+
+    supabaseMock.from.mockImplementation((table: string) => {
+      if (table === 'personality_results') {
+        return { select: personalitySelect } as never;
+      }
+      if (table === 'openclaw_instances') {
+        return { select: openclawSelect } as never;
+      }
+      return {} as never;
+    });
+
+    const { result } = renderHook(() => useTwinData());
+
+    await waitFor(() => {
+      expect(result.current.isLoading).toBe(false);
+    });
+
+    let soulMd: string | null = 'not-null';
+    await act(async () => {
+      soulMd = await result.current.fetchSoulMd();
+    });
+
+    expect(soulMd).toBeNull();
+  });
+
+  // TDD RED: ローディング完了後にhasData=trueとなること
+  it('sets hasData=true when personality_results exist', async () => {
+    const selectMock = jest.fn().mockReturnValue({
+      eq: jest.fn().mockReturnValue({
+        order: jest.fn().mockReturnValue({
+          limit: jest.fn().mockReturnValue({
+            single: jest.fn().mockResolvedValue({
+              data: mockPersonalityResult,
+              error: null,
+            }),
+          }),
+        }),
+      }),
+    });
+    supabaseMock.from.mockReturnValue({ select: selectMock } as never);
+
+    const { result } = renderHook(() => useTwinData());
+
+    await waitFor(() => {
+      expect(result.current.isLoading).toBe(false);
+    });
+
+    expect(result.current.hasData).toBe(true);
+    expect(result.current.summary).toBe(mockPersonalityResult.summary);
+  });
 });

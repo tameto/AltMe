@@ -56,6 +56,13 @@ export const CHAT = {
 
 export const ONBOARDING_QUESTION_COUNT = 5;
 
+export const DEFAULT_TOPICS: { key: 'daily' | 'work' | 'reflection' | 'consultation'; name: string }[] = [
+  { key: 'daily', name: '日常' },
+  { key: 'work', name: '仕事' },
+  { key: 'reflection', name: '振り返り' },
+  { key: 'consultation', name: '相談' },
+];
+
 export const OPENCLAW = {
   gatewayPort: 18789,
   wsPort: 443,

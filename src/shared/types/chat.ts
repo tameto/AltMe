@@ -34,3 +34,5 @@ export type ChatStreamChunk = {
 };
 
 export const FREE_DAILY_CHAT_LIMIT = 3;
+
+export type ChatTopicKey = 'daily' | 'work' | 'reflection' | 'consultation';

@@ -25,7 +25,45 @@ export type PersonalityResult = {
   createdAt: string;
 };
 
-export type AvatarIcon = 'default' | 'geometric' | 'cosmic' | 'organic' | 'tech' | 'zen';
+export type AvatarIcon =
+  // 旧アバター（後方互換性維持）
+  | 'default'
+  | 'geometric'
+  | 'cosmic'
+  | 'organic'
+  | 'tech'
+  | 'zen'
+  // 新30種アバター
+  | 'robot'
+  | 'cat'
+  | 'bunny'
+  | 'star'
+  | 'owl'
+  | 'fox'
+  | 'penguin'
+  | 'bear'
+  | 'dragon'
+  | 'unicorn'
+  | 'panda'
+  | 'dolphin'
+  | 'phoenix'
+  | 'deer'
+  | 'koala'
+  | 'wolf'
+  | 'hamster'
+  | 'butterfly'
+  | 'jellyfish'
+  | 'mushroom'
+  | 'crystal'
+  | 'cloud'
+  | 'moon'
+  | 'octopus'
+  | 'flower'
+  | 'ghost'
+  | 'slime'
+  | 'sakura'
+  | 'flame'
+  | 'alien';
 export type SpeechTone = 'polite' | 'friendly' | 'intellectual' | 'mentor' | 'tsundere';
 
 export type UserProfile = {
