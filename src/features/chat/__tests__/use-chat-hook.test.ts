@@ -51,12 +51,19 @@ const mockSupabaseFrom = jest.fn().mockImplementation(() => {
 
 const mockAuthGetSession = jest.fn();
 
+const mockChannel = {
+  on: jest.fn().mockReturnThis(),
+  subscribe: jest.fn().mockReturnThis(),
+};
+
 jest.mock('@/src/services/supabase/client', () => ({
   supabase: {
     from: (...args: unknown[]) => mockSupabaseFrom(...args),
     auth: {
       getSession: () => mockAuthGetSession(),
     },
+    channel: jest.fn(() => mockChannel),
+    removeChannel: jest.fn(),
   },
 }));
 

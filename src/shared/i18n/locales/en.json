@@ -146,6 +146,7 @@
     "translateLink": "Translate",
     "aiMessageLabel": "{{twinName}}  {{time}}",
     "remainingFormat": "{{remaining}}/{{total}} remaining",
+    "noMoreMessages": "No more messages",
     "connectionStatus": {
       "connected": "Connected",
       "connecting": "Connecting...",

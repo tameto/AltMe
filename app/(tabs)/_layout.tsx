@@ -4,6 +4,7 @@ import { Tabs } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 
 import { tabBarColors } from '@/src/config/theme';
+import { useChatStore } from '@/src/features/chat/stores/chat-store';
 
 function TabBarIcon(props: {
   name: React.ComponentProps<typeof Feather>['name'];
@@ -14,6 +15,8 @@ function TabBarIcon(props: {
 
 export default function TabLayout() {
   const { t } = useTranslation();
+  const unreadCount = useChatStore((s) => s.unreadCount);
+  const chatBadge = unreadCount > 9 ? '9+' : unreadCount > 0 ? String(unreadCount) : undefined;
 
   return (
     <Tabs
@@ -35,6 +38,8 @@ export default function TabLayout() {
           title: t('tabs.chat'),
           headerShown: false,
           tabBarIcon: ({ color }) => <TabBarIcon name="message-circle" color={color} />,
+          tabBarBadge: chatBadge,
+          tabBarBadgeStyle: { backgroundColor: '#EF4444', color: '#FFFFFF', fontSize: 10 },
         }}
       />
       <Tabs.Screen

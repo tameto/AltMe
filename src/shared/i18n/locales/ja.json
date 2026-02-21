@@ -146,6 +146,7 @@
     "translateLink": "翻訳",
     "aiMessageLabel": "{{twinName}}  {{time}}",
     "remainingFormat": "残り {{remaining}}/{{total}}回",
+    "noMoreMessages": "これ以上メッセージはありません",
     "connectionStatus": {
       "connected": "接続済み",
       "connecting": "接続中...",

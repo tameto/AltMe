@@ -136,6 +136,7 @@
     "errorResponse": "죄송해요, 제대로 답하지 못했어요. 다시 시도해주세요.",
     "offline": "오프라인",
     "remainingCount": "{{count}}회 남음",
+    "noMoreMessages": "더 이상 메시지가 없습니다",
     "connectionStatus": {
       "connected": "연결됨",
       "connecting": "연결 중...",
