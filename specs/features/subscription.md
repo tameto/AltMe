@@ -437,27 +437,59 @@ Web App → Edge Function (create-checkout-session) → Stripe Checkout
   → provision-openclaw（初回購入時）
 ```
 
+### Edge Function: create-portal-session
+
+| 項目 | 内容 |
+|------|------|
+| パス | `POST /functions/v1/create-portal-session` |
+| 認証 | Supabase Auth JWT（Authorization header） |
+| リクエスト | `{}` （パラメータなし） |
+| レスポンス | `{ url: string }` （Stripe Customer Portal URL） |
+| エラーハンドリング | `unauthorized` (401) / `customer_not_found` (404) / `portal_session_failed` (500) |
+| 処理 | 1. JWT認証チェック 2. profiles から stripe_customer_id 取得 3. Portal Session 作成 4. URL返却 |
+| 用途 | 既存ユーザーがWeb画面からサブスク管理（請求情報変更、解約等）を行う際の遷移先 |
+
+---
+
 ### Edge Function: create-checkout-session
 
 | 項目 | 内容 |
 |------|------|
 | パス | `POST /functions/v1/create-checkout-session` |
 | 認証 | Supabase Auth JWT（Authorization header） |
-| リクエスト | `{ priceId: string }` |
-| レスポンス | `{ url: string }` （Stripe Checkout URL） |
-| 処理 | Stripe Customer作成/取得 → Checkout Session作成 → URL返却 |
+| リクエスト | `{ planType: 'monthly' \| 'annual' }` または `{ priceId: string }` |
+| レスポンス | `{ url: string, sessionId: string }` （Stripe Checkout URL） |
+| エラーハンドリ | `unauthorized` (401) / `invalid_plan_type` (400) / `invalid_price_id` (400) / `internal_error` (500) |
+| 処理 | 1. JWT認証チェック 2. リクエスト検証（planType → priceId 解決） 3. Stripe Customer作成/取得 4. Checkout Session作成 5. URL返却 |
+| 価格ID検証 | `ALLOWED_PRICE_IDS` セットで不正な priceId を拒否（security） |
+| Customer保存 | `profiles.stripe_customer_id` に Customer ID を保存（再利用） |
+| Metadata | Checkout Session / Subscription に `supabase_user_id` を含める（Webhook処理で使用） |
+| プロモコード | `allow_promotion_codes: true` で クーポン対応 |
 
 ### Stripe Webhook処理
 
 エンドポイント: `POST {SUPABASE_URL}/functions/v1/webhook-stripe`
 
+| 項目 | 内容 |
+|------|------|
+| 認証 | Stripe 署名検証（`stripe-signature` ヘッダ） |
+| 秘密鍵 | `STRIPE_WEBHOOK_SECRET` 環境変数 |
+| 冪等性 | `webhook_events` テーブルで原子的に重複排除（UNIQUE 制約） |
+| CORS | 不要（サーバー→サーバー通信） |
+
+#### イベント処理
+
 | イベント | 処理 |
 |---------|------|
-| `checkout.session.completed` | サブスク作成 + provision-openclaw |
-| `invoice.paid` | current_period更新 |
-| `invoice.payment_failed` | grace_period設定 |
-| `customer.subscription.deleted` | expired設定 + destroy-openclaw |
-| `customer.subscription.updated` | plan_type更新 |
+| `checkout.session.completed` | Subscription取得 → planType検出 → subscriptions UPSERT（status='active'） → provision-openclaw トリガー |
+| `invoice.paid` | current_period_start/end 更新 → status='active' 設定 → provision-openclaw トリガー（grace_period から復帰） |
+| `invoice.payment_failed` | status='grace_period' 設定（リトライ期間） |
+| `customer.subscription.deleted` | status='expired' 設定 → destroy-openclaw トリガー（Droplet削除） |
+| `customer.subscription.updated` | planType/status 更新（プラン変更対応） |
+
+#### Metadata 活用
+- `Checkout.Session.metadata.supabase_user_id` — ユーザー ID 取得
+- `Subscription.metadata.supabase_user_id` — Invoice イベントからユーザー ID を逆参照
 
 ### RevenueCat統合
 
@@ -607,3 +639,4 @@ Web App → Edge Function (create-checkout-session) → Stripe Checkout
 | 2026-02-15 | create-checkout-session Edge Function詳細追加 | Web課金の実装仕様明確化 | T12 |
 | 2026-02-15 | RevenueCat Stripe Provider統合仕様追加 | クロスプラットフォーム同期の明文化 | T12 |
 | 2026-02-16 | Paywall画面にV4 Dark Premium UIデザイン仕様追記（CosmicBackground、GlassCardプランカード、GoldButton CTA、カウントダウンタイマー、チェックリスト） | Reconcile: V4 Dark Premium UI 実装完了後の仕様書同期 | — |
+| 2026-02-21 | Stripe実装詳細を追記<br>- create-portal-session Edge Function 仕様追加<br>- create-checkout-session に planType 解決・価格ID検証・Metadata詳細化<br>- Stripe Webhook処理：署名検証・冪等性・Metadata活用<br>- reconcile-stripe Edge Function セッション有効期限チェック<br>- エラーハンドリング詳細化 | Reconcile: Web版フル実装（Stripe決済フロー）完了の仕様書同期 | 20260221-web-full-impl |
