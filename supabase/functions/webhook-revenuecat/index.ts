@@ -1,11 +1,21 @@
 import { corsHeaders } from '../_shared/cors.ts';
 import { createServiceClient } from '../_shared/supabase.ts';
+import { checkIdempotency, markEventProcessed } from '../_shared/webhook-utils.ts';
 
-const WEBHOOK_SECRET = Deno.env.get('REVENUECAT_WEBHOOK_SECRET') ?? '';
+const WEBHOOK_SECRET = Deno.env.get('REVENUECAT_WEBHOOK_SECRET');
 
 Deno.serve(async (req: Request) => {
   if (req.method === 'OPTIONS') {
     return new Response('ok', { headers: corsHeaders });
+  }
+
+  // Webhook secret 未設定時は安全に拒否（fail-closed）
+  if (!WEBHOOK_SECRET) {
+    console.error('REVENUECAT_WEBHOOK_SECRET is not configured');
+    return new Response(
+      JSON.stringify({ error: 'server_misconfiguration' }),
+      { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
+    );
   }
 
   try {
@@ -20,6 +30,15 @@ Deno.serve(async (req: Request) => {
 
     const event = await req.json();
     const supabase = createServiceClient();
+
+    // 冪等性チェック: 同一イベントの二重処理を防ぐ
+    const { isProcessed } = await checkIdempotency(supabase, event.id, 'revenuecat');
+    if (isProcessed) {
+      return new Response(
+        JSON.stringify({ message: 'Already processed' }),
+        { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
+      );
+    }
 
     const appUserId = event.app_user_id;
     const eventType = event.type;
@@ -117,41 +136,21 @@ Deno.serve(async (req: Request) => {
       }
 
       case 'NON_RENEWING_PURCHASE': {
-        // Credit pack purchase
-        const creditAmount = detectCreditAmount(event.product_id);
-        if (creditAmount > 0) {
-          // Add credits
-          const { data: currentCredits } = await supabase
-            .from('credits')
-            .select('balance')
-            .eq('user_id', appUserId)
-            .single();
-
-          const newBalance = (currentCredits?.balance ?? 0) + creditAmount;
-
-          await supabase
-            .from('credits')
-            .upsert({
-              user_id: appUserId,
-              balance: newBalance,
-            }, { onConflict: 'user_id' });
-
-          // Record transaction
-          await supabase
-            .from('credit_transactions')
-            .insert({
-              user_id: appUserId,
-              amount: creditAmount,
-              type: 'purchase',
-              description: `Credit pack: ${event.product_id}`,
-            });
-        }
+        // Credit system was restructured to daily_remaining (not balance-based).
+        // Credit pack purchases are not currently supported in the product.
+        console.warn(
+          `NON_RENEWING_PURCHASE received for ${appUserId} (product: ${event.product_id}). ` +
+          'Credit packs are not currently supported - skipping.',
+        );
         break;
       }
 
       default:
         console.log(`Unhandled event type: ${eventType}`);
     }
+
+    // 処理完了をマーク（冪等性保証）
+    await markEventProcessed(supabase, event.id, 'revenuecat', eventType);
 
     return new Response(
       JSON.stringify({ success: true }),
@@ -216,16 +215,9 @@ async function triggerDestroy(userId: string): Promise<void> {
 
 function detectPlanType(productId: string): string | null {
   if (!productId) return null;
-  if (productId.includes('intro')) return 'intro_annual';
+  if (productId.includes('intro')) return 'annual_intro';
   if (productId.includes('annual') || productId.includes('yearly')) return 'annual';
   if (productId.includes('monthly')) return 'monthly';
   return null;
 }
 
-function detectCreditAmount(productId: string): number {
-  if (!productId) return 0;
-  if (productId.includes('500') || productId.includes('large')) return 500;
-  if (productId.includes('150') || productId.includes('medium')) return 150;
-  if (productId.includes('50') || productId.includes('small')) return 50;
-  return 0;
-}
