@@ -18,7 +18,7 @@ export const CosmicBackground = React.memo(function CosmicBackground({
       style={[styles.container, style]}
       resizeMode="cover"
     >
-      <View style={[styles.overlay, { opacity: overlayOpacity }]} />
+      <View style={[styles.overlay, { opacity: overlayOpacity }]} pointerEvents="none" />
       <View style={styles.content}>{children}</View>
     </ImageBackground>
   );
