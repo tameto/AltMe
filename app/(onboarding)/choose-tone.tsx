@@ -6,11 +6,12 @@ import Feather from '@expo/vector-icons/Feather';
 import { useTranslation } from 'react-i18next';
 import { CosmicBackground } from '@/src/shared/components/cosmic-background';
 import { GoldButton } from '@/src/shared/components/gold-button';
-import { spacing, fontFamily, borderRadius } from '@/src/config/theme';
+import { spacing, fontFamily, borderRadius, glassmorphism } from '@/src/config/theme';
 import {
   useOnboardingStore,
   type ToneStyle,
 } from '@/src/features/onboarding/stores/onboarding-store';
+import { OnboardingProgressBar } from '@/src/shared/components/onboarding-progress-bar';
 
 const TONE_OPTIONS: ToneStyle[] = [
   'polite',
@@ -37,12 +38,13 @@ export default function ChooseToneScreen() {
     <CosmicBackground>
       <Wrapper style={styles.container}>
         <View style={[styles.content, !isMobile && styles.contentDesktop]}>
+          <OnboardingProgressBar currentStep={5} style={{ marginBottom: 16 }} />
           <View style={styles.header}>
             <Pressable style={styles.backButton} onPress={() => router.back()}>
               <Feather name="arrow-left" size={24} color="#F8FAFC" />
             </Pressable>
             <Text style={styles.headerTitle}>{t('onboarding.tone.title')}</Text>
-            <Text style={styles.step}>6 / 6</Text>
+            <Text style={styles.step}>5 / 6</Text>
           </View>
 
           <ScrollView
@@ -58,6 +60,9 @@ export default function ChooseToneScreen() {
                   key={tone}
                   style={[styles.toneCard, isSelected ? styles.toneCardSelected : null]}
                   onPress={() => setToneStyle(tone)}
+                  accessibilityRole="radio"
+                  accessibilityState={{ selected: isSelected }}
+                  accessibilityLabel={t(`onboarding.tone.styles.${tone}`)}
                 >
                   <Text
                     style={[styles.toneLabel, isSelected ? styles.toneLabelSelected : null]}
@@ -69,6 +74,11 @@ export default function ChooseToneScreen() {
                   >
                     {t(`onboarding.tone.samples.${tone}`)}
                   </Text>
+                  {isSelected && (
+                    <View style={styles.checkBadge}>
+                      <Feather name="check-circle" size={20} color="#7DD3FC" />
+                    </View>
+                  )}
                 </Pressable>
               );
             })}
@@ -132,18 +142,24 @@ const styles = StyleSheet.create({
     paddingBottom: spacing.md,
   },
   toneCard: {
-    backgroundColor: 'rgba(255,255,255,0.03)',
+    backgroundColor: glassmorphism.card.bg,
     borderRadius: borderRadius.lg,
     paddingVertical: 14,
     paddingHorizontal: 18,
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.13)',
+    borderColor: glassmorphism.card.border,
     gap: 8,
   },
   toneCardSelected: {
     backgroundColor: 'rgba(125,211,252,0.08)',
     borderWidth: 1.5,
     borderColor: 'rgba(125,211,252,0.31)',
+  },
+  checkBadge: {
+    position: 'absolute',
+    top: 4,
+    right: 4,
+    zIndex: 1,
   },
   toneLabel: {
     fontFamily: fontFamily.semiBold,

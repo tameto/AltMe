@@ -41,7 +41,11 @@
       "headline": "Create Your Other Self",
       "description": "We'll analyze your personality\nand create a one-of-a-kind\nAI twin just for you",
       "cta": "Get Started",
-      "timeEstimate": "Takes about 3 minutes"
+      "timeEstimate": "Takes about 3 minutes",
+      "subtitle": "Your AI Twin That Knows You",
+      "featureChat": "Chat with an AI that understands you",
+      "featureJournal": "Record your daily reflections",
+      "featureInsights": "Track your emotional changes"
     },
     "quiz": {
       "title": "Personality Quiz",
@@ -70,11 +74,13 @@
       "detailedAnalysis": "View Detailed Analysis",
       "proBadge": "Pro Only",
       "detailedDescription": "Includes communication style, strengths & weaknesses,\nand optimal AI twin settings",
+      "proUnlock": "Unlock Detailed Analysis",
       "cta": "Meet Your AI Twin"
     },
     "avatar": {
       "title": "Choose Your AI's Look",
-      "step": "5/6",
+      "step": "4/6",
+      "changeHint": "You can change this later in settings",
       "styles": {
         "geometric": "Geometric",
         "cosmic": "Cosmic",
@@ -86,7 +92,7 @@
     },
     "tone": {
       "title": "Choose Your AI's Voice",
-      "step": "6/6",
+      "step": "5/6",
       "styles": {
         "polite": "Polite",
         "casual": "Casual",

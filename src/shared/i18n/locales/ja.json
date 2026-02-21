@@ -41,7 +41,11 @@
       "headline": "もう一人の自分を作ろう",
       "description": "あなたの性格を分析して、\n世界に一つだけのAI分身を\n作ります",
       "cta": "始める",
-      "timeEstimate": "所要時間: 約3分"
+      "timeEstimate": "所要時間: 約3分",
+      "subtitle": "Your AI Twin That Knows You",
+      "featureChat": "あなたを理解するAIと会話",
+      "featureJournal": "毎日の気づきを記録",
+      "featureInsights": "感情の変化をトラッキング"
     },
     "quiz": {
       "title": "性格診断",
@@ -64,17 +68,18 @@
       "conscientiousness": "誠実性",
       "extraversion": "外向性",
       "agreeableness": "協調性",
-      "neuroticism": "神経質傾向",
+      "neuroticism": "神経症傾向",
       "summaryLabel": "性格サマリー",
       "summaryTitle": "あなたの特徴",
       "detailedAnalysis": "詳細分析を見る",
       "proBadge": "Pro限定",
+      "proUnlock": "詳細分析をアンロック",
       "detailedDescription": "コミュニケーションスタイル、強み・弱み、\n最適なAIツインの設定が含まれます",
       "cta": "AIツインと会う"
     },
     "avatar": {
       "title": "AIの見た目を選ぼう",
-      "step": "5/6",
+      "step": "4/6",
       "styles": {
         "geometric": "幾何学",
         "cosmic": "宇宙",
@@ -82,11 +87,12 @@
         "techno": "テクノ",
         "zen": "禅"
       },
-      "cta": "次へ"
+      "cta": "次へ",
+      "changeHint": "いつでも設定から変更できます"
     },
     "tone": {
       "title": "AIの話し方を選ぼう",
-      "step": "6/6",
+      "step": "5/6",
       "styles": {
         "polite": "丁寧",
         "casual": "カジュアル",

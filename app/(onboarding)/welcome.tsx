@@ -5,7 +5,9 @@ import { useTranslation } from 'react-i18next';
 import Feather from '@expo/vector-icons/Feather';
 import { CosmicBackground } from '@/src/shared/components/cosmic-background';
 import { GoldButton } from '@/src/shared/components/gold-button';
-import { fontFamily } from '@/src/config/theme';
+import { GlassCard } from '@/src/shared/components/glass-card';
+import { OnboardingProgressBar } from '@/src/shared/components/onboarding-progress-bar';
+import { colors, fontFamily } from '@/src/config/theme';
 import { useOnboardingStore } from '@/src/features/onboarding/stores/onboarding-store';
 import { useResponsive } from '@/src/shared/hooks/use-responsive';
 
@@ -25,6 +27,7 @@ export default function WelcomeScreen() {
     <CosmicBackground>
       <Wrapper style={styles.container}>
         <View style={[styles.content, !isMobile && styles.contentDesktop]}>
+          <OnboardingProgressBar currentStep={1} style={{ marginBottom: 24 }} />
           <View style={styles.header}>
             <Text style={styles.appName}>AltMe</Text>
             <Text style={styles.appTagline}>Your AI Twin That Knows You</Text>
@@ -37,6 +40,27 @@ export default function WelcomeScreen() {
             <Text style={styles.description}>
               {t('onboarding.welcome.description')}
             </Text>
+          </View>
+
+          <View style={styles.featureCards}>
+            <GlassCard style={styles.featureCard}>
+              <View style={styles.featureContent}>
+                <Feather name="message-circle" size={20} color="#7DD3FC" />
+                <Text style={styles.featureText}>{t('onboarding.welcome.featureChat')}</Text>
+              </View>
+            </GlassCard>
+            <GlassCard style={styles.featureCard}>
+              <View style={styles.featureContent}>
+                <Feather name="book-open" size={20} color="#7DD3FC" />
+                <Text style={styles.featureText}>{t('onboarding.welcome.featureJournal')}</Text>
+              </View>
+            </GlassCard>
+            <GlassCard style={styles.featureCard}>
+              <View style={styles.featureContent}>
+                <Feather name="heart" size={20} color="#7DD3FC" />
+                <Text style={styles.featureText}>{t('onboarding.welcome.featureInsights')}</Text>
+              </View>
+            </GlassCard>
           </View>
 
           <View style={styles.footer}>
@@ -104,7 +128,7 @@ const styles = StyleSheet.create({
   description: {
     fontFamily: fontFamily.regular,
     fontSize: 14,
-    color: 'rgba(255,255,255,0.5)',
+    color: colors.textSecondary,
     textAlign: 'center',
     lineHeight: 22.4,
   },
@@ -124,5 +148,25 @@ const styles = StyleSheet.create({
     fontFamily: fontFamily.regular,
     fontSize: 12,
     color: 'rgba(255,255,255,0.31)',
+  },
+  featureCards: {
+    gap: 12,
+    width: '100%',
+    marginBottom: 24,
+  },
+  featureCard: {
+    borderRadius: 12,
+  },
+  featureContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    paddingVertical: 14,
+    paddingHorizontal: 16,
+  },
+  featureText: {
+    color: '#F8FAFC',
+    fontSize: 14,
+    fontFamily: 'Outfit_400Regular',
   },
 });
