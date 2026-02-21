@@ -1,0 +1,232 @@
+import Purchases, {
+  LOG_LEVEL,
+  type CustomerInfo,
+} from 'react-native-purchases';
+import { Platform } from 'react-native';
+
+import { env } from '@/src/config/env';
+import { REVENUECAT } from '@/src/config/constants';
+import type {
+  EntitlementInfo,
+  SubscriptionStatus,
+  PlanType,
+  SubscriptionOfferings,
+  SubscriptionPackage,
+} from '@/src/shared/types/subscription';
+
+let isRevenueCatConfigured = false;
+
+/**
+ * Initialize RevenueCat SDK
+ * Must be called at app startup in _layout.tsx
+ */
+export const initializeRevenueCat = async (userId?: string): Promise<void> => {
+  const apiKey = Platform.select({
+    ios: env.revenuecatIosKey,
+    default: env.revenuecatAndroidKey,
+  });
+
+  if (!apiKey) {
+    console.warn('RevenueCat API key not set. Subscription features disabled.');
+    return;
+  }
+
+  Purchases.setLogLevel(LOG_LEVEL.DEBUG);
+  await Purchases.configure({ apiKey, appUserID: userId ?? null });
+  isRevenueCatConfigured = true;
+};
+
+/**
+ * Map RevenueCat CustomerInfo to our EntitlementInfo type
+ */
+export const mapCustomerInfo = (info: CustomerInfo): EntitlementInfo => {
+  const proEntitlement = info.entitlements.active[REVENUECAT.entitlement];
+
+  if (!proEntitlement) {
+    return {
+      isPro: false,
+      isTrialing: false,
+      status: 'free' as SubscriptionStatus,
+      planType: 'free',
+      expiresAt: null,
+      trialDaysRemaining: null,
+      };
+  }
+
+  const now = new Date();
+  let status: SubscriptionStatus = 'active';
+  let trialDaysRemaining: number | null = null;
+
+  if (proEntitlement.periodType === 'TRIAL') {
+    status = 'trial';
+    if (proEntitlement.expirationDate) {
+      const expDate = new Date(proEntitlement.expirationDate);
+      trialDaysRemaining = Math.max(0, Math.ceil((expDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24)));
+    }
+  } else if (proEntitlement.willRenew === false) {
+    status = 'cancelled';
+  }
+
+  let planType: PlanType = 'monthly';
+  const productId = proEntitlement.productIdentifier;
+  if (productId.includes('annual') || productId.includes('yearly')) {
+    planType = productId.includes('intro') ? 'annual_intro' : 'annual';
+  } else if (productId.includes('monthly')) {
+    planType = 'monthly';
+  }
+
+  const expiresAt = proEntitlement.expirationDate ?? null;
+
+  return {
+    isPro: true,
+    isTrialing: status === 'trial',
+    status,
+    planType,
+    expiresAt,
+    trialDaysRemaining,
+  };
+};
+
+const freeEntitlement: EntitlementInfo = {
+  isPro: false,
+  isTrialing: false,
+  status: 'free' as SubscriptionStatus,
+  planType: 'free',
+  expiresAt: null,
+  trialDaysRemaining: null,
+};
+
+/**
+ * Get current customer info and map to EntitlementInfo
+ */
+export const checkSubscriptionStatus = async (): Promise<EntitlementInfo> => {
+  if (!isRevenueCatConfigured) return freeEntitlement;
+  try {
+    const customerInfo = await Purchases.getCustomerInfo();
+    return mapCustomerInfo(customerInfo);
+  } catch (error) {
+    console.error('Failed to check subscription status:', error);
+    return freeEntitlement;
+  }
+};
+
+/**
+ * Map RevenueCat offerings to platform-agnostic type
+ */
+const mapOfferings = (rcOfferings: Awaited<ReturnType<typeof Purchases.getOfferings>>): SubscriptionOfferings => {
+  const current = rcOfferings.current;
+  if (!current) return { current: null };
+
+  return {
+    current: {
+      identifier: current.identifier,
+      packages: current.availablePackages.map((pkg) => {
+        const product = pkg.product;
+        let planType: PlanType = 'monthly';
+        if (pkg.identifier.includes('annual') || pkg.identifier.includes('yearly')) {
+          planType = pkg.identifier.includes('intro') ? 'annual_intro' : 'annual';
+        }
+
+        return {
+          identifier: pkg.identifier,
+          planType,
+          localizedPriceString: product.priceString,
+          price: product.price,
+          currencyCode: product.currencyCode,
+          introPrice: product.introPrice
+            ? {
+                priceString: product.introPrice.priceString,
+                price: product.introPrice.price,
+                period: `${product.introPrice.periodNumberOfUnits}`,
+                periodUnit: product.introPrice.periodUnit,
+                cycles: product.introPrice.cycles,
+              }
+            : null,
+        };
+      }),
+    },
+  };
+};
+
+/**
+ * Get available offerings
+ */
+export const getOfferings = async (): Promise<SubscriptionOfferings | null> => {
+  if (!isRevenueCatConfigured) return null;
+  try {
+    const offerings = await Purchases.getOfferings();
+    return mapOfferings(offerings);
+  } catch (error) {
+    console.error('Failed to get offerings:', error);
+    return null;
+  }
+};
+
+/**
+ * Purchase a package by identifier
+ */
+export const purchasePackage = async (pkg: SubscriptionPackage): Promise<EntitlementInfo> => {
+  if (!isRevenueCatConfigured) throw new Error('RevenueCat not configured');
+
+  const offerings = await Purchases.getOfferings();
+  const rcPackage = offerings.current?.availablePackages.find(
+    (p) => p.identifier === pkg.identifier,
+  );
+  if (!rcPackage) throw new Error(`Package not found: ${pkg.identifier}`);
+
+  const { customerInfo } = await Purchases.purchasePackage(rcPackage);
+  return mapCustomerInfo(customerInfo);
+};
+
+/**
+ * Restore previous purchases
+ */
+export const restorePurchases = async (): Promise<EntitlementInfo> => {
+  if (!isRevenueCatConfigured) return freeEntitlement;
+  const customerInfo = await Purchases.restorePurchases();
+  return mapCustomerInfo(customerInfo);
+};
+
+/**
+ * Identify user with RevenueCat (call after auth)
+ */
+export const identifyUser = async (userId: string): Promise<void> => {
+  if (!isRevenueCatConfigured) return;
+  await Purchases.logIn(userId);
+};
+
+/**
+ * Log out from RevenueCat (call on sign out)
+ */
+export const logOutRevenueCat = async (): Promise<void> => {
+  if (!isRevenueCatConfigured) return;
+  await Purchases.logOut();
+};
+
+/**
+ * Listen for customer info updates
+ */
+export const addCustomerInfoListener = (
+  callback: (info: EntitlementInfo) => void,
+): (() => void) => {
+  if (!isRevenueCatConfigured) return () => {};
+  const listener = (info: CustomerInfo) => {
+    callback(mapCustomerInfo(info));
+  };
+  Purchases.addCustomerInfoUpdateListener(listener);
+  return () => Purchases.removeCustomerInfoUpdateListener(listener);
+};
+
+/**
+ * Check if the user has never purchased any product.
+ * Used for intro offer eligibility (AC-3: 24h intro offer).
+ */
+export const hasNeverPurchased = async (): Promise<boolean> => {
+  if (!isRevenueCatConfigured) return true;
+  try {
+    const customerInfo = await Purchases.getCustomerInfo();
+    return Object.keys(customerInfo.allPurchaseDates).length === 0;
+  } catch {
+    return true;
+  }
+};

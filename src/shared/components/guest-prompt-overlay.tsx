@@ -14,6 +14,7 @@ import { useTranslation } from 'react-i18next';
 
 import { colors, spacing, fontSize, borderRadius, fontFamily } from '@/src/config/theme';
 import { useAuthStore } from '@/src/features/auth/stores/auth-store';
+import { useResponsive } from '@/src/shared/hooks/use-responsive';
 
 const FEATURE_KEYS = [
   { icon: 'message-circle' as const, key: 'guest.features.chat' },
@@ -22,18 +23,28 @@ const FEATURE_KEYS = [
   { icon: 'trending-up' as const, key: 'guest.features.insights' },
 ];
 
+const showError = (title: string, message: string) => {
+  if (Platform.OS === 'web' && typeof window !== 'undefined') {
+    window.alert(`${title}: ${message}`);
+  } else {
+    Alert.alert(title, message);
+  }
+};
+
 export function GuestPromptOverlay() {
   const { t } = useTranslation();
   const signInWithApple = useAuthStore((s) => s.signInWithApple);
   const signInWithGoogle = useAuthStore((s) => s.signInWithGoogle);
   const [isSigningIn, setIsSigningIn] = useState<'apple' | 'google' | null>(null);
+  const { isMobile } = useResponsive();
+  const showAppleButton = Platform.OS === 'ios' || Platform.OS === 'web';
 
   const handleAppleSignIn = async () => {
     try {
       setIsSigningIn('apple');
       await signInWithApple();
     } catch {
-      Alert.alert(t('auth.errorTitle'), t('auth.loginError'));
+      showError(t('auth.errorTitle'), t('auth.loginError'));
     } finally {
       setIsSigningIn(null);
     }
@@ -44,7 +55,7 @@ export function GuestPromptOverlay() {
       setIsSigningIn('google');
       await signInWithGoogle();
     } catch {
-      Alert.alert(t('auth.errorTitle'), t('auth.loginError'));
+      showError(t('auth.errorTitle'), t('auth.loginError'));
     } finally {
       setIsSigningIn(null);
     }
@@ -52,7 +63,7 @@ export function GuestPromptOverlay() {
 
   return (
     <View style={styles.container}>
-      <View style={styles.content}>
+      <View style={[styles.content, !isMobile && styles.contentDesktop]}>
         <View style={styles.header}>
           <Text style={styles.title}>{t('guest.title')}</Text>
           <Text style={styles.subtitle}>{t('guest.subtitle')}</Text>
@@ -72,7 +83,7 @@ export function GuestPromptOverlay() {
         </View>
 
         <View style={styles.buttons}>
-          {Platform.OS === 'ios' && (
+          {showAppleButton && (
             <Pressable
               style={styles.appleButton}
               onPress={handleAppleSignIn}
@@ -118,6 +129,9 @@ const styles = StyleSheet.create({
     width: '100%',
     paddingHorizontal: spacing.xl,
     alignItems: 'center',
+  },
+  contentDesktop: {
+    maxWidth: 480,
   },
   header: {
     alignItems: 'center',

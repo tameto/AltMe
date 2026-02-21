@@ -28,6 +28,14 @@
 - 初回限定年額: ¥29,800（50%OFF、24時間限定）
 - 3日間無料トライアル
 
+## Web 対応アーキテクチャ
+- プラットフォーム分離: `.web.ts`/`.native.ts` パターン（Metro auto-resolution）
+- Stripe Checkout（Web課金）+ RevenueCat（Native課金）の共存
+- WebSidebar レスポンシブレイアウト（desktop 240px / tablet 64px / mobile ボトムタブ）
+- SSE (Free) + WebSocket (Pro) チャット通信
+- Playwright E2E テスト（5ブラウザプロジェクト）
+- jest-expo 4プロジェクト設定（shared/web/ios/android）
+
 ---
 
 ## 開発方法論：仕様駆動開発（Spec-Driven Development）
@@ -74,6 +82,14 @@
 - ファイル名: kebab-case.ts / kebab-case.tsx
 - 1ファイル1コンポーネント
 - `export default` 禁止、named export のみ（Expo Routerの画面ファイルは例外）
+
+## Web 開発ルール
+- プラットフォーム分離: 構造的差異は `.web.ts`/`.native.ts`、軽微な差異は `Platform.select()`
+- レスポンシブ: `useResponsive()` hook で4ブレークポイント（mobile<768/tablet/desktop/wide>=1440）
+- テスト: `npx jest --selectProjects web` で Web 専用テスト実行
+- E2E: `npx playwright test` で Web E2E テスト実行
+- Stripe Edge Functions: `supabase/functions/create-checkout-session/`, `webhook-stripe/` 等
+- CORS: 全 Edge Function で `getCorsHeaders(origin)` を使用（ワイルドカード禁止）
 
 ## RevenueCat実装ルール
 - Entitlement名: `pro`

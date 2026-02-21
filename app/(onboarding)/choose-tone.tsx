@@ -1,6 +1,7 @@
-import { StyleSheet, View, Text, Pressable, ScrollView } from 'react-native';
+import { StyleSheet, View, Text, Pressable, ScrollView, Platform } from 'react-native';
 import { router } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useResponsive } from '@/src/shared/hooks/use-responsive';
 import Feather from '@expo/vector-icons/Feather';
 import { useTranslation } from 'react-i18next';
 import { CosmicBackground } from '@/src/shared/components/cosmic-background';
@@ -21,6 +22,7 @@ const TONE_OPTIONS: ToneStyle[] = [
 
 export default function ChooseToneScreen() {
   const { t } = useTranslation();
+  const { isMobile } = useResponsive();
   const toneStyle = useOnboardingStore((s) => s.toneStyle);
   const setToneStyle = useOnboardingStore((s) => s.setToneStyle);
 
@@ -29,10 +31,12 @@ export default function ChooseToneScreen() {
     router.push('/(onboarding)/meet-twin');
   };
 
+  const Wrapper = Platform.OS === 'web' ? View : SafeAreaView;
+
   return (
     <CosmicBackground>
-      <SafeAreaView style={styles.container}>
-        <View style={styles.content}>
+      <Wrapper style={styles.container}>
+        <View style={[styles.content, !isMobile && styles.contentDesktop]}>
           <View style={styles.header}>
             <Pressable style={styles.backButton} onPress={() => router.back()}>
               <Feather name="arrow-left" size={24} color="#F8FAFC" />
@@ -79,7 +83,7 @@ export default function ChooseToneScreen() {
             />
           </View>
         </View>
-      </SafeAreaView>
+      </Wrapper>
     </CosmicBackground>
   );
 }
@@ -91,6 +95,11 @@ const styles = StyleSheet.create({
   content: {
     flex: 1,
     paddingHorizontal: spacing.xl,
+  },
+  contentDesktop: {
+    maxWidth: 600,
+    alignSelf: 'center' as const,
+    width: '100%' as unknown as number,
   },
   header: {
     flexDirection: 'row',

@@ -7,8 +7,10 @@ import {
   Pressable,
   ActivityIndicator,
   RefreshControl,
+  Platform,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useResponsive } from '@/src/shared/hooks/use-responsive';
 import Feather from '@expo/vector-icons/Feather';
 import { useTranslation } from 'react-i18next';
 import { useRouter, type Href } from 'expo-router';
@@ -18,6 +20,7 @@ import { GoldButton } from '@/src/shared/components/gold-button';
 import { colors, spacing, fontSize, fontFamily, borderRadius } from '@/src/config/theme';
 import { useAuthStore } from '@/src/features/auth/stores/auth-store';
 import { useIsPro } from '@/src/shared/hooks/use-subscription';
+import { usePageTitle } from '@/src/shared/hooks/use-page-title';
 import { useCommunities } from '@/src/features/community/hooks/use-communities';
 import { CommunityCard } from '@/src/features/community/components/community-card';
 import type { Community } from '@/src/services/community/client';
@@ -26,6 +29,8 @@ type Language = 'jp' | 'en';
 
 export default function CommunityScreen() {
   const { t } = useTranslation();
+  const { isMobile, isDesktop, isWide } = useResponsive();
+  usePageTitle(t('tabs.community'));
   const router = useRouter();
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
   const isPro = useIsPro();
@@ -45,11 +50,15 @@ export default function CommunityScreen() {
     [router],
   );
 
+  const numColumns = isWide ? 3 : isDesktop ? 2 : 1;
+
   const renderCommunity = useCallback(
     ({ item }: { item: Community }) => (
-      <CommunityCard community={item} onPress={handleCommunityPress} />
+      <View style={numColumns > 1 ? styles.gridItem : undefined}>
+        <CommunityCard community={item} onPress={handleCommunityPress} />
+      </View>
     ),
-    [handleCommunityPress],
+    [handleCommunityPress, numColumns],
   );
 
   const keyExtractor = useCallback((item: Community) => item.id, []);
@@ -117,26 +126,33 @@ export default function CommunityScreen() {
     </>
   );
 
+  const Wrapper = Platform.OS === 'web' ? View : SafeAreaView;
+
   return (
     <CosmicBackground>
-      <SafeAreaView style={styles.container} edges={['top']}>
-        <FlatList
-          data={communities}
-          keyExtractor={keyExtractor}
-          renderItem={renderCommunity}
-          contentContainerStyle={styles.content}
-          contentInsetAdjustmentBehavior="automatic"
-          ListHeaderComponent={ListHeader}
-          ListFooterComponent={ListFooter}
-          refreshControl={
-            <RefreshControl
-              refreshing={isRefreshing}
-              onRefresh={refresh}
-              tintColor={colors.primary}
-            />
-          }
-        />
-      </SafeAreaView>
+      <Wrapper style={styles.container} {...(Platform.OS !== 'web' && { edges: ['top'] })}>
+        <View style={[styles.innerContent, !isMobile && styles.contentDesktop]}>
+          <FlatList
+            key={`community-grid-${numColumns}`}
+            data={communities}
+            keyExtractor={keyExtractor}
+            renderItem={renderCommunity}
+            numColumns={numColumns}
+            contentContainerStyle={styles.content}
+            contentInsetAdjustmentBehavior="automatic"
+            ListHeaderComponent={ListHeader}
+            ListFooterComponent={ListFooter}
+            {...(numColumns > 1 && { columnWrapperStyle: styles.columnWrapper })}
+            refreshControl={
+              <RefreshControl
+                refreshing={isRefreshing}
+                onRefresh={refresh}
+                tintColor={colors.primary}
+              />
+            }
+          />
+        </View>
+      </Wrapper>
     </CosmicBackground>
   );
 }
@@ -146,11 +162,25 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: 'transparent',
   },
+  innerContent: {
+    flex: 1,
+  },
+  contentDesktop: {
+    maxWidth: 960,
+    alignSelf: 'center' as const,
+    width: '100%' as unknown as number,
+  },
   content: {
     paddingVertical: spacing.md,
     paddingHorizontal: 20,
     paddingBottom: spacing.xxl,
     gap: 16,
+  },
+  columnWrapper: {
+    gap: 16,
+  },
+  gridItem: {
+    flex: 1,
   },
   header: {
     flexDirection: 'row',

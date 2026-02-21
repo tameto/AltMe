@@ -1,7 +1,8 @@
 import { useCallback } from 'react';
-import { StyleSheet, View, Text, Pressable, FlatList, Image, ImageSourcePropType } from 'react-native';
+import { StyleSheet, View, Text, Pressable, FlatList, Image, ImageSourcePropType, Platform } from 'react-native';
 import { router } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useResponsive } from '@/src/shared/hooks/use-responsive';
 import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 import Feather from '@expo/vector-icons/Feather';
 import { useTranslation } from 'react-i18next';
@@ -23,6 +24,7 @@ const avatarData: AvatarItem[] = AVATAR_ENTRIES.map(([key, source]) => ({ key, s
 
 export default function ChooseAvatarScreen() {
   const { t } = useTranslation();
+  const { isMobile } = useResponsive();
   const avatarIcon = useOnboardingStore((s) => s.avatarIcon);
   const setAvatarIcon = useOnboardingStore((s) => s.setAvatarIcon);
 
@@ -54,10 +56,13 @@ export default function ChooseAvatarScreen() {
 
   const selectedSource = avatarIcon ? AVATAR_SOURCES[avatarIcon] : null;
 
+  const Wrapper = Platform.OS === 'web' ? View : SafeAreaView;
+  const numColumns = isMobile ? 5 : 6;
+
   return (
     <CosmicBackground>
-      <SafeAreaView style={styles.container}>
-        <View style={styles.content}>
+      <Wrapper style={styles.container}>
+        <View style={[styles.content, !isMobile && styles.contentDesktop]}>
           <View style={styles.header}>
             <Pressable style={styles.backButton} onPress={() => router.back()}>
               <Feather name="arrow-left" size={24} color="#F8FAFC" />
@@ -88,7 +93,8 @@ export default function ChooseAvatarScreen() {
             data={avatarData}
             renderItem={renderItem}
             keyExtractor={keyExtractor}
-            numColumns={5}
+            key={`avatar-grid-${numColumns}`}
+            numColumns={numColumns}
             columnWrapperStyle={styles.columnWrapper}
             contentContainerStyle={styles.gridContent}
             showsVerticalScrollIndicator={false}
@@ -104,7 +110,7 @@ export default function ChooseAvatarScreen() {
             />
           </View>
         </View>
-      </SafeAreaView>
+      </Wrapper>
     </CosmicBackground>
   );
 }
@@ -116,6 +122,11 @@ const styles = StyleSheet.create({
   content: {
     flex: 1,
     paddingHorizontal: spacing.xl,
+  },
+  contentDesktop: {
+    maxWidth: 600,
+    alignSelf: 'center' as const,
+    width: '100%' as unknown as number,
   },
   header: {
     flexDirection: 'row',

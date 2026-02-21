@@ -1,4 +1,4 @@
-import { corsHeaders } from '../_shared/cors.ts';
+import { getCorsHeaders, handleCorsPreflightRequest } from '../_shared/cors.ts';
 import { createSupabaseClient } from '../_shared/supabase.ts';
 import { chatCompletion } from '../_shared/openai.ts';
 
@@ -97,9 +97,10 @@ const parseAnalysisResult = (content: string): AnalysisResult => {
 };
 
 Deno.serve(async (req) => {
-  if (req.method === 'OPTIONS') {
-    return new Response('ok', { headers: corsHeaders });
-  }
+  const preflightResponse = handleCorsPreflightRequest(req);
+  if (preflightResponse) return preflightResponse;
+
+  const corsHeaders = getCorsHeaders(req.headers.get('origin'));
 
   try {
     // 1. Auth check

@@ -1,10 +1,11 @@
-import { corsHeaders } from '../_shared/cors.ts';
+import { getCorsHeaders, handleCorsPreflightRequest } from '../_shared/cors.ts';
 import { createSupabaseClient, createServiceClient } from '../_shared/supabase.ts';
 
 Deno.serve(async (req: Request) => {
-  if (req.method === 'OPTIONS') {
-    return new Response('ok', { headers: corsHeaders });
-  }
+  const preflightResponse = handleCorsPreflightRequest(req);
+  if (preflightResponse) return preflightResponse;
+
+  const corsHeaders = getCorsHeaders(req.headers.get('origin'));
 
   try {
     // 1. Authenticate the user via their JWT

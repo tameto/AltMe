@@ -22,6 +22,7 @@ import { useIsPro } from '@/src/shared/hooks/use-subscription';
 import { useUser } from '@/src/shared/hooks/use-user';
 import { useNetwork } from '@/src/shared/hooks/use-network';
 import { useAuthStore } from '@/src/features/auth/stores/auth-store';
+import { usePageTitle } from '@/src/shared/hooks/use-page-title';
 import { GuestPromptOverlay } from '@/src/shared/components/guest-prompt-overlay';
 import { useChat, type DisplayMessage } from '@/src/features/chat/hooks/use-chat';
 import { ChatHeader } from '@/src/features/chat/components/chat-header';
@@ -30,9 +31,13 @@ import { ChatBubble } from '@/src/features/chat/components/chat-bubble';
 import { DateSeparator } from '@/src/features/chat/components/date-separator';
 import { RemainingCounter } from '@/src/features/chat/components/remaining-counter';
 import { useTopics } from '@/src/features/chat/hooks/use-topics';
+import { ChatInputWeb } from '@/src/features/chat/components/chat-input-web';
+
+const isWeb = Platform.OS === 'web';
 
 export default function ChatScreen() {
   const { t } = useTranslation();
+  usePageTitle(t('tabs.chat'));
   const isPro = useIsPro();
   const user = useUser((s) => s.user);
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
@@ -93,79 +98,89 @@ export default function ChatScreen() {
     );
   }
 
-  return (
-    <CosmicBackground>
-      <SafeAreaView style={styles.container} edges={['top']}>
-        {/* Header */}
-        <ChatHeader
-          twinName={user?.twinName ?? APP_NAME}
-          isOnline={isOnline}
-          isPro={isPro}
-          todayUserCount={todayUserCount}
-          freeLimit={FREE_DAILY_LIMIT}
-          connectionMode={connectionMode}
-          wsStatus={wsStatus}
+  const Wrapper = isWeb ? View : SafeAreaView;
+  const wrapperProps = isWeb ? { style: styles.container } : { style: styles.container, edges: ['top'] as const };
+
+  const chatContent = (
+    <>
+      {/* Header */}
+      <ChatHeader
+        twinName={user?.twinName ?? APP_NAME}
+        isOnline={isOnline}
+        isPro={isPro}
+        todayUserCount={todayUserCount}
+        freeLimit={FREE_DAILY_LIMIT}
+        connectionMode={connectionMode}
+        wsStatus={wsStatus}
+      />
+
+      {/* Topic chips */}
+      <TopicChipsRow
+        topics={topics}
+        activeTopic={activeTopic}
+        onSelect={setActiveTopic}
+      />
+
+      {/* Offline/reconnect banners */}
+      {!isOnline && (
+        <View style={styles.offlineBanner}>
+          <Feather name="wifi-off" size={12} color={colors.error} />
+          <Text style={styles.offlineText}>{t('chat.offline')}</Text>
+        </View>
+      )}
+
+      {isOnline && isPro && wsStatus === 'reconnecting' && (
+        <View style={styles.reconnectBanner}>
+          <ActivityIndicator size="small" color={colors.warning} />
+          <Text style={styles.reconnectText}>{t('chat.connectionStatus.reconnecting')}</Text>
+        </View>
+      )}
+
+      {/* Remaining counter (free users only) */}
+      {!isPro && (
+        <RemainingCounter
+          remaining={Math.max(0, FREE_DAILY_LIMIT - todayUserCount)}
+          total={FREE_DAILY_LIMIT}
         />
+      )}
 
-        {/* Topic chips */}
-        <TopicChipsRow
-          topics={topics}
-          activeTopic={activeTopic}
-          onSelect={setActiveTopic}
+      {/* Message list */}
+      <FlatList
+        ref={flatListRef}
+        data={displayData}
+        renderItem={renderItem}
+        keyExtractor={(item) => item.id}
+        contentContainerStyle={styles.messageList}
+        showsVerticalScrollIndicator={false}
+        testID="chat-message-list"
+      />
+
+      {isLoading && !streamingText && (
+        <View style={styles.typingIndicator}>
+          <ActivityIndicator size="small" color={colors.primary} />
+          <Text style={styles.typingText}>{t('chat.thinking')}</Text>
+        </View>
+      )}
+
+      {/* Input bar — Web vs Native */}
+      {isWeb ? (
+        <ChatInputWeb
+          value={inputText}
+          onChangeText={setInputText}
+          onSend={handleSend}
+          disabled={isAtLimit}
+          isLoading={isLoading}
+          placeholder={isAtLimit ? t('chat.inputPlaceholderAtLimit') : undefined}
         />
-
-        {/* Offline/reconnect banners */}
-        {!isOnline && (
-          <View style={styles.offlineBanner}>
-            <Feather name="wifi-off" size={12} color={colors.error} />
-            <Text style={styles.offlineText}>{t('chat.offline')}</Text>
-          </View>
-        )}
-
-        {isOnline && isPro && wsStatus === 'reconnecting' && (
-          <View style={styles.reconnectBanner}>
-            <ActivityIndicator size="small" color={colors.warning} />
-            <Text style={styles.reconnectText}>{t('chat.connectionStatus.reconnecting')}</Text>
-          </View>
-        )}
-
-        {/* Remaining counter (free users only) */}
-        {!isPro && (
-          <RemainingCounter
-            remaining={Math.max(0, FREE_DAILY_LIMIT - todayUserCount)}
-            total={FREE_DAILY_LIMIT}
-          />
-        )}
-
-        {/* Message list */}
-        <FlatList
-          ref={flatListRef}
-          data={displayData}
-          renderItem={renderItem}
-          keyExtractor={(item) => item.id}
-          contentContainerStyle={styles.messageList}
-          showsVerticalScrollIndicator={false}
-        />
-
-        {isLoading && !streamingText && (
-          <View style={styles.typingIndicator}>
-            <ActivityIndicator size="small" color={colors.primary} />
-            <Text style={styles.typingText}>{t('chat.thinking')}</Text>
-          </View>
-        )}
-
-        {/* Input bar */}
+      ) : (
         <KeyboardAvoidingView
           behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
           keyboardVerticalOffset={0}
         >
           <View style={styles.inputBar}>
-            {/* Plus button */}
             <Pressable style={styles.plusButton}>
               <Feather name="plus" size={18} color="#FFFFFF70" />
             </Pressable>
-
-            {/* Input field */}
             <TextInput
               style={styles.textInput}
               value={inputText}
@@ -176,8 +191,6 @@ export default function ChatScreen() {
               maxLength={CHAT.maxMessageLength}
               editable={!isAtLimit}
             />
-
-            {/* Send button */}
             {inputText.trim() && !isLoading && isOnline ? (
               <Pressable style={styles.sendButton} onPress={handleSend}>
                 <LinearGradient
@@ -192,7 +205,21 @@ export default function ChatScreen() {
             ) : null}
           </View>
         </KeyboardAvoidingView>
-      </SafeAreaView>
+      )}
+    </>
+  );
+
+  return (
+    <CosmicBackground>
+      <Wrapper {...wrapperProps}>
+        {isWeb ? (
+          <View style={styles.webCenteredContainer} testID="chat-web-layout">
+            {chatContent}
+          </View>
+        ) : (
+          chatContent
+        )}
+      </Wrapper>
     </CosmicBackground>
   );
 }
@@ -201,6 +228,12 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: 'transparent',
+  },
+  webCenteredContainer: {
+    flex: 1,
+    width: '100%',
+    maxWidth: 960,
+    alignSelf: 'center',
   },
   loadingContainer: {
     flex: 1,
@@ -250,7 +283,7 @@ const styles = StyleSheet.create({
     fontFamily: fontFamily.regular,
     color: colors.textSecondary,
   },
-  // ---- Input bar ----
+  // ---- Native Input bar ----
   inputBar: {
     flexDirection: 'row',
     alignItems: 'flex-end',

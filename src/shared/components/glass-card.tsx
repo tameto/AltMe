@@ -1,3 +1,10 @@
+// Platform-resolved component:
+//   Web:    glass-card.web.tsx    (CSS backdrop-filter)
+//   Native: glass-card.native.tsx (expo-blur BlurView)
+//
+// This base file is used for TypeScript resolution and as fallback.
+// It contains the native implementation inline.
+
 import React from 'react';
 import { Platform, StyleSheet, View, type ViewStyle } from 'react-native';
 import { BlurView } from 'expo-blur';
@@ -10,6 +17,7 @@ type Props = {
   children: React.ReactNode;
   variant?: Variant;
   style?: ViewStyle;
+  testID?: string;
 };
 
 const variantStyles: Record<Variant, { bg: string; border: string }> = {
@@ -19,11 +27,11 @@ const variantStyles: Record<Variant, { bg: string; border: string }> = {
   input: { bg: glassmorphism.input.bg, border: glassmorphism.input.border },
 };
 
-export function GlassCard({ children, variant = 'card', style }: Props) {
+export function GlassCard({ children, variant = 'card', style, testID }: Props) {
   const v = variantStyles[variant];
 
   return (
-    <View style={[styles.outer, { borderColor: v.border }, style]}>
+    <View testID={testID} style={[styles.outer, { borderColor: v.border }, style]}>
       <BlurView
         intensity={glassmorphism.card.blur}
         tint="dark"

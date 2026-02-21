@@ -1,5 +1,5 @@
 import { useState, useCallback, useRef, useEffect } from 'react';
-import { FlatList } from 'react-native';
+import { FlatList, Platform } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
@@ -80,9 +80,11 @@ export function useChat(): UseChatReturn {
 
   // Load chat history on mount
   useEffect(() => {
+    let cancelled = false;
+
     const loadHistory = async () => {
       if (!user?.id) {
-        setIsLoadingHistory(false);
+        if (!cancelled) setIsLoadingHistory(false);
         return;
       }
       try {
@@ -92,6 +94,8 @@ export function useChat(): UseChatReturn {
           .eq('user_id', user.id)
           .order('created_at', { ascending: false })
           .limit(CHAT.contextMessageCount);
+
+        if (cancelled) return;
 
         if (data && data.length > 0) {
           const mapped = data.reverse().map((m) => ({
@@ -115,7 +119,7 @@ export function useChat(): UseChatReturn {
         }
 
         // Count today's user messages (only relevant for free users)
-        if (!isPro) {
+        if (!isPro && !cancelled) {
           const todayStr = new Date().toLocaleDateString('en-CA', {
             timeZone: user.timezone || 'Asia/Tokyo',
           });
@@ -125,15 +129,17 @@ export function useChat(): UseChatReturn {
             .eq('user_id', user.id)
             .eq('role', 'user')
             .gte('created_at', `${todayStr}T00:00:00`);
-          setTodayUserCount(count ?? 0);
+          if (!cancelled) setTodayUserCount(count ?? 0);
         }
       } catch (error) {
         console.error('Failed to load chat history:', error);
       } finally {
-        setIsLoadingHistory(false);
+        if (!cancelled) setIsLoadingHistory(false);
       }
     };
     loadHistory();
+
+    return () => { cancelled = true; };
   }, [user?.id, user?.displayName, user?.twinName, user?.timezone, isPro, t]);
 
   // Connect to OpenClaw WebSocket for Pro users
@@ -165,6 +171,7 @@ export function useChat(): UseChatReturn {
         userId: inst.userId,
         gatewayToken: token,
         deviceId,
+        clientType: Platform.OS === 'web' ? 'web' : 'mobile',
         onTextDelta: (delta, _sessionId) => {
           streamingTextRef.current += delta;
           setStreamingText(streamingTextRef.current);
@@ -233,12 +240,41 @@ export function useChat(): UseChatReturn {
       }
     });
 
+    // Web: handle tab visibility changes and page unload
+    const handleVisibilityChange = () => {
+      if (Platform.OS !== 'web') return;
+      if (document.visibilityState === 'hidden') {
+        // Disconnect when tab is hidden to avoid stale connections
+        wsClientRef.current?.disconnect();
+        wsClientRef.current = null;
+        setActiveClient(null);
+        updateConnectionMode('edge_function');
+      } else if (document.visibilityState === 'visible' && !cancelled.current) {
+        // Reconnect when tab becomes visible again
+        connectToWebSocket(cancelled);
+      }
+    };
+
+    const handleBeforeUnload = () => {
+      if (Platform.OS !== 'web') return;
+      wsClientRef.current?.disconnect();
+    };
+
+    if (Platform.OS === 'web' && typeof document !== 'undefined') {
+      document.addEventListener('visibilitychange', handleVisibilityChange);
+      window.addEventListener('beforeunload', handleBeforeUnload);
+    }
+
     return () => {
       cancelled.current = true;
       wsClientRef.current?.disconnect();
       wsClientRef.current = null;
       setActiveClient(null);
       unsubscribe();
+      if (Platform.OS === 'web' && typeof document !== 'undefined') {
+        document.removeEventListener('visibilitychange', handleVisibilityChange);
+        window.removeEventListener('beforeunload', handleBeforeUnload);
+      }
     };
   }, [isPro, user?.id, connectToWebSocket, updateConnectionMode]);
 

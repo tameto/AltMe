@@ -20,6 +20,7 @@ import { CosmicBackground } from '@/src/shared/components/cosmic-background';
 import { useSubscription } from '@/src/shared/hooks/use-subscription';
 import { useUser } from '@/src/shared/hooks/use-user';
 import { supabase } from '@/src/services/supabase/client';
+import { redirectToPortal } from '@/src/services/stripe/client';
 
 type UsageStats = {
   totalMessages: number;
@@ -35,6 +36,7 @@ export default function SubscriptionManageScreen() {
   const user = useUser((s) => s.user);
   const [stats, setStats] = useState<UsageStats | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [isRedirecting, setIsRedirecting] = useState(false);
 
   useEffect(() => {
     const loadStats = async () => {
@@ -76,6 +78,11 @@ export default function SubscriptionManageScreen() {
   }, [user?.id, user?.createdAt]);
 
   const handleCancelSubscription = () => {
+    if (Platform.OS === 'web') {
+      // Web: Stripe Portal で解約管理するため直接リダイレクト
+      openSubscriptionSettings();
+      return;
+    }
     const twinName = user?.twinName || 'AI Twin';
     Alert.alert(
       t('subscription.manage.cancelConfirmTitle'),
@@ -91,8 +98,28 @@ export default function SubscriptionManageScreen() {
     );
   };
 
-  const openSubscriptionSettings = () => {
-    if (Platform.OS === 'ios') {
+  const openSubscriptionSettings = async () => {
+    if (Platform.OS === 'web') {
+      try {
+        setIsRedirecting(true);
+        await redirectToPortal();
+      } catch (error) {
+        const message = error instanceof Error ? error.message : 'portal_session_failed';
+        if (message === 'customer_not_found') {
+          Alert.alert(
+            t('subscription.manage.title'),
+            t('subscription.manage.noStripeCustomer'),
+          );
+        } else {
+          Alert.alert(
+            t('subscription.manage.title'),
+            t('subscription.manage.portalError'),
+          );
+        }
+      } finally {
+        setIsRedirecting(false);
+      }
+    } else if (Platform.OS === 'ios') {
       Linking.openURL('https://apps.apple.com/account/subscriptions');
     } else {
       Linking.openURL('https://play.google.com/store/account/subscriptions');
@@ -180,13 +207,31 @@ export default function SubscriptionManageScreen() {
 
           {/* Action links */}
           <View style={styles.actionsSection}>
-            <Pressable style={styles.actionItem} onPress={openSubscriptionSettings}>
-              <Feather name="repeat" size={20} color="#7DD3FC" />
-              <Text style={styles.actionLinkText}>{t('subscription.manage.changePlan')}</Text>
+            <Pressable
+              style={styles.actionItem}
+              onPress={openSubscriptionSettings}
+              disabled={isRedirecting}
+              testID="manage-plan-button"
+            >
+              {isRedirecting ? (
+                <ActivityIndicator size="small" color="#7DD3FC" />
+              ) : (
+                <Feather name="repeat" size={20} color="#7DD3FC" />
+              )}
+              <Text style={styles.actionLinkText}>
+                {Platform.OS === 'web'
+                  ? t('subscription.manage.manageOnStripe')
+                  : t('subscription.manage.changePlan')}
+              </Text>
               <Feather name="chevron-right" size={16} color={colors.textSecondary} />
             </Pressable>
             <View style={styles.actionDivider} />
-            <Pressable style={styles.actionItem} onPress={openSubscriptionSettings}>
+            <Pressable
+              style={styles.actionItem}
+              onPress={openSubscriptionSettings}
+              disabled={isRedirecting}
+              testID="payment-method-button"
+            >
               <Feather name="credit-card" size={20} color="#7DD3FC" />
               <Text style={styles.actionLinkText}>{t('subscription.manage.paymentMethod')}</Text>
               <Feather name="chevron-right" size={16} color={colors.textSecondary} />

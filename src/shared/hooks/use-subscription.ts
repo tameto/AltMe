@@ -1,6 +1,5 @@
 import { create } from 'zustand';
-import type { PurchasesOfferings, PurchasesPackage } from 'react-native-purchases';
-import type { EntitlementInfo, SubscriptionStatus } from '../types/subscription';
+import type { EntitlementInfo, SubscriptionOfferings, SubscriptionPackage, SubscriptionStatus } from '../types/subscription';
 import {
   checkSubscriptionStatus,
   getOfferings as rcGetOfferings,
@@ -11,7 +10,7 @@ import {
 type SubscriptionStore = {
   entitlement: EntitlementInfo;
   isLoading: boolean;
-  offerings: PurchasesOfferings | null;
+  offerings: SubscriptionOfferings | null;
 
   // Actions
   setEntitlement: (info: Partial<EntitlementInfo>) => void;
@@ -20,8 +19,8 @@ type SubscriptionStore = {
 
   // RevenueCat operations
   refreshStatus: () => Promise<void>;
-  loadOfferings: () => Promise<PurchasesOfferings | null>;
-  purchase: (pkg: PurchasesPackage) => Promise<boolean>;
+  loadOfferings: () => Promise<SubscriptionOfferings | null>;
+  purchase: (pkg: SubscriptionPackage) => Promise<boolean>;
   restore: () => Promise<boolean>;
 };
 
@@ -67,7 +66,7 @@ export const useSubscription = create<SubscriptionStore>((set, get) => ({
     }
   },
 
-  purchase: async (pkg: PurchasesPackage) => {
+  purchase: async (pkg: SubscriptionPackage) => {
     try {
       const entitlement = await rcPurchasePackage(pkg);
       set({ entitlement });

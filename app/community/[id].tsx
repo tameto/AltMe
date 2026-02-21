@@ -8,8 +8,10 @@ import {
   Pressable,
   ActivityIndicator,
   Image,
+  Platform,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useResponsive } from '@/src/shared/hooks/use-responsive';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import Feather from '@expo/vector-icons/Feather';
@@ -54,6 +56,7 @@ export default function CommunityDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
   const { t } = useTranslation();
+  const { isMobile } = useResponsive();
 
   const {
     community,
@@ -93,14 +96,16 @@ export default function CommunityDetailScreen() {
     [t],
   );
 
+  const Wrapper = Platform.OS === 'web' ? View : SafeAreaView;
+
   if (loading) {
     return (
       <CosmicBackground>
-        <SafeAreaView style={styles.flex}>
+        <Wrapper style={styles.flex}>
           <View style={styles.centered}>
             <ActivityIndicator size="large" color={colors.primary} />
           </View>
-        </SafeAreaView>
+        </Wrapper>
       </CosmicBackground>
     );
   }
@@ -108,14 +113,14 @@ export default function CommunityDetailScreen() {
   if (error) {
     return (
       <CosmicBackground>
-        <SafeAreaView style={styles.flex}>
+        <Wrapper style={styles.flex}>
           <View style={styles.centered}>
             <Text style={styles.errorText}>{error}</Text>
             <Pressable style={styles.retryButton} onPress={refreshCommunity}>
               <Text style={styles.retryText}>{t('common.retry')}</Text>
             </Pressable>
           </View>
-        </SafeAreaView>
+        </Wrapper>
       </CosmicBackground>
     );
   }
@@ -123,21 +128,22 @@ export default function CommunityDetailScreen() {
   if (!community) {
     return (
       <CosmicBackground>
-        <SafeAreaView style={styles.flex}>
+        <Wrapper style={styles.flex}>
           <View style={styles.centered}>
             <Text style={styles.errorText}>Not found</Text>
             <Pressable style={styles.retryButton} onPress={() => router.back()}>
               <Text style={styles.retryText}>{t('common.back')}</Text>
             </Pressable>
           </View>
-        </SafeAreaView>
+        </Wrapper>
       </CosmicBackground>
     );
   }
 
   return (
     <CosmicBackground>
-      <SafeAreaView style={styles.flex} edges={['top']}>
+      <Wrapper style={styles.flex} {...(Platform.OS !== 'web' && { edges: ['top'] })}>
+        <View style={[styles.innerContent, !isMobile && styles.contentDesktop]}>
         {/* ヘッダー */}
         <View style={styles.header}>
           <Pressable style={styles.backButton} onPress={() => router.back()} hitSlop={8}>
@@ -208,7 +214,8 @@ export default function CommunityDetailScreen() {
             />
           }
         />
-      </SafeAreaView>
+        </View>
+      </Wrapper>
     </CosmicBackground>
   );
 }
@@ -216,6 +223,14 @@ export default function CommunityDetailScreen() {
 const styles = StyleSheet.create({
   flex: {
     flex: 1,
+  },
+  innerContent: {
+    flex: 1,
+  },
+  contentDesktop: {
+    maxWidth: 720,
+    alignSelf: 'center' as const,
+    width: '100%' as unknown as number,
   },
   centered: {
     flex: 1,

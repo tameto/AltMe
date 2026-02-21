@@ -280,7 +280,11 @@
       "cancelConfirmProceed": "Proceed to Cancel",
       "resubscribeMessage": "To use Pro features again, please reactivate your subscription from the store.",
       "openStore": "Open Store",
-      "upgradeButton": "Upgrade to Pro"
+      "upgradeButton": "Upgrade to Pro",
+      "manageOnStripe": "Manage on Stripe",
+      "noStripeCustomer": "No Stripe customer found. If you haven't purchased a subscription on the web, please check your app store settings.",
+      "portalError": "Failed to load the subscription management page.",
+      "renewsOn": "Renews on: {{date}}"
     }
   },
   "settings": {
@@ -361,7 +365,8 @@
       "marketing": "Announcements",
       "marketingDesc": "New features and campaigns",
       "updateError": "Failed to update settings",
-      "loadError": "Failed to load settings"
+      "loadError": "Failed to load settings",
+      "webNotice": "Push notifications are coming soon for the web version. Please use the mobile app."
     },
     "account": {
       "title": "Account",
@@ -472,6 +477,10 @@
   },
   "tokenPurchase": {
     "title": "Token Purchase",
-    "subtitle": "Purchase and manage tokens"
+    "subtitle": "Purchase and manage tokens",
+    "credits": "credits",
+    "purchaseError": "An error occurred during purchase.",
+    "nativeComingSoon": "In-app purchases coming soon.",
+    "stripeDisclaimer": "Payments are securely processed by Stripe. Credits will be added to your account immediately after purchase."
   }
 }

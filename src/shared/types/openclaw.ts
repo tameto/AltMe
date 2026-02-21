@@ -35,7 +35,7 @@ export type WsConnectPayload = {
   params: {
     auth: { token: string };
     deviceId: string;
-    clientType: 'mobile';
+    clientType: 'mobile' | 'web';
   };
 };
 
@@ -72,17 +72,25 @@ export type WsErrorEvent = {
   retryAfter?: number;
 };
 
+export type WsReconnectAttempt = {
+  type: 'reconnect_attempt';
+  attempt: number;
+  maxAttempts: number;
+  delayMs: number;
+};
+
 export type WsIncomingMessage =
   | WsConnectedEvent
   | WsAgentTextDelta
   | WsAgentTextDone
-  | WsErrorEvent;
+  | WsErrorEvent
+  | WsReconnectAttempt;
 
 export type WsOutgoingMessage =
   | WsConnectPayload
   | WsMessagePayload;
 
 // Connection state for Zustand store
-export type WsConnectionStatus = 'connecting' | 'connected' | 'disconnected' | 'reconnecting' | 'waking';
+export type WsConnectionStatus = 'connecting' | 'connected' | 'disconnected' | 'reconnecting' | 'waking' | 'failed';
 
 export type ConnectionMode = 'websocket' | 'edge_function' | 'disconnected';

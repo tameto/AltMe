@@ -1,7 +1,8 @@
-import { StyleSheet, View, Text, Pressable, Animated } from 'react-native';
+import { StyleSheet, View, Text, Pressable, Animated, Platform } from 'react-native';
 import { useRef, useCallback } from 'react';
 import { router } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useResponsive } from '@/src/shared/hooks/use-responsive';
 import Feather from '@expo/vector-icons/Feather';
 import { CosmicBackground } from '@/src/shared/components/cosmic-background';
 import { spacing, fontFamily } from '@/src/config/theme';
@@ -23,6 +24,7 @@ export default function PersonalityQuizScreen() {
     setAnalyzing,
   } = useOnboardingStore();
 
+  const { isMobile } = useResponsive();
   const fadeAnim = useRef(new Animated.Value(1)).current;
 
   const currentQuestion = PERSONALITY_QUESTIONS[currentStep];
@@ -133,10 +135,12 @@ export default function PersonalityQuizScreen() {
     }
   };
 
+  const Wrapper = Platform.OS === 'web' ? View : SafeAreaView;
+
   return (
     <CosmicBackground>
-      <SafeAreaView style={styles.container}>
-        <View style={styles.content}>
+      <Wrapper style={styles.container}>
+        <View style={[styles.content, !isMobile && styles.contentDesktop]}>
           <View style={styles.header}>
             <Pressable
               style={styles.backButton}
@@ -202,7 +206,7 @@ export default function PersonalityQuizScreen() {
             </View>
           </Animated.View>
         </View>
-      </SafeAreaView>
+      </Wrapper>
     </CosmicBackground>
   );
 }
@@ -214,6 +218,11 @@ const styles = StyleSheet.create({
   content: {
     flex: 1,
     paddingHorizontal: spacing.xl,
+  },
+  contentDesktop: {
+    maxWidth: 600,
+    alignSelf: 'center' as const,
+    width: '100%' as unknown as number,
   },
   header: {
     flexDirection: 'row',

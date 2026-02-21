@@ -200,11 +200,13 @@ describe('Community Service Client', () => {
   // AC-3.12: getCommunityMessages
   describe('getCommunityMessages', () => {
     it('fetches community messages in order', async () => {
+      // DB returns messages in descending order (newest first)
+      // getCommunityMessages calls rows.reverse() to restore ascending order
       const selectMock = jest.fn().mockReturnValue({
         eq: jest.fn().mockReturnValue({
           order: jest.fn().mockReturnValue({
             limit: jest.fn().mockResolvedValue({
-              data: [mockMessage, { ...mockMessage, id: 'msg-2', content: 'Reply' }],
+              data: [{ ...mockMessage, id: 'msg-2', content: 'Reply' }, mockMessage],
               error: null,
             }),
           }),

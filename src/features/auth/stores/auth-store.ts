@@ -8,7 +8,6 @@ import {
   updateProfile as authUpdateProfile,
   deleteAccount as authDeleteAccount,
 } from '@/src/services/supabase/auth';
-import { statusCodes as GoogleStatusCodes } from '@react-native-google-signin/google-signin';
 import { initializeRevenueCat, checkSubscriptionStatus, addCustomerInfoListener } from '@/src/services/revenuecat/client';
 import { disconnectOpenClaw } from '@/src/services/openclaw/connection-manager';
 import { useUser } from '@/src/shared/hooks/use-user';
@@ -154,14 +153,10 @@ export const useAuthStore = create<AuthStore>((set) => ({
 
       set({ isAuthenticated: true, isGuest: false });
     } catch (error: unknown) {
-      // Silent handling for user cancellation (Native SDK status codes)
-      if (
-        error != null &&
-        typeof error === 'object' &&
-        'code' in error &&
-        (error as { code: string }).code === GoogleStatusCodes.SIGN_IN_CANCELLED
-      ) {
-        return;
+      // Silent handling for user cancellation (works across native SDK and OAuth redirect)
+      if (error != null && typeof error === 'object' && 'code' in error) {
+        const code = (error as { code: string }).code;
+        if (code === 'SIGN_IN_CANCELLED') return;
       }
       const message = error instanceof Error ? error.message : 'ログインに失敗しました';
       if (message.includes('cancelled') || message.includes('ERR_CANCELED')) return;

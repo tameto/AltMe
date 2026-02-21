@@ -8,6 +8,7 @@ import {
   Modal,
   ActivityIndicator,
   Image,
+  Platform,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Feather from '@expo/vector-icons/Feather';
@@ -22,6 +23,8 @@ import { useTwinData } from '@/src/features/insights/hooks/use-twin-data';
 import { getAvatarSource } from '@/src/config/avatar-map';
 import { getMyInstance } from '@/src/services/openclaw/client';
 import { useIsPro } from '@/src/shared/hooks/use-subscription';
+import { usePageTitle } from '@/src/shared/hooks/use-page-title';
+import { useResponsive } from '@/src/shared/hooks/use-responsive';
 import type { RuntimeState } from '@/src/shared/types/openclaw';
 
 type BigFiveTrait = {
@@ -48,10 +51,12 @@ function getIndicatorColor(runtimeState: RuntimeState | null, isPro: boolean): s
 
 export default function TwinScreen() {
   const { t } = useTranslation();
+  usePageTitle(t('tabs.myAgent'));
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
   const user = useUser((s) => s.user);
   const { isLoading, personalityTraits, hasData, fetchSoulMd } = useTwinData();
   const isPro = useIsPro();
+  const { isMobile } = useResponsive();
   const [soulMdVisible, setSoulMdVisible] = useState(false);
   const [soulMdContent, setSoulMdContent] = useState<string | null>(null);
   const [soulMdLoading, setSoulMdLoading] = useState(false);
@@ -72,12 +77,15 @@ export default function TwinScreen() {
     };
   }, [isPro, user?.id]);
 
+  const isWeb = Platform.OS === 'web';
+  const Wrapper = isWeb ? View : SafeAreaView;
+
   if (!isAuthenticated) {
     return (
       <CosmicBackground>
-        <SafeAreaView style={styles.container} edges={['top']}>
+        <Wrapper style={styles.container} {...(!isWeb && { edges: ['top'] })}>
           <GuestPromptOverlay />
-        </SafeAreaView>
+        </Wrapper>
       </CosmicBackground>
     );
   }
@@ -106,9 +114,9 @@ export default function TwinScreen() {
 
   return (
     <CosmicBackground>
-      <SafeAreaView style={styles.container} edges={['top']}>
+      <Wrapper style={styles.container} {...(!isWeb && { edges: ['top'] })}>
         <ScrollView
-          contentContainerStyle={styles.content}
+          contentContainerStyle={[styles.content, !isMobile && styles.contentDesktop]}
           contentInsetAdjustmentBehavior="automatic"
         >
           {/* Header */}
@@ -160,7 +168,7 @@ export default function TwinScreen() {
               <Text style={styles.emptySubText}>{t('twin.noDiagnosisDescription')}</Text>
             </View>
           ) : (
-            <View style={styles.bigFiveContainer}>
+            <View style={[styles.bigFiveContainer, !isMobile && styles.bigFiveGrid]}>
               {bigFiveTraits.map((trait) => (
                 <View key={trait.id} testID="trait-progress-bar" style={styles.traitCard}>
                   <Text style={styles.traitLabel}>
@@ -195,7 +203,7 @@ export default function TwinScreen() {
           onRequestClose={() => setSoulMdVisible(false)}
         >
           <View style={styles.modalOverlay}>
-            <View style={styles.modalContainer}>
+            <View style={[styles.modalContainer, !isMobile && styles.modalContainerDesktop]}>
               <View style={styles.modalHeader}>
                 <Text style={styles.modalTitle}>SOUL.md</Text>
                 <Pressable onPress={() => setSoulMdVisible(false)}>
@@ -214,7 +222,7 @@ export default function TwinScreen() {
             </View>
           </View>
         </Modal>
-      </SafeAreaView>
+      </Wrapper>
     </CosmicBackground>
   );
 }
@@ -324,9 +332,19 @@ const styles = StyleSheet.create({
     color: colors.textSecondary,
     textAlign: 'center',
   },
+  contentDesktop: {
+    maxWidth: 720,
+    alignSelf: 'center' as const,
+    width: '100%' as unknown as number,
+  },
   bigFiveContainer: {
     width: '100%',
     gap: spacing.sm,
+  },
+  bigFiveGrid: {
+    flexDirection: 'row' as const,
+    flexWrap: 'wrap' as const,
+    gap: spacing.md,
   },
   traitCard: {
     backgroundColor: '#FFFFFF08',
@@ -336,6 +354,9 @@ const styles = StyleSheet.create({
     paddingVertical: 14,
     paddingHorizontal: 16,
     gap: spacing.sm,
+    flexGrow: 1,
+    flexBasis: '45%' as unknown as number,
+    minWidth: 200,
   },
   traitLabel: {
     fontSize: 14,
@@ -379,6 +400,13 @@ const styles = StyleSheet.create({
     borderTopRightRadius: 20,
     maxHeight: '70%',
     paddingBottom: spacing.xxl,
+  },
+  modalContainerDesktop: {
+    maxWidth: 600,
+    alignSelf: 'center' as const,
+    width: '100%' as unknown as number,
+    borderRadius: 20,
+    marginBottom: 40,
   },
   modalHeader: {
     flexDirection: 'row',

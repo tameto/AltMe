@@ -49,3 +49,58 @@ export type EntitlementInfo = {
   expiresAt: string | null;
   trialDaysRemaining: number | null;
 };
+
+// Platform-agnostic offering/package types (abstracts RevenueCat/Stripe)
+export type SubscriptionPackage = {
+  identifier: string;
+  planType: PlanType;
+  localizedPriceString: string;
+  price: number;
+  currencyCode: string;
+  introPrice?: {
+    priceString: string;
+    price: number;
+    period: string;
+    periodUnit: string;
+    cycles: number;
+  } | null;
+};
+
+export type SubscriptionOfferings = {
+  current: {
+    identifier: string;
+    packages: SubscriptionPackage[];
+  } | null;
+};
+
+// Stripe Checkout (Web)
+export type StripeCheckoutSession = {
+  url: string;
+  sessionId: string;
+};
+
+export type StripePortalSession = {
+  url: string;
+};
+
+// Platform-agnostic subscription interface
+export type PlatformSubscription = {
+  isPro: boolean;
+  isTrialing: boolean;
+  status: SubscriptionStatus;
+  planType: PlanType;
+  expiresAt: string | null;
+  trialDaysRemaining: number | null;
+  purchase: (planType: PlanType) => Promise<void>;
+  restore: () => Promise<void>;
+  manage: () => Promise<void>;
+};
+
+// Stripe-specific Subscription info
+export type StripeSubscriptionInfo = {
+  customerId: string;
+  subscriptionId: string;
+  priceId: string;
+  currentPeriodEnd: string;
+  cancelAtPeriodEnd: boolean;
+};

@@ -10,7 +10,7 @@ import { useFonts } from 'expo-font';
 import { Stack, useRouter, useSegments } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { useEffect } from 'react';
-import { StatusBar } from 'react-native';
+import { Platform, StatusBar } from 'react-native';
 import 'react-native-reanimated';
 import '@/src/shared/i18n';
 
@@ -31,7 +31,12 @@ export const unstable_settings = {
   initialRouteName: '(tabs)',
 };
 
-SplashScreen.preventAutoHideAsync();
+// SplashScreen is a no-op on web but wrap in try-catch for safety
+try {
+  SplashScreen.preventAutoHideAsync();
+} catch {
+  // Silently ignore on platforms where SplashScreen is unavailable
+}
 
 export default function RootLayout() {
   const [loaded, error] = useFonts({
@@ -53,7 +58,9 @@ export default function RootLayout() {
 
   useEffect(() => {
     if (loaded) {
-      SplashScreen.hideAsync();
+      SplashScreen.hideAsync().catch(() => {
+        // Silently ignore on platforms where SplashScreen is unavailable
+      });
     }
   }, [loaded]);
 
@@ -133,7 +140,7 @@ function RootLayoutNav() {
 
   return (
     <ThemeProvider value={DarkTheme}>
-      <StatusBar barStyle="light-content" />
+      {Platform.OS !== 'web' && <StatusBar barStyle="light-content" />}
       <Stack>
         <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
         <Stack.Screen name="(auth)" options={{ headerShown: false }} />

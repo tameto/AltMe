@@ -281,7 +281,11 @@
       "cancelConfirmProceed": "解約手続きへ",
       "resubscribeMessage": "再度Pro機能をご利用いただくには、ストアからサブスクリプションを再開してください。",
       "openStore": "ストアを開く",
-      "upgradeButton": "Pro にアップグレード"
+      "upgradeButton": "Pro にアップグレード",
+      "manageOnStripe": "Stripeで管理",
+      "noStripeCustomer": "Stripe の顧客情報が見つかりません。まだ Web でサブスクリプションを購入していない場合は、アプリストアの設定をご確認ください。",
+      "portalError": "サブスクリプション管理ページの読み込みに失敗しました。",
+      "renewsOn": "次回更新日: {{date}}"
     }
   },
   "settings": {
@@ -362,7 +366,8 @@
       "marketing": "お知らせ",
       "marketingDesc": "新機能やキャンペーンのお知らせ",
       "updateError": "設定の更新に失敗しました",
-      "loadError": "設定の読み込みに失敗しました"
+      "loadError": "設定の読み込みに失敗しました",
+      "webNotice": "Web版ではプッシュ通知は将来対応予定です。アプリ版をご利用ください。"
     },
     "account": {
       "title": "アカウント",
@@ -473,6 +478,10 @@
   },
   "tokenPurchase": {
     "title": "トークン購入",
-    "subtitle": "トークンの購入と管理"
+    "subtitle": "トークンの購入と管理",
+    "credits": "クレジット",
+    "purchaseError": "購入処理中にエラーが発生しました。",
+    "nativeComingSoon": "アプリ内購入は近日公開予定です。",
+    "stripeDisclaimer": "決済はStripeにより安全に処理されます。購入後、クレジットは即座にアカウントに反映されます。"
   }
 }

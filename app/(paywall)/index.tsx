@@ -1,9 +1,9 @@
-import { StyleSheet, View, Text, Pressable, ScrollView, Alert } from 'react-native';
+import { Platform, StyleSheet, View, Text, Pressable, ScrollView, Alert } from 'react-native';
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
-import type { PurchasesPackage } from 'react-native-purchases';
+import type { SubscriptionPackage } from '@/src/shared/types/subscription';
 import Feather from '@expo/vector-icons/Feather';
 import { spacing, fontSize, fontFamily } from '@/src/config/theme';
 import { PRICING } from '@/src/config/constants';
@@ -12,8 +12,15 @@ import { useUser } from '@/src/shared/hooks/use-user';
 import { hasNeverPurchased } from '@/src/services/revenuecat/client';
 import { CosmicBackground } from '@/src/shared/components/cosmic-background';
 import { GoldButton } from '@/src/shared/components/gold-button';
+import { redirectToCheckout } from '@/src/services/stripe/client';
 
 const INTRO_OFFER_DURATION_MS = PRICING.INTRO_OFFER_HOURS * 60 * 60 * 1000;
+
+// Stripe price ID は環境変数から動的に取得（テスト時に上書き可能にするため関数化）
+const getStripePriceId = (plan: 'monthly' | 'annual'): string =>
+  plan === 'monthly'
+    ? (process.env.EXPO_PUBLIC_STRIPE_MONTHLY_PRICE_ID ?? '')
+    : (process.env.EXPO_PUBLIC_STRIPE_YEARLY_PRICE_ID ?? '');
 
 type PlanId = 'intro_annual' | 'annual' | 'monthly';
 
@@ -35,7 +42,130 @@ const formatCountdown = (ms: number): string => {
   return `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
 };
 
-export default function PaywallScreen() {
+// ---- Web 専用ペイウォール ----
+
+export function WebPaywallScreen() {
+  const router = useRouter();
+  const { t } = useTranslation();
+  const [selectedPlan, setSelectedPlan] = useState<'monthly' | 'annual'>('annual');
+  const [isPurchasing, setIsPurchasing] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+
+  const handlePurchase = async () => {
+    const priceId = getStripePriceId(selectedPlan);
+    if (!priceId) {
+      setErrorMessage('価格情報を取得できませんでした。');
+      return;
+    }
+
+    setIsPurchasing(true);
+    setErrorMessage(null);
+    try {
+      await redirectToCheckout(priceId);
+    } catch (err) {
+      const message = err instanceof Error ? err.message : '決済処理に失敗しました';
+      setErrorMessage(message);
+      setIsPurchasing(false);
+    }
+  };
+
+  const handleClose = () => {
+    router.back();
+  };
+
+  return (
+    <CosmicBackground>
+      <View style={webStyles.wrapper} testID="paywall-web-screen">
+        <View style={webStyles.card}>
+          {/* Close button */}
+          <Pressable style={webStyles.closeButton} onPress={handleClose} hitSlop={12} testID="paywall-close-button">
+            <Feather name="x" size={24} color="rgba(255,255,255,0.38)" />
+          </Pressable>
+
+          {/* Crown icon */}
+          <View style={webStyles.crownContainer}>
+            <Feather name="award" size={36} color="#D4A853" />
+          </View>
+
+          {/* Title */}
+          <Text style={webStyles.title}>{t('subscription.paywall.subtitle')}</Text>
+          <Text style={webStyles.subtitle}>{'AltMe Pro で AI ツインを起動しよう'}</Text>
+
+          {/* Feature list */}
+          <View style={webStyles.featureList}>
+            {FEATURE_KEYS.map((key) => (
+              <View key={key} style={webStyles.featureRow}>
+                <Feather name="check" size={16} color="#7DD3FC" />
+                <Text style={webStyles.featureLabel}>{t(key)}</Text>
+              </View>
+            ))}
+          </View>
+
+          {/* Plan selector */}
+          <View style={webStyles.plans} testID="paywall-plan-selector">
+            {/* Monthly */}
+            <Pressable
+              style={[webStyles.planCard, selectedPlan === 'monthly' && webStyles.planCardSelected]}
+              onPress={() => setSelectedPlan('monthly')}
+              testID="plan-monthly"
+            >
+              <Text style={webStyles.planName}>{t('subscription.paywall.plans.monthly')}</Text>
+              <Text style={webStyles.planPrice}>{'¥' + PRICING.MONTHLY.toLocaleString()}</Text>
+              <Text style={webStyles.planUnit}>{'/月'}</Text>
+            </Pressable>
+
+            {/* Annual */}
+            <Pressable
+              style={[webStyles.planCard, selectedPlan === 'annual' && webStyles.planCardSelected]}
+              onPress={() => setSelectedPlan('annual')}
+              testID="plan-annual"
+            >
+              <View style={webStyles.badgeContainer}>
+                <Text style={webStyles.badge}>{'33% OFF'}</Text>
+              </View>
+              <Text style={webStyles.planName}>{t('subscription.paywall.plans.yearly')}</Text>
+              <Text style={webStyles.planPrice}>{'¥' + PRICING.ANNUAL.toLocaleString()}</Text>
+              <Text style={webStyles.planUnit}>{'¥' + Math.round(PRICING.ANNUAL / 12).toLocaleString() + '/月'}</Text>
+            </Pressable>
+          </View>
+
+          {/* Error message */}
+          {errorMessage && (
+            <Text style={webStyles.errorText} testID="paywall-error-message">{errorMessage}</Text>
+          )}
+
+          {/* CTA button */}
+          <GoldButton
+            title={isPurchasing ? t('subscription.paywall.processing') : t('subscription.paywall.startTrial')}
+            onPress={handlePurchase}
+            disabled={isPurchasing}
+            loading={isPurchasing}
+            style={webStyles.ctaButton}
+            testID="paywall-purchase-button"
+          />
+
+          {/* Legal note */}
+          <Text style={webStyles.legalNote}>{t('subscription.paywall.trialNote')}</Text>
+
+          {/* Terms | Privacy */}
+          <View style={webStyles.legalRow}>
+            <Pressable>
+              <Text style={webStyles.legalLink}>{t('subscription.paywall.termsOfService')}</Text>
+            </Pressable>
+            <Text style={webStyles.legalSeparator}>{'|'}</Text>
+            <Pressable>
+              <Text style={webStyles.legalLink}>{t('subscription.paywall.privacy')}</Text>
+            </Pressable>
+          </View>
+        </View>
+      </View>
+    </CosmicBackground>
+  );
+}
+
+// ---- Native ペイウォール（既存実装を維持） ----
+
+function NativePaywallScreen() {
   const router = useRouter();
   const { t } = useTranslation();
   const { purchase, restore, loadOfferings, offerings, isLoading } = useSubscription();
@@ -48,12 +178,10 @@ export default function PaywallScreen() {
   const [isRestoring, setIsRestoring] = useState(false);
   const signupTimeRef = useRef<number | null>(null);
 
-  // Load offerings on mount
   useEffect(() => {
     loadOfferings();
   }, [loadOfferings]);
 
-  // Check intro offer eligibility (AC-3: profiles.created_at < 24h AND never purchased)
   useEffect(() => {
     const checkIntroEligibility = async () => {
       try {
@@ -72,7 +200,6 @@ export default function PaywallScreen() {
           return;
         }
 
-        // Check RevenueCat purchase history (Q4: use SDK)
         const neverPurchased = await hasNeverPurchased();
         if (!neverPurchased) {
           setShowIntroOffer(false);
@@ -90,7 +217,6 @@ export default function PaywallScreen() {
     checkIntroEligibility();
   }, [createdAt]);
 
-  // Countdown timer (server-based, tamper-resistant per AC-3)
   useEffect(() => {
     if (!showIntroOffer) return;
 
@@ -113,10 +239,10 @@ export default function PaywallScreen() {
     return () => clearInterval(timer);
   }, [showIntroOffer]);
 
-  const getSelectedPackage = useCallback((): PurchasesPackage | null => {
-    if (!offerings?.current?.availablePackages) return null;
+  const getSelectedPackage = useCallback((): SubscriptionPackage | null => {
+    if (!offerings?.current?.packages) return null;
 
-    const packages = offerings.current.availablePackages;
+    const packages = offerings.current.packages;
     switch (selectedPlan) {
       case 'intro_annual':
         return packages.find((p) => p.identifier === 'intro_annual') ?? null;
@@ -178,7 +304,6 @@ export default function PaywallScreen() {
   return (
     <CosmicBackground>
       <SafeAreaView style={styles.container} edges={['top', 'left', 'right']}>
-        {/* Close button */}
         <Pressable style={styles.closeButton} onPress={handleClose} hitSlop={12}>
           <Feather name="x" size={24} color="rgba(255,255,255,0.38)" />
         </Pressable>
@@ -188,24 +313,20 @@ export default function PaywallScreen() {
           showsVerticalScrollIndicator={false}
           contentInsetAdjustmentBehavior="automatic"
         >
-          {/* Crown icon container */}
           <View style={styles.crownContainer}>
             <Feather name="award" size={36} color="#D4A853" />
           </View>
 
-          {/* Title */}
           <Text style={styles.title}>{t('subscription.paywall.subtitle')}</Text>
 
-          {/* Countdown (intro offer) */}
           {showIntroOffer && (
             <View style={styles.countdownContainer}>
               <Text style={styles.countdown}>
-                🔥 初回限定: 残り {formatCountdown(remainingMs)}
+                {'🔥 初回限定: 残り ' + formatCountdown(remainingMs)}
               </Text>
             </View>
           )}
 
-          {/* Feature list */}
           <View style={styles.featureList}>
             {FEATURE_KEYS.map((key) => (
               <View key={key} style={styles.featureRow}>
@@ -215,42 +336,37 @@ export default function PaywallScreen() {
             ))}
           </View>
 
-          {/* Plan options — 3 cards horizontal */}
           <View style={styles.plans}>
-            {/* Monthly */}
             <Pressable
               style={[styles.planCard, selectedPlan === 'monthly' && styles.planCardSelected]}
               onPress={() => setSelectedPlan('monthly')}
             >
               <Text style={styles.planName}>{t('subscription.paywall.plans.monthly')}</Text>
-              <Text style={styles.planPrice}>¥{PRICING.MONTHLY.toLocaleString()}</Text>
-              <Text style={styles.planUnit}>/月</Text>
+              <Text style={styles.planPrice}>{'¥' + PRICING.MONTHLY.toLocaleString()}</Text>
+              <Text style={styles.planUnit}>{'/月'}</Text>
             </Pressable>
 
-            {/* Annual */}
             <Pressable
               style={[styles.planCard, selectedPlan === 'annual' && styles.planCardSelected]}
               onPress={() => setSelectedPlan('annual')}
             >
               <Text style={styles.planName}>{t('subscription.paywall.plans.yearly')}</Text>
-              <Text style={styles.planPrice}>¥{PRICING.ANNUAL.toLocaleString()}</Text>
-              <Text style={styles.planUnit}>¥{Math.round(PRICING.ANNUAL / 12).toLocaleString()}/月 (33%OFF)</Text>
+              <Text style={styles.planPrice}>{'¥' + PRICING.ANNUAL.toLocaleString()}</Text>
+              <Text style={styles.planUnit}>{'¥' + Math.round(PRICING.ANNUAL / 12).toLocaleString() + '/月 (33%OFF)'}</Text>
             </Pressable>
 
-            {/* First Time Offer (intro annual) */}
             {showIntroOffer && (
               <Pressable
                 style={[styles.planCard, styles.planCardIntro, selectedPlan === 'intro_annual' && styles.planCardIntroSelected]}
                 onPress={() => setSelectedPlan('intro_annual')}
               >
                 <Text style={styles.planNameIntro}>{t('subscription.paywall.firstTimeOffer')}</Text>
-                <Text style={styles.planPriceIntro}>¥{PRICING.ANNUAL_INTRO.toLocaleString()}</Text>
-                <Text style={styles.planUnitIntro}>¥{Math.round(PRICING.ANNUAL_INTRO / 12).toLocaleString()}/月 ({introDiscount}%OFF)</Text>
+                <Text style={styles.planPriceIntro}>{'¥' + PRICING.ANNUAL_INTRO.toLocaleString()}</Text>
+                <Text style={styles.planUnitIntro}>{'¥' + Math.round(PRICING.ANNUAL_INTRO / 12).toLocaleString() + '/月 (' + introDiscount + '%OFF)'}</Text>
               </Pressable>
             )}
           </View>
 
-          {/* CTA button */}
           <GoldButton
             title={isPurchasing ? t('subscription.paywall.processing') : t('subscription.paywall.startTrial')}
             onPress={handlePurchase}
@@ -259,22 +375,19 @@ export default function PaywallScreen() {
             style={styles.ctaButton}
           />
 
-          {/* Restore */}
           <Pressable onPress={handleRestore} disabled={isRestoring} style={styles.restoreButton}>
             <Text style={styles.restoreText}>
               {isRestoring ? t('subscription.paywall.restoring') : t('subscription.paywall.restore')}
             </Text>
           </Pressable>
 
-          {/* Legal note */}
           <Text style={styles.legalNote}>{t('subscription.paywall.trialNote')}</Text>
 
-          {/* Terms | Privacy */}
           <View style={styles.legalRow}>
             <Pressable>
               <Text style={styles.legalLink}>{t('subscription.paywall.termsOfService')}</Text>
             </Pressable>
-            <Text style={styles.legalSeparator}>|</Text>
+            <Text style={styles.legalSeparator}>{'|'}</Text>
             <Pressable>
               <Text style={styles.legalLink}>{t('subscription.paywall.privacy')}</Text>
             </Pressable>
@@ -284,6 +397,160 @@ export default function PaywallScreen() {
     </CosmicBackground>
   );
 }
+
+// ---- エントリポイント: Platform 分岐 ----
+
+export default function PaywallScreen() {
+  if (Platform.OS === 'web') {
+    return <WebPaywallScreen />;
+  }
+  return <NativePaywallScreen />;
+}
+
+// ---- Web スタイル ----
+
+const webStyles = StyleSheet.create({
+  wrapper: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 16,
+  },
+  card: {
+    width: '100%',
+    maxWidth: 480,
+    backgroundColor: 'rgba(15,15,30,0.92)',
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: 'rgba(125,211,252,0.15)',
+    padding: 32,
+    alignItems: 'center',
+    gap: 16,
+  },
+  closeButton: {
+    alignSelf: 'flex-end',
+    marginBottom: -8,
+  },
+  crownContainer: {
+    width: 72,
+    height: 72,
+    borderRadius: 36,
+    backgroundColor: 'rgba(212,168,83,0.13)',
+    borderWidth: 2,
+    borderColor: 'rgba(212,168,83,0.25)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  title: {
+    fontSize: 24,
+    fontFamily: fontFamily.bold,
+    color: '#F8FAFC',
+    textAlign: 'center',
+  },
+  subtitle: {
+    fontSize: 14,
+    fontFamily: fontFamily.regular,
+    color: 'rgba(255,255,255,0.6)',
+    textAlign: 'center',
+    marginTop: -8,
+  },
+  featureList: {
+    alignSelf: 'stretch',
+    gap: 10,
+    marginVertical: 4,
+  },
+  featureRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+  },
+  featureLabel: {
+    fontSize: 14,
+    color: 'rgba(255,255,255,0.8)',
+    fontFamily: fontFamily.regular,
+    flex: 1,
+  },
+  plans: {
+    alignSelf: 'stretch',
+    flexDirection: 'row',
+    gap: 12,
+  },
+  planCard: {
+    flex: 1,
+    backgroundColor: '#FFFFFF08',
+    borderRadius: 12,
+    paddingVertical: 16,
+    paddingHorizontal: 12,
+    borderWidth: 1,
+    borderColor: '#FFFFFF20',
+    alignItems: 'center',
+    gap: 4,
+  },
+  planCardSelected: {
+    borderColor: '#7DD3FC',
+    borderWidth: 2,
+    backgroundColor: '#7DD3FC0A',
+  },
+  badgeContainer: {
+    backgroundColor: 'rgba(125,211,252,0.15)',
+    borderRadius: 999,
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    marginBottom: 4,
+  },
+  badge: {
+    fontSize: 10,
+    fontFamily: fontFamily.bold,
+    color: '#7DD3FC',
+  },
+  planName: {
+    fontSize: 12,
+    fontFamily: fontFamily.semiBold,
+    color: 'rgba(255,255,255,0.5)',
+  },
+  planPrice: {
+    fontSize: 22,
+    fontFamily: fontFamily.bold,
+    color: '#F8FAFC',
+  },
+  planUnit: {
+    fontSize: 11,
+    fontFamily: fontFamily.regular,
+    color: 'rgba(255,255,255,0.38)',
+    textAlign: 'center',
+  },
+  errorText: {
+    fontSize: 13,
+    color: '#F87171',
+    textAlign: 'center',
+  },
+  ctaButton: {
+    alignSelf: 'stretch',
+  },
+  legalNote: {
+    fontSize: 11,
+    fontFamily: fontFamily.regular,
+    color: 'rgba(255,255,255,0.31)',
+    textAlign: 'center',
+  },
+  legalRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm,
+  },
+  legalLink: {
+    fontSize: 11,
+    fontFamily: fontFamily.regular,
+    color: 'rgba(255,255,255,0.25)',
+  },
+  legalSeparator: {
+    fontSize: 11,
+    fontFamily: fontFamily.regular,
+    color: 'rgba(255,255,255,0.25)',
+  },
+});
+
+// ---- Native スタイル ----
 
 const styles = StyleSheet.create({
   container: {
@@ -306,8 +573,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 16,
   },
-
-  // Crown container
   crownContainer: {
     width: 80,
     height: 80,
@@ -318,16 +583,12 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
-
-  // Title
   title: {
     fontSize: 26,
     fontFamily: fontFamily.bold,
     color: '#F8FAFC',
     textAlign: 'center',
   },
-
-  // Countdown
   countdownContainer: {
     borderRadius: 999,
     backgroundColor: 'rgba(239,68,68,0.13)',
@@ -342,8 +603,6 @@ const styles = StyleSheet.create({
     color: '#FCA5A5',
     fontVariant: ['tabular-nums'],
   },
-
-  // Feature list
   featureList: {
     alignSelf: 'stretch',
     gap: 10,
@@ -359,8 +618,6 @@ const styles = StyleSheet.create({
     fontFamily: fontFamily.regular,
     flex: 1,
   },
-
-  // Plans — horizontal row
   plans: {
     alignSelf: 'stretch',
     flexDirection: 'row',
@@ -398,7 +655,6 @@ const styles = StyleSheet.create({
     color: 'rgba(255,255,255,0.38)',
     textAlign: 'center',
   },
-  // Intro plan overrides
   planCardIntro: {
     backgroundColor: 'rgba(125,211,252,0.08)',
     borderWidth: 1.5,
@@ -424,14 +680,10 @@ const styles = StyleSheet.create({
     color: 'rgba(125,211,252,0.8)',
     textAlign: 'center',
   },
-
-  // CTA
   ctaButton: {
     alignSelf: 'stretch',
     marginBottom: spacing.md,
   },
-
-  // Restore
   restoreButton: {
     paddingVertical: spacing.sm,
   },
@@ -440,16 +692,12 @@ const styles = StyleSheet.create({
     fontFamily: fontFamily.regular,
     color: '#7DD3FC',
   },
-
-  // Legal note
   legalNote: {
     fontSize: 11,
     fontFamily: fontFamily.regular,
     color: 'rgba(255,255,255,0.31)',
     textAlign: 'center',
   },
-
-  // Legal
   legalRow: {
     flexDirection: 'row',
     alignItems: 'center',

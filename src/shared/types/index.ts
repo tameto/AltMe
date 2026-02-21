@@ -13,6 +13,12 @@ export type {
   CreditBalance,
   CreditTransaction,
   EntitlementInfo,
+  SubscriptionPackage,
+  SubscriptionOfferings,
+  StripeCheckoutSession,
+  StripePortalSession,
+  PlatformSubscription,
+  StripeSubscriptionInfo,
 } from './subscription';
 
 export type {
@@ -42,6 +48,7 @@ export type {
   WsAgentTextDelta,
   WsAgentTextDone,
   WsErrorEvent,
+  WsReconnectAttempt,
   WsIncomingMessage,
   WsOutgoingMessage,
   WsConnectionStatus,
@@ -53,3 +60,19 @@ export type {
   JournalEntry,
   MoodRecord,
 } from './journal';
+
+export type {
+  PlatformType,
+  Breakpoint,
+  ResponsiveInfo,
+  NetworkState,
+  MediaPickerResult,
+  FileDropEvent,
+  WebKeyboardShortcut,
+} from './platform';
+
+export type {
+  AuthProvider,
+  WebAuthSession,
+  AuthState,
+} from './auth';

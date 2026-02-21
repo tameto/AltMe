@@ -1,5 +1,5 @@
 import React from 'react';
-import { ActivityIndicator, Pressable, StyleSheet, Text, type ViewStyle } from 'react-native';
+import { ActivityIndicator, Platform, Pressable, StyleSheet, Text, type ViewStyle } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 
 import { goldGradient, fontFamily } from '@/src/config/theme';
@@ -21,6 +21,7 @@ export function GoldButton({ title, onPress, disabled, loading, style, testID }:
       disabled={disabled || loading}
       style={({ pressed }) => [
         styles.container,
+        Platform.OS === 'web' && styles.webCursor,
         (disabled || loading) && styles.disabled,
         pressed && styles.pressed,
         style,
@@ -59,6 +60,9 @@ const styles = StyleSheet.create({
     color: '#1A1A2E',
     fontFamily: fontFamily.bold,
     fontSize: 17,
+  },
+  webCursor: {
+    cursor: 'pointer',
   },
   disabled: {
     opacity: 0.6,

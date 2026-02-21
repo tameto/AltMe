@@ -20,15 +20,16 @@
 
 | レイヤー | 技術 | バージョン | 備考 |
 |---------|------|----------|------|
-| フロントエンド | React Native (Expo) | SDK 54 | Expo Router |
+| フロントエンド | React Native (Expo) + Web | SDK 54 | Expo Router（クロスプラットフォーム対応） |
 | 状態管理 | Zustand | 5.x | persist middleware使用 |
 | バックエンド | Supabase | - | PostgreSQL + Auth + Edge Functions |
-| 認証 | Supabase Auth | - | Apple / Google Sign-In |
+| 認証 | Supabase Auth | - | Apple / Google Sign-In（Web/Native共通） |
 | AI基盤 | OpenClaw | - | ユーザーごとにDigitalOcean Dropletへデプロイ |
 | インフラ | DigitalOcean | - | Droplet自動プロビジョニング |
 | 課金（モバイル） | RevenueCat | SDK 8.x | Paywalls SDK含む |
 | 課金（Web） | Stripe | Checkout + Webhook | RevenueCat Stripe Provider統合 |
-| 通知 | Expo Notifications | - | ローカル + プッシュ |
+| 通知 | Expo Notifications（Native）/ Web Push（計画中） | - | ローカル + プッシュ |
+| Web プラットフォーム | `.web.ts` / `.native.ts` 分離 | Metro resolution | 単一コードベース |
 
 ---
 
@@ -145,8 +146,41 @@
 - 音声チャット（Phase 2以降）
 - ユーザー同士のDM・フォロー（コミュニティはツイン交流のみ）
 - マルチエージェント（1ユーザー1インスタンス）
-- Web版フルアプリ（課金のみWeb対応、アプリ本体はモバイルのみ）
+- PWA（Progressive Web App）対応（Phase 2以降）
 - 多言語対応（Phase 2以降、MVP時点では日本語+英語）
+
+---
+
+## Web 対応実装（2026-02-21 完了）
+
+### Web プラットフォーム
+- **対応ブラウザ**: Chrome 90+, Firefox 90+, Safari 15+, Edge 90+
+- **アーキテクチャ**: `.web.ts` / `.native.ts` プラットフォーム分離（Metro auto-resolution）
+- **レスポンシブ**: モバイル < 768px / タブレット 768-1023px / デスクトップ >= 1024px / ワイド >= 1440px
+- **ナビゲーション**: Web はサイドバー固定（240px）、モバイルはボトムタブ
+
+### Web 機能一覧
+| 機能 | Web実装 | 備考 |
+|------|--------|------|
+| 認証 | ✅ | Google / Apple / devLogin（OAuth redirect フロー） |
+| チャット | ✅ | WebSocket (Pro) + SSE (Free)、キーボードショートカット |
+| メディアアップロード | ✅ | ファイル選択 + ドラッグ&ドロップ |
+| オンボーディング | ✅ | 6画面のステップフォーム |
+| コミュニティ | ✅ | レスポンシブグリッドレイアウト |
+| ツイン情報 | ✅ | ダッシュボードスタイル |
+| 設定 | ✅ | Stripe Customer Portal 統合 |
+| 課金（Stripe） | ✅ | Checkout → Webhook → DB同期 + RevenueCat同期 |
+
+### テスト環境
+- **Jest**: 4プロジェクト（ios / android / web / shared）
+- **E2E**: Playwright 5ブラウザプロジェクト（Chrome, Firefox, Safari, Edge, WebKit）
+- **カバレッジ目標**: 行カバレッジ 80% 以上
+
+### 主要な Edge Functions
+- `create-checkout-session` — Stripe Checkout セッション作成
+- `create-portal-session` — Stripe Customer Portal セッション作成
+- `webhook-stripe` — Stripe Webhook 処理
+- 全 Edge Functions CORS 対応（getCorsHeaders使用）
 
 ---
 
@@ -492,3 +526,4 @@ fontFamily: {
 | 2026-02-15 | オンボーディング: 4画面→6画面に変更<br>新画面追加: choose-avatar.tsx (4), choose-tone.tsx (5)<br>画面一覧更新<br>ディレクトリ構成にchoose-avatar.tsx, choose-tone.tsx追記 | V3 Liquid Glass: AIアイコン・口調カスタマイズ機能追加 | — |
 | 2026-02-15 | ゲストブラウズモード追加<br>Web版課金（Stripe）追加<br>トークン管理追加<br>API Key保護原則追加<br>Googleロゴ規約準拠追加<br>「やらないこと」からWeb版を変更（課金のみWeb対応） | 7新要件の反映 | — |
 | 2026-02-16 | デザインシステムセクション追加（V4 Dark Premium）<br>カラートークン・glassmorphism・goldGradient・sendGradient・tabBarColors・fontFamily追記<br>新規共通コンポーネント（CosmicBackground/GlassCard/GoldButton）追記<br>追加パッケージ（expo-blur/expo-linear-gradient/@expo-google-fonts/outfit）追記<br>タイポグラフィスケール追記 | Reconcile: V4 Dark Premium UI 実装完了後の仕様書同期 | — |
+| 2026-02-21 | 技術スタックに Web プラットフォーム対応を追記<br>「やらないこと」に PWA 対応を追加<br>新規「Web 対応実装」セクション追加（アーキテクチャ、機能一覧、テスト環境、Edge Functions） | Reconcile: Web 版フル実装完了（12フェーズ）の仕様書同期 | 20260221-web-full-impl |
