@@ -85,6 +85,8 @@ type OnboardingStore = {
   isAnalyzing: boolean;
   avatarIcon: AvatarIcon | null;
   toneStyle: ToneStyle | null;
+  twinName: string;
+  meetTwinPhase: 'name' | 'chat';
 
   // Actions
   addAnswer: (questionId: string, answer: string) => void;
@@ -92,6 +94,8 @@ type OnboardingStore = {
   setAnalyzing: (analyzing: boolean) => void;
   setAvatarIcon: (icon: AvatarIcon) => void;
   setToneStyle: (style: ToneStyle) => void;
+  setTwinName: (name: string) => void;
+  setMeetTwinPhase: (phase: 'name' | 'chat') => void;
   goNext: () => void;
   goPrev: () => void;
   reset: () => void;
@@ -104,6 +108,8 @@ export const useOnboardingStore = create<OnboardingStore>((set) => ({
   isAnalyzing: false,
   avatarIcon: null,
   toneStyle: null,
+  twinName: '',
+  meetTwinPhase: 'name',
 
   addAnswer: (questionId, answer) =>
     set((state) => {
@@ -118,6 +124,10 @@ export const useOnboardingStore = create<OnboardingStore>((set) => ({
   setAvatarIcon: (icon) => set({ avatarIcon: icon }),
 
   setToneStyle: (style) => set({ toneStyle: style }),
+
+  setTwinName: (name) => set({ twinName: name }),
+
+  setMeetTwinPhase: (phase) => set({ meetTwinPhase: phase }),
 
   goNext: () =>
     set((state) => ({
@@ -137,5 +147,7 @@ export const useOnboardingStore = create<OnboardingStore>((set) => ({
       isAnalyzing: false,
       avatarIcon: null,
       toneStyle: null,
+      twinName: '',
+      meetTwinPhase: 'name',
     }),
 }));

@@ -17,6 +17,8 @@ import { useTranslation } from 'react-i18next';
 import Feather from '@expo/vector-icons/Feather';
 import { CosmicBackground } from '@/src/shared/components/cosmic-background';
 import { GoldButton } from '@/src/shared/components/gold-button';
+import { GlassCard } from '@/src/shared/components/glass-card';
+import { OnboardingProgressBar } from '@/src/shared/components/onboarding-progress-bar';
 import { spacing, fontFamily, borderRadius, glassmorphism } from '@/src/config/theme';
 import { useOnboardingStore } from '@/src/features/onboarding/stores/onboarding-store';
 import type { SpeechTone } from '@/src/shared/types/user';
@@ -42,6 +44,10 @@ export default function MeetTwinScreen() {
 
   const { isMobile } = useResponsive();
 
+  const twinName = useOnboardingStore((s) => s.twinName);
+  const setTwinName = useOnboardingStore((s) => s.setTwinName);
+  const phase = useOnboardingStore((s) => s.meetTwinPhase);
+  const setPhase = useOnboardingStore((s) => s.setMeetTwinPhase);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [inputText, setInputText] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -60,6 +66,7 @@ export default function MeetTwinScreen() {
           };
           await updateProfile({
             onboardingCompleted: true,
+            twinName: twinName.trim() || null,
             ...(avatarIcon ? { avatarIcon: avatarIcon } : {}),
             ...(toneStyle ? { speechTone: toneMap[toneStyle] ?? 'friendly' } : {}),
           });
@@ -70,18 +77,20 @@ export default function MeetTwinScreen() {
       };
       completeOnboarding();
     }
-  }, [isPro, chatEnded, updateProfile, avatarIcon, toneStyle]);
+  }, [isPro, chatEnded, updateProfile, avatarIcon, toneStyle, twinName]);
 
   useEffect(() => {
-    const introMessage = generateIntroMessage();
-    setMessages([
-      {
-        id: 'twin-intro',
-        role: 'twin',
-        content: introMessage,
-      },
-    ]);
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+    if (phase === 'chat') {
+      const introMessage = generateIntroMessage();
+      setMessages([
+        {
+          id: 'twin-intro',
+          role: 'twin',
+          content: introMessage,
+        },
+      ]);
+    }
+  }, [phase]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const generateIntroMessage = (): string => {
     const traits = personalityResult?.personalityTraits;
@@ -195,7 +204,10 @@ export default function MeetTwinScreen() {
 
   const handleSkip = async () => {
     try {
-      await updateProfile({ onboardingCompleted: true });
+      await updateProfile({
+        onboardingCompleted: true,
+        twinName: twinName.trim() || null,
+      });
     } catch (err) {
       console.error('Failed to update onboarding status:', err);
     }
@@ -213,7 +225,7 @@ export default function MeetTwinScreen() {
           ]}
         >
           {isTwin ? (
-            <Text style={styles.twinLabel}>{t('onboarding.meetTwin.twinLabel')}</Text>
+            <Text style={styles.twinLabel}>{twinName.trim() || t('onboarding.meetTwin.twinLabel')}</Text>
           ) : null}
           <Text
             style={[
@@ -226,7 +238,7 @@ export default function MeetTwinScreen() {
         </View>
       );
     },
-    [t],
+    [t, twinName],
   );
 
   const keyExtractor = useCallback((item: ChatMessage) => item.id, []);
@@ -314,14 +326,52 @@ export default function MeetTwinScreen() {
     </View>
   );
 
+  const namePhaseBody = (
+    <View style={styles.namePhaseContainer}>
+      <OnboardingProgressBar currentStep={6} style={styles.progressBar} />
+      <Text style={styles.headerStep}>6 / 6</Text>
+
+      <View style={styles.namePhase}>
+        <View style={styles.avatarPreview}>
+          <Feather name="cpu" size={60} color="#7DD3FC" />
+        </View>
+
+        <Text style={styles.nameTitle}>{t('onboarding.meetTwin.title')}</Text>
+        <Text style={styles.nameSubtitle}>{t('onboarding.meetTwin.subtitle')}</Text>
+
+        <Text style={styles.nameLabel}>{t('onboarding.meetTwin.nameLabel')}</Text>
+        <GlassCard variant="input" style={styles.nameInputCard}>
+          <TextInput
+            style={styles.nameInput}
+            value={twinName}
+            onChangeText={setTwinName}
+            placeholder={t('onboarding.meetTwin.namePlaceholder')}
+            placeholderTextColor="#64748B"
+            maxLength={20}
+            autoFocus
+          />
+        </GlassCard>
+
+        <GoldButton
+          title={t('onboarding.meetTwin.nameConfirm')}
+          onPress={() => setPhase('chat')}
+          disabled={!twinName.trim()}
+          style={styles.nameConfirmButton}
+        />
+      </View>
+    </View>
+  );
+
   const chatBody = (
-    <>
+    <View style={styles.chatPhase}>
       <View style={styles.header}>
+        <OnboardingProgressBar currentStep={6} style={styles.progressBar} />
+        <Text style={styles.headerStep}>6 / 6</Text>
         <View style={styles.avatarWrapper}>
           <Feather name="cpu" size={48} color="#7DD3FC" />
         </View>
         <Text style={styles.headerTitle}>
-          {t('onboarding.meetTwin.title')}
+          {twinName.trim() || t('onboarding.meetTwin.twinLabel')}
         </Text>
       </View>
 
@@ -347,15 +397,17 @@ export default function MeetTwinScreen() {
       ) : null}
 
       {inputSection}
-    </>
+    </View>
   );
+
+  const content = phase === 'name' ? namePhaseBody : chatBody;
 
   if (isWeb) {
     return (
       <CosmicBackground>
         <View style={styles.container}>
           <View style={[styles.keyboardAvoid, !isMobile && styles.contentDesktop]}>
-            {chatBody}
+            {content}
           </View>
         </View>
       </CosmicBackground>
@@ -370,7 +422,7 @@ export default function MeetTwinScreen() {
           behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
           keyboardVerticalOffset={0}
         >
-          {chatBody}
+          {content}
         </KeyboardAvoidingView>
       </SafeAreaView>
     </CosmicBackground>
@@ -389,9 +441,83 @@ const styles = StyleSheet.create({
     alignSelf: 'center' as const,
     width: '100%' as unknown as number,
   },
+  progressBar: {
+    marginBottom: 8,
+    paddingHorizontal: spacing.lg,
+  },
+  headerStep: {
+    fontFamily: fontFamily.regular,
+    fontSize: 12,
+    color: '#94A3B8',
+    textAlign: 'center',
+    marginBottom: 8,
+  },
+  // Name phase
+  namePhaseContainer: {
+    flex: 1,
+    paddingTop: spacing.lg,
+  },
+  namePhase: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 24,
+  },
+  avatarPreview: {
+    width: 120,
+    height: 120,
+    borderRadius: 60,
+    backgroundColor: 'rgba(125,211,252,0.08)',
+    borderWidth: 2,
+    borderColor: 'rgba(125,211,252,0.25)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 32,
+  },
+  nameTitle: {
+    fontSize: 28,
+    fontFamily: fontFamily.bold,
+    color: '#F8FAFC',
+    textAlign: 'center',
+    marginBottom: 8,
+  },
+  nameSubtitle: {
+    fontSize: 16,
+    fontFamily: fontFamily.regular,
+    color: '#94A3B8',
+    textAlign: 'center',
+    marginBottom: 32,
+  },
+  nameLabel: {
+    fontSize: 14,
+    fontFamily: fontFamily.medium,
+    color: '#94A3B8',
+    alignSelf: 'flex-start',
+    marginBottom: 8,
+  },
+  nameInputCard: {
+    width: '100%',
+    borderRadius: 12,
+  },
+  nameInput: {
+    fontSize: 16,
+    fontFamily: fontFamily.regular,
+    color: '#F8FAFC',
+    paddingVertical: 14,
+    paddingHorizontal: 16,
+  },
+  nameConfirmButton: {
+    marginTop: 24,
+    alignSelf: 'stretch',
+  },
+  // Chat phase
+  chatPhase: {
+    flex: 1,
+  },
   header: {
     alignItems: 'center',
-    paddingVertical: spacing.md,
+    paddingTop: spacing.md,
+    paddingBottom: spacing.md,
     borderBottomWidth: 1,
     borderBottomColor: glassmorphism.card.border,
     gap: spacing.sm,

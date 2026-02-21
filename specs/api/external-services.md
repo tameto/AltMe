@@ -1202,7 +1202,7 @@ type: "image" | "video" | "audio"
 **レスポンス:**
 ```json
 {
-  "url": "https://xxx.supabase.co/storage/v1/object/public/chat-attachments/...",
+  "url": "https://xxx.supabase.co/storage/v1/object/signed/chat-media/...",
   "thumbnail_url": "https://...",
   "file_size": 1048576,
   "mime_type": "image/jpeg",
@@ -1218,7 +1218,7 @@ type: "image" | "video" | "audio"
 2. ファイルバリデーション
    - サイズ制限: image 10MB, video 100MB, audio 50MB
    - MIMEタイプ制限: image/jpeg, image/png, image/webp, video/mp4, audio/m4a, audio/mp3
-3. Supabase Storage にアップロード（chat-attachments バケット）
+3. Supabase Storage にアップロード（chat-media バケット）
 4. 画像の場合: 幅・高さを取得
 5. 動画の場合: サムネイル生成、duration取得
 6. レスポンス返却
@@ -1442,12 +1442,12 @@ URLからOGPメタデータを取得する。チャット内のリンクプレ�
 
 | バケット名 | 用途 | サイズ制限 | MIMEタイプ制限 |
 |-----------|------|----------|--------------|
-| chat-attachments | チャット添付ファイル | image: 10MB, video: 100MB, audio: 50MB | image/jpeg, image/png, image/webp, video/mp4, audio/m4a, audio/mp3 |
+| chat-media | チャット添付ファイル | image: 10MB, video: 100MB, audio: 50MB | image/jpeg, image/png, image/webp, video/mp4, audio/m4a, audio/mp3 |
 | community-thumbnails | コミュニティサムネイル | 5MB | image/jpeg, image/png, image/webp |
 
 **バケットポリシー:**
 ```sql
--- chat-attachments: 認証済みユーザーのみアップロード可能
+-- chat-media: 認証済みユーザーのみアップロード・閲覧可能（Signed URL経由）
 -- community-thumbnails: 認証済みユーザーのみアップロード可能、全員が閲覧可能
 ```
 
@@ -1514,4 +1514,5 @@ URLからOGPメタデータを取得する。チャット内のリンクプレ�
 | 2026-02-14 | cloud-init: 機密情報の自動削除 | セキュリティ強化 |
 | 2026-02-15 | 新Edge Functions 6個追加: upload-media(#14), fetch-ogp(#15), translate-message(#16), send-push-notification(#17), trigger-community-conversation(#18), create-community(#19) | 新機能対応: メディア添付、OGP、翻訳、通知、コミュニティ |
 | 2026-02-15 | update-soul-md: MBTI情報反映、twin_name変更時のnameフィールド更新を追加 | MBTI・ツイン名対応 |
-| 2026-02-15 | 追加外部サービス: Supabase Storage（chat-attachments, community-thumbnails）、Expo Push API、Stripe（Web課金）を追加 | 新機能対応 |
+| 2026-02-15 | 追加外部サービス: Supabase Storage（chat-media, community-thumbnails）、Expo Push API、Stripe（Web課金）を追加 | 新機能対応 |
+| 2026-02-21 | chat-attachments → chat-media にバケット名変更、Signed URL アクセスに変更 | 実装との整合性（Codex レビュー C-1/C-2 指摘対応） |

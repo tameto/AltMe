@@ -7,6 +7,7 @@ import Feather from '@expo/vector-icons/Feather';
 import { CosmicBackground } from '@/src/shared/components/cosmic-background';
 import { GlassCard } from '@/src/shared/components/glass-card';
 import { GoldButton } from '@/src/shared/components/gold-button';
+import { OnboardingProgressBar } from '@/src/shared/components/onboarding-progress-bar';
 import { spacing, fontFamily, borderRadius, glassmorphism } from '@/src/config/theme';
 import { useOnboardingStore } from '@/src/features/onboarding/stores/onboarding-store';
 import type { PersonalityTraits } from '@/src/shared/types/user';
@@ -68,6 +69,7 @@ export default function ResultScreen() {
     <CosmicBackground>
       <Wrapper style={styles.container}>
         <View style={[styles.innerContent, !isMobile && styles.contentDesktop]}>
+        <OnboardingProgressBar currentStep={3} style={{ marginBottom: 16 }} />
         <View style={styles.header}>
           <Pressable style={styles.backButton} onPress={() => router.back()}>
             <Feather name="arrow-left" size={24} color="#F8FAFC" />
@@ -121,7 +123,7 @@ export default function ResultScreen() {
             </GlassCard>
           ) : null}
 
-          <View style={styles.blurredSection}>
+          <Pressable style={styles.blurredSection} onPress={() => router.push('/(paywall)')}>
             <View style={styles.blurredHeader}>
               <Text style={styles.blurredTitle}>
                 {t('onboarding.result.detailedAnalysis')}
@@ -133,7 +135,7 @@ export default function ResultScreen() {
                 {t('onboarding.result.detailedDescription')}
               </Text>
             </View>
-          </View>
+          </Pressable>
 
           <View style={styles.ctaSection}>
             <GoldButton

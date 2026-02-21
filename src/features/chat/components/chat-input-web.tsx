@@ -5,11 +5,15 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { useTranslation } from 'react-i18next';
 import { colors, fontFamily, sendGradient } from '@/src/config/theme';
 import { CHAT } from '@/src/config/constants';
+import type { ImagePickerAsset } from 'expo-image-picker';
+
+const MAX_FILE_SIZE_BYTES = 10 * 1024 * 1024; // 10MB
 
 type ChatInputWebProps = {
   value: string;
   onChangeText: (text: string) => void;
   onSend: () => void;
+  onImageSelected?: (asset: ImagePickerAsset) => void;
   disabled?: boolean;
   isLoading?: boolean;
   maxLength?: number;
@@ -20,6 +24,7 @@ export function ChatInputWeb({
   value,
   onChangeText,
   onSend,
+  onImageSelected,
   disabled = false,
   isLoading = false,
   maxLength = CHAT.maxMessageLength,
@@ -28,6 +33,7 @@ export function ChatInputWeb({
   const { t } = useTranslation();
   const [isComposing, setIsComposing] = useState(false);
   const inputRef = useRef<TextInput>(null);
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
 
   const canSend = value.trim().length > 0 && !isLoading && !disabled;
   const charCount = value.length;
@@ -73,11 +79,83 @@ export function ChatInputWeb({
     [handleCompositionStart, handleCompositionEnd],
   );
 
+  const handlePlusPress = useCallback(() => {
+    if (Platform.OS === 'web' && onImageSelected) {
+      // Trigger hidden file input
+      if (fileInputRef.current) {
+        fileInputRef.current.click();
+      }
+    }
+  }, [onImageSelected]);
+
+  const handleFileChange = useCallback(
+    (e: Event) => {
+      const input = e.target as HTMLInputElement;
+      const file = input.files?.[0];
+      if (!file || !onImageSelected) return;
+
+      if (file.size > MAX_FILE_SIZE_BYTES) {
+        alert('ファイルサイズが10MBを超えています。より小さい画像を選択してください。');
+        input.value = '';
+        return;
+      }
+
+      const objectUrl = URL.createObjectURL(file);
+      const asset: ImagePickerAsset = {
+        uri: objectUrl,
+        fileName: file.name,
+        mimeType: file.type,
+        fileSize: file.size,
+        width: 0,
+        height: 0,
+        type: 'image',
+        assetId: null,
+        base64: null,
+        duration: null,
+        exif: null,
+        pairedVideoAsset: null,
+      };
+
+      onImageSelected(asset);
+      input.value = '';
+    },
+    [onImageSelected],
+  );
+
+  const setFileInputRef = useCallback(
+    (node: HTMLInputElement | null) => {
+      if (fileInputRef.current) {
+        fileInputRef.current.removeEventListener('change', handleFileChange);
+      }
+      fileInputRef.current = node;
+      if (node) {
+        node.addEventListener('change', handleFileChange);
+      }
+    },
+    [handleFileChange],
+  );
+
   return (
     <View style={styles.container}>
+      {/* Hidden file input for web image selection */}
+      {Platform.OS === 'web' && onImageSelected ? (
+        <input
+          ref={setFileInputRef as unknown as React.RefCallback<HTMLInputElement>}
+          type="file"
+          accept="image/*"
+          style={{ display: 'none' }}
+          aria-hidden="true"
+        />
+      ) : null}
+
       <View style={styles.inputRow}>
         {/* Plus button */}
-        <Pressable style={styles.plusButton} testID="chat-input-plus">
+        <Pressable
+          style={styles.plusButton}
+          testID="chat-input-plus"
+          onPress={handlePlusPress}
+          disabled={disabled || isLoading}
+        >
           <Feather name="plus" size={18} color="#FFFFFF70" />
         </Pressable>
 

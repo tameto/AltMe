@@ -1,7 +1,7 @@
 import type { Config } from 'jest';
 
 const transformIgnorePatterns = [
-  'node_modules/(?!((jest-)?react-native|@react-native(-community)?)|expo(nent)?|@expo(nent)?/.*|@expo-google-fonts/.*|react-navigation|@react-navigation/.*|@sentry/react-native|native-base|react-native-svg|react-native-purchases|@supabase/.*|zustand)',
+  'node_modules/(?!((jest-)?react-native|@react-native(-community)?)|expo(nent)?|@expo(nent)?/.*|@expo-google-fonts/.*|react-navigation|@react-navigation/.*|@sentry/react-native|native-base|react-native-svg|react-native-purchases|@supabase/.*|zustand|@ronradtke/react-native-markdown-display)',
 ];
 
 const baseConfig: Partial<Config> = {

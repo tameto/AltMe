@@ -10,6 +10,7 @@ import { CosmicBackground } from '@/src/shared/components/cosmic-background';
 import { GoldButton } from '@/src/shared/components/gold-button';
 import { spacing, fontFamily, borderRadius } from '@/src/config/theme';
 import { useOnboardingStore } from '@/src/features/onboarding/stores/onboarding-store';
+import { OnboardingProgressBar } from '@/src/shared/components/onboarding-progress-bar';
 import { AVATAR_SOURCES } from '@/src/config/avatar-map';
 import type { AvatarIcon } from '@/src/shared/types/user';
 
@@ -24,7 +25,7 @@ const avatarData: AvatarItem[] = AVATAR_ENTRIES.map(([key, source]) => ({ key, s
 
 export default function ChooseAvatarScreen() {
   const { t } = useTranslation();
-  const { isMobile } = useResponsive();
+  const { isMobile, breakpoint } = useResponsive();
   const avatarIcon = useOnboardingStore((s) => s.avatarIcon);
   const setAvatarIcon = useOnboardingStore((s) => s.setAvatarIcon);
 
@@ -40,12 +41,20 @@ export default function ChooseAvatarScreen() {
         <Pressable
           style={[styles.gridItem, isSelected ? styles.gridItemSelected : null]}
           onPress={() => setAvatarIcon(item.key as AvatarIcon)}
+          accessibilityRole="radio"
+          accessibilityState={{ selected: isSelected }}
+          accessibilityLabel={item.key}
         >
           <Image
             source={item.source}
             style={styles.avatarImage}
             resizeMode="cover"
           />
+          {isSelected && (
+            <View style={styles.checkBadge}>
+              <Feather name="check-circle" size={20} color="#7DD3FC" />
+            </View>
+          )}
         </Pressable>
       );
     },
@@ -57,19 +66,20 @@ export default function ChooseAvatarScreen() {
   const selectedSource = avatarIcon ? AVATAR_SOURCES[avatarIcon] : null;
 
   const Wrapper = Platform.OS === 'web' ? View : SafeAreaView;
-  const numColumns = isMobile ? 5 : 6;
+  const numColumns = breakpoint === 'mobile' ? 4 : breakpoint === 'tablet' ? 5 : 6;
 
 
   return (
     <CosmicBackground>
       <Wrapper style={styles.container}>
         <View style={[styles.content, !isMobile && styles.contentDesktop]}>
+          <OnboardingProgressBar currentStep={4} style={{ marginBottom: 16 }} />
           <View style={styles.header}>
             <Pressable style={styles.backButton} onPress={() => router.back()}>
               <Feather name="arrow-left" size={24} color="#F8FAFC" />
             </Pressable>
             <Text style={styles.headerTitle}>{t('onboarding.avatar.title')}</Text>
-            <Text style={styles.step}>5 / 6</Text>
+            <Text style={styles.step}>4 / 6</Text>
           </View>
 
           <View style={styles.previewContainer}>
@@ -204,6 +214,12 @@ const styles = StyleSheet.create({
   avatarImage: {
     width: 64,
     height: 64,
+  },
+  checkBadge: {
+    position: 'absolute',
+    top: 4,
+    right: 4,
+    zIndex: 1,
   },
   footer: {
     justifyContent: 'flex-end',

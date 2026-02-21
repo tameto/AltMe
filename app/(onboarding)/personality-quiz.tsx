@@ -5,6 +5,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useResponsive } from '@/src/shared/hooks/use-responsive';
 import Feather from '@expo/vector-icons/Feather';
 import { CosmicBackground } from '@/src/shared/components/cosmic-background';
+import { OnboardingProgressBar } from '@/src/shared/components/onboarding-progress-bar';
 import { spacing, fontFamily } from '@/src/config/theme';
 import { ONBOARDING_QUESTION_COUNT } from '@/src/config/constants';
 import {
@@ -28,7 +29,6 @@ export default function PersonalityQuizScreen() {
   const fadeAnim = useRef(new Animated.Value(1)).current;
 
   const currentQuestion = PERSONALITY_QUESTIONS[currentStep];
-  const progress = (currentStep + 1) / ONBOARDING_QUESTION_COUNT;
   const isFirstQuestion = currentStep === 0;
 
   const animateTransition = useCallback(
@@ -159,9 +159,7 @@ export default function PersonalityQuizScreen() {
             </Text>
           </View>
 
-          <View style={styles.progressBar}>
-            <View style={[styles.progressFill, { width: `${progress * 100}%` }]} />
-          </View>
+          <OnboardingProgressBar currentStep={2} style={{ marginBottom: spacing.xxl }} />
 
           <Animated.View style={[styles.questionContainer, { opacity: fadeAnim }]}>
             <Text style={styles.questionNumber}>Q{currentStep + 1}</Text>
@@ -249,18 +247,6 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: 'rgba(255,255,255,0.38)',
     textAlign: 'right',
-  },
-  progressBar: {
-    height: 4,
-    backgroundColor: 'rgba(255,255,255,0.08)',
-    borderRadius: 9999,
-    marginBottom: spacing.xxl,
-    overflow: 'hidden',
-  },
-  progressFill: {
-    height: '100%',
-    backgroundColor: '#7DD3FC',
-    borderRadius: 9999,
   },
   questionContainer: {
     flex: 1,

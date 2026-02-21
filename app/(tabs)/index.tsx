@@ -1,4 +1,4 @@
-import React, { useCallback } from 'react';
+import React, { useCallback, useState } from 'react';
 import {
   View,
   TextInput,
@@ -9,11 +9,13 @@ import {
   ActivityIndicator,
   Pressable,
   Text,
+  Alert,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Feather } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
 import { LinearGradient } from 'expo-linear-gradient';
+import type { ImagePickerAsset } from 'expo-image-picker';
 
 import { colors, fontFamily, sendGradient } from '@/src/config/theme';
 import { CosmicBackground } from '@/src/shared/components/cosmic-background';
@@ -30,8 +32,12 @@ import { TopicChipsRow } from '@/src/features/chat/components/topic-chips-row';
 import { ChatBubble } from '@/src/features/chat/components/chat-bubble';
 import { DateSeparator } from '@/src/features/chat/components/date-separator';
 import { RemainingCounter } from '@/src/features/chat/components/remaining-counter';
+import { ScrollToBottomFab } from '@/src/features/chat/components/scroll-to-bottom-fab';
 import { useTopics } from '@/src/features/chat/hooks/use-topics';
+import { useTranslation as useChatTranslation } from '@/src/features/chat/hooks/use-translation';
 import { ChatInputWeb } from '@/src/features/chat/components/chat-input-web';
+import { MediaPicker } from '@/src/features/chat/components/media-picker';
+import { uploadChatMedia } from '@/src/features/chat/services/media-upload';
 
 const isWeb = Platform.OS === 'web';
 
@@ -49,22 +55,71 @@ export default function ChatScreen() {
     setInputText,
     isLoading,
     isLoadingHistory,
+    isLoadingMore,
+    hasMore,
     streamingText,
     connectionMode,
     wsStatus,
     todayUserCount,
     isAtLimit,
+    isJournalMode,
+    journalMaxLength,
     handleSend,
+    handleSendWithAttachment,
+    loadMoreHistory,
     flatListRef,
+    showScrollToBottom,
+    scrollToBottom,
+    onScroll,
+    unreadCount,
   } = useChat();
 
+  const [mediaPickerVisible, setMediaPickerVisible] = useState(false);
+  const [isUploading, setIsUploading] = useState(false);
+
   const { topics, activeTopic, setActiveTopic } = useTopics();
+  const { translate, translations } = useChatTranslation();
+
+  const handleImageSelected = useCallback(async (asset: ImagePickerAsset) => {
+    if (!user?.id) return;
+
+    setIsUploading(true);
+    try {
+      const messageId = `img-${Date.now()}`;
+      const fileName = asset.fileName ?? `image_${messageId}.jpg`;
+      const mimeType = asset.mimeType ?? 'image/jpeg';
+
+      const url = await uploadChatMedia(
+        user.id,
+        messageId,
+        asset.uri,
+        fileName,
+        mimeType,
+      );
+
+      await handleSendWithAttachment({
+        type: 'image',
+        url,
+        fileName,
+        fileSize: asset.fileSize ?? 0,
+        mimeType,
+        width: asset.width,
+        height: asset.height,
+      });
+    } catch (error) {
+      Alert.alert('エラー', '画像のアップロードに失敗しました。もう一度お試しください。');
+      console.error('Image upload failed:', error);
+    } finally {
+      setIsUploading(false);
+    }
+  }, [user?.id, handleSendWithAttachment]);
 
   const renderItem = useCallback(({ item }: { item: DisplayMessage | { type: 'separator'; date: string; id: string } }) => {
     if ('type' in item && item.type === 'separator') {
       return <DateSeparator date={item.date} />;
     }
     const msg = item as DisplayMessage;
+    const translationState = translations.get(msg.id);
     return (
       <ChatBubble
         role={msg.role}
@@ -72,9 +127,13 @@ export default function ChatScreen() {
         createdAt={msg.createdAt}
         twinName={user?.twinName ?? APP_NAME}
         isStreaming={msg.id === 'streaming'}
+        metadata={msg.metadata}
+        messageId={msg.id}
+        onTranslateRequest={translate}
+        translationState={translationState}
       />
     );
-  }, [user?.twinName]);
+  }, [user?.twinName, translations, translate]);
 
   if (!isAuthenticated) {
     return (
@@ -144,21 +203,46 @@ export default function ChatScreen() {
         />
       )}
 
-      {/* Message list */}
-      <FlatList
-        ref={flatListRef}
-        data={displayData}
-        renderItem={renderItem}
-        keyExtractor={(item) => item.id}
-        contentContainerStyle={styles.messageList}
-        showsVerticalScrollIndicator={false}
-        testID="chat-message-list"
-      />
+      {/* Message list + FAB */}
+      <View style={styles.messageListContainer}>
+        <FlatList
+          ref={flatListRef}
+          data={displayData}
+          renderItem={renderItem}
+          keyExtractor={(item) => item.id}
+          contentContainerStyle={styles.messageList}
+          showsVerticalScrollIndicator={false}
+          testID="chat-message-list"
+          onStartReached={hasMore ? loadMoreHistory : undefined}
+          onStartReachedThreshold={0.1}
+          onScroll={onScroll}
+          scrollEventThrottle={16}
+          ListHeaderComponent={
+            isLoadingMore ? (
+              <View style={styles.loadMoreIndicator}>
+                <ActivityIndicator size="small" color={colors.primary} />
+              </View>
+            ) : hasMore ? null : displayData.length > 1 ? (
+              <View style={styles.noMoreMessages}>
+                <Text style={styles.noMoreText}>{t('chat.noMoreMessages')}</Text>
+              </View>
+            ) : null
+          }
+        />
 
-      {isLoading && !streamingText && (
+        <ScrollToBottomFab
+          visible={showScrollToBottom}
+          unreadCount={unreadCount}
+          onPress={scrollToBottom}
+        />
+      </View>
+
+      {(isLoading || isUploading) && !streamingText && (
         <View style={styles.typingIndicator}>
           <ActivityIndicator size="small" color={colors.primary} />
-          <Text style={styles.typingText}>{t('chat.thinking')}</Text>
+          <Text style={styles.typingText}>
+            {isUploading ? '画像をアップロード中...' : t('chat.thinking')}
+          </Text>
         </View>
       )}
 
@@ -168,43 +252,62 @@ export default function ChatScreen() {
           value={inputText}
           onChangeText={setInputText}
           onSend={handleSend}
+          onImageSelected={handleImageSelected}
           disabled={isAtLimit}
-          isLoading={isLoading}
+          isLoading={isLoading || isUploading}
           placeholder={isAtLimit ? t('chat.inputPlaceholderAtLimit') : undefined}
         />
       ) : (
-        <KeyboardAvoidingView
-          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-          keyboardVerticalOffset={0}
-        >
-          <View style={styles.inputBar}>
-            <Pressable style={styles.plusButton}>
-              <Feather name="plus" size={18} color="#FFFFFF70" />
-            </Pressable>
-            <TextInput
-              style={styles.textInput}
-              value={inputText}
-              onChangeText={setInputText}
-              placeholder={isAtLimit ? t('chat.inputPlaceholderAtLimit') : t('chat.inputPlaceholder')}
-              placeholderTextColor="#FFFFFF50"
-              multiline
-              maxLength={CHAT.maxMessageLength}
-              editable={!isAtLimit}
-            />
-            {inputText.trim() && !isLoading && isOnline ? (
-              <Pressable style={styles.sendButton} onPress={handleSend}>
-                <LinearGradient
-                  colors={sendGradient.colors}
-                  start={{ x: 0, y: 0 }}
-                  end={{ x: 1, y: 1 }}
-                  style={styles.sendGradient}
-                >
-                  <Feather name="send" size={18} color="#0F172A" />
-                </LinearGradient>
+        <>
+          <KeyboardAvoidingView
+            behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+            keyboardVerticalOffset={0}
+          >
+            <View style={styles.inputBar}>
+              <Pressable
+                style={styles.plusButton}
+                onPress={() => setMediaPickerVisible(true)}
+                disabled={isAtLimit || isUploading}
+              >
+                <Feather name="plus" size={18} color="#FFFFFF70" />
               </Pressable>
-            ) : null}
-          </View>
-        </KeyboardAvoidingView>
+              <TextInput
+                style={styles.textInput}
+                value={inputText}
+                onChangeText={setInputText}
+                placeholder={
+                  isAtLimit
+                    ? t('chat.inputPlaceholderAtLimit')
+                    : isJournalMode
+                    ? t('chat.inputPlaceholderJournal', { defaultValue: '今日の出来事を書いてみよう...' })
+                    : t('chat.inputPlaceholder')
+                }
+                placeholderTextColor="#FFFFFF50"
+                multiline
+                maxLength={journalMaxLength}
+                editable={!isAtLimit}
+              />
+              {inputText.trim() && !isLoading && !isUploading && isOnline ? (
+                <Pressable style={styles.sendButton} onPress={handleSend}>
+                  <LinearGradient
+                    colors={sendGradient.colors}
+                    start={{ x: 0, y: 0 }}
+                    end={{ x: 1, y: 1 }}
+                    style={styles.sendGradient}
+                  >
+                    <Feather name="send" size={18} color="#0F172A" />
+                  </LinearGradient>
+                </Pressable>
+              ) : null}
+            </View>
+          </KeyboardAvoidingView>
+
+          <MediaPicker
+            visible={mediaPickerVisible}
+            onClose={() => setMediaPickerVisible(false)}
+            onImageSelected={handleImageSelected}
+          />
+        </>
       )}
     </>
   );
@@ -266,6 +369,9 @@ const styles = StyleSheet.create({
     fontFamily: fontFamily.medium,
     color: colors.warning,
   },
+  messageListContainer: {
+    flex: 1,
+  },
   messageList: {
     paddingHorizontal: 16,
     paddingVertical: 16,
@@ -280,6 +386,19 @@ const styles = StyleSheet.create({
   },
   typingText: {
     fontSize: 14,
+    fontFamily: fontFamily.regular,
+    color: colors.textSecondary,
+  },
+  loadMoreIndicator: {
+    paddingVertical: 12,
+    alignItems: 'center',
+  },
+  noMoreMessages: {
+    paddingVertical: 8,
+    alignItems: 'center',
+  },
+  noMoreText: {
+    fontSize: 12,
     fontFamily: fontFamily.regular,
     color: colors.textSecondary,
   },

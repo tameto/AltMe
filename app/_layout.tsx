@@ -114,6 +114,7 @@ function RootLayoutNav() {
     const inAuthGroup = segments[0] === '(auth)';
     const inOnboardingGroup = segments[0] === '(onboarding)';
     const inTabGroup = segments[0] === '(tabs)';
+    const inPaywallGroup = segments[0] === '(paywall)';
 
     if (!isAuthenticated && !isGuest) {
       // Not authenticated and not guest -> go to login
@@ -126,8 +127,8 @@ function RootLayoutNav() {
         router.replace('/(tabs)');
       }
     } else if (isAuthenticated && !user?.onboardingCompleted) {
-      // Authenticated but onboarding not done -> go to onboarding
-      if (!inOnboardingGroup) {
+      // Authenticated but onboarding not done -> go to onboarding or paywall
+      if (!inOnboardingGroup && !inPaywallGroup) {
         router.replace('/(onboarding)/welcome');
       }
     } else {

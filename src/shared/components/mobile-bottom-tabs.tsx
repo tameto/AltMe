@@ -5,6 +5,7 @@ import Feather from '@expo/vector-icons/Feather';
 import { useTranslation } from 'react-i18next';
 
 import { colors, fontFamily, fontSize, spacing, tabBarColors } from '@/src/config/theme';
+import { useChatStore } from '@/src/features/chat/stores/chat-store';
 
 type TabItem = {
   key: string;
@@ -31,11 +32,18 @@ export const MobileBottomTabs = () => {
   const { t } = useTranslation();
   const pathname = usePathname();
   const router = useRouter();
+  const unreadCount = useChatStore((s) => s.unreadCount);
+
+  const getBadgeLabel = (key: string): string | null => {
+    if (key !== 'chat' || unreadCount === 0) return null;
+    return unreadCount > 9 ? '9+' : String(unreadCount);
+  };
 
   return (
     <View style={styles.container} testID="mobile-bottom-tabs">
       {TAB_ITEMS.map((item) => {
         const active = isActiveRoute(pathname, item.route);
+        const badgeLabel = getBadgeLabel(item.key);
         return (
           <Pressable
             key={item.key}
@@ -46,11 +54,18 @@ export const MobileBottomTabs = () => {
             accessibilityLabel={t(item.labelKey)}
             accessibilityState={{ selected: active }}
           >
-            <Feather
-              name={item.icon}
-              size={22}
-              color={active ? tabBarColors.active : tabBarColors.inactive}
-            />
+            <View style={styles.iconWrapper}>
+              <Feather
+                name={item.icon}
+                size={22}
+                color={active ? tabBarColors.active : tabBarColors.inactive}
+              />
+              {badgeLabel !== null && (
+                <View style={styles.badge} testID="chat-unread-badge">
+                  <Text style={styles.badgeText}>{badgeLabel}</Text>
+                </View>
+              )}
+            </View>
             <Text
               style={[
                 styles.tabLabel,
@@ -85,5 +100,26 @@ const styles = StyleSheet.create({
   tabLabel: {
     fontSize: fontSize.xs - 1,
     fontFamily: fontFamily.medium,
+  },
+  iconWrapper: {
+    position: 'relative',
+  },
+  badge: {
+    position: 'absolute',
+    top: -4,
+    right: -8,
+    minWidth: 18,
+    height: 18,
+    borderRadius: 9,
+    backgroundColor: colors.error,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: 3,
+  },
+  badgeText: {
+    color: '#FFFFFF',
+    fontSize: 10,
+    fontFamily: fontFamily.bold,
+    lineHeight: 14,
   },
 });

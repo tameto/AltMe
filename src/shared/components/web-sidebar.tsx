@@ -8,6 +8,7 @@ import { colors, fontFamily, fontSize, spacing, borderRadius } from '@/src/confi
 import { useResponsive } from '@/src/shared/hooks/use-responsive';
 import { useUser } from '@/src/shared/hooks/use-user';
 import { useIsPro } from '@/src/shared/hooks/use-platform-subscription';
+import { useChatStore } from '@/src/features/chat/stores/chat-store';
 
 type NavItem = {
   key: string;
@@ -42,6 +43,8 @@ export const WebSidebar = ({ collapsed: collapsedProp }: WebSidebarProps) => {
   const { isTablet, isDesktop, isWide } = useResponsive();
   const user = useUser((s) => s.user);
   const isPro = useIsPro();
+  const unreadCount = useChatStore((s) => s.unreadCount);
+  const chatBadgeLabel = unreadCount > 9 ? '9+' : unreadCount > 0 ? String(unreadCount) : null;
 
   // Auto-collapse on tablet unless explicitly set
   const collapsed = collapsedProp ?? isTablet;
@@ -84,15 +87,29 @@ export const WebSidebar = ({ collapsed: collapsedProp }: WebSidebarProps) => {
               accessibilityLabel={t(item.labelKey)}
               accessibilityState={{ selected: active }}
             >
-              <Feather
-                name={item.icon}
-                size={20}
-                color={active ? colors.secondary : colors.textSecondary}
-              />
+              <View style={styles.iconWrapper}>
+                <Feather
+                  name={item.icon}
+                  size={20}
+                  color={active ? colors.secondary : colors.textSecondary}
+                />
+                {item.key === 'chat' && chatBadgeLabel !== null && !isExpanded && (
+                  <View style={styles.badge} testID="sidebar-chat-unread-badge">
+                    <Text style={styles.badgeText}>{chatBadgeLabel}</Text>
+                  </View>
+                )}
+              </View>
               {isExpanded && (
-                <Text style={[styles.navLabel, active && styles.navLabelActive]}>
-                  {t(item.labelKey)}
-                </Text>
+                <View style={styles.navLabelRow}>
+                  <Text style={[styles.navLabel, active && styles.navLabelActive]}>
+                    {t(item.labelKey)}
+                  </Text>
+                  {item.key === 'chat' && chatBadgeLabel !== null && (
+                    <View style={styles.badgeInline} testID="sidebar-chat-unread-badge-expanded">
+                      <Text style={styles.badgeText}>{chatBadgeLabel}</Text>
+                    </View>
+                  )}
+                </View>
               )}
             </Pressable>
           );
@@ -197,6 +214,42 @@ const styles = StyleSheet.create({
   navLabelActive: {
     color: colors.secondary,
     fontFamily: fontFamily.semiBold,
+  },
+  iconWrapper: {
+    position: 'relative',
+  },
+  navLabelRow: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.xs,
+  },
+  badge: {
+    position: 'absolute',
+    top: -4,
+    right: -8,
+    minWidth: 18,
+    height: 18,
+    borderRadius: 9,
+    backgroundColor: colors.error,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: 3,
+  },
+  badgeInline: {
+    minWidth: 18,
+    height: 18,
+    borderRadius: 9,
+    backgroundColor: colors.error,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: 3,
+  },
+  badgeText: {
+    color: '#FFFFFF',
+    fontSize: 10,
+    fontFamily: fontFamily.bold,
+    lineHeight: 14,
   },
   userSection: {
     flexDirection: 'row',
