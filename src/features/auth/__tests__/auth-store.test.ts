@@ -74,12 +74,14 @@ jest.mock('@/src/shared/hooks/use-user', () => ({
 const mockSetEntitlement = jest.fn();
 const mockSetLoading = jest.fn();
 const mockResetSubscription = jest.fn();
+const mockRefreshStatus = jest.fn().mockResolvedValue(undefined);
 jest.mock('@/src/shared/hooks/use-subscription', () => ({
   useSubscription: {
     getState: () => ({
       setEntitlement: mockSetEntitlement,
       setLoading: mockSetLoading,
       reset: mockResetSubscription,
+      refreshStatus: mockRefreshStatus,
     }),
   },
 }));
@@ -126,25 +128,24 @@ describe('useAuthStore', () => {
 
   it('signInWithApple calls auth service and updates state', async () => {
     mockSignInWithApple.mockResolvedValue(MOCK_PROFILE);
-    mockCheckSubscriptionStatus.mockResolvedValue(MOCK_ENTITLEMENT);
 
     await useAuthStore.getState().signInWithApple();
 
     expect(mockSignInWithApple).toHaveBeenCalled();
     expect(mockSetUser).toHaveBeenCalledWith(MOCK_PROFILE);
-    expect(mockSetEntitlement).toHaveBeenCalledWith(MOCK_ENTITLEMENT);
+    expect(mockRefreshStatus).toHaveBeenCalled();
     expect(useAuthStore.getState().isAuthenticated).toBe(true);
     expect(useAuthStore.getState().isGuest).toBe(false);
   });
 
   it('signInWithGoogle calls auth service and updates state', async () => {
     mockSignInWithGoogle.mockResolvedValue(MOCK_PROFILE);
-    mockCheckSubscriptionStatus.mockResolvedValue(MOCK_ENTITLEMENT);
 
     await useAuthStore.getState().signInWithGoogle();
 
     expect(mockSignInWithGoogle).toHaveBeenCalled();
     expect(mockSetUser).toHaveBeenCalledWith(MOCK_PROFILE);
+    expect(mockRefreshStatus).toHaveBeenCalled();
     expect(useAuthStore.getState().isAuthenticated).toBe(true);
   });
 
@@ -174,14 +175,13 @@ describe('useAuthStore', () => {
       data: { session: { user: { id: 'user-123' } } },
     });
     mockGetCurrentProfile.mockResolvedValue(MOCK_PROFILE);
-    mockCheckSubscriptionStatus.mockResolvedValue(MOCK_ENTITLEMENT);
 
     await useAuthStore.getState().initialize();
 
     expect(mockInitializeRevenueCat).toHaveBeenCalled();
     expect(mockGetCurrentProfile).toHaveBeenCalledWith('user-123');
     expect(mockSetUser).toHaveBeenCalledWith(MOCK_PROFILE);
-    expect(mockSetEntitlement).toHaveBeenCalledWith(MOCK_ENTITLEMENT);
+    expect(mockRefreshStatus).toHaveBeenCalled();
     expect(useAuthStore.getState().isAuthenticated).toBe(true);
     expect(useAuthStore.getState().isLoading).toBe(false);
   });

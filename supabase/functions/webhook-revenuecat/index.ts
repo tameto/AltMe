@@ -1,5 +1,5 @@
 import { createServiceClient } from '../_shared/supabase.ts';
-import { claimWebhookEvent, markEventProcessed } from '../_shared/webhook-utils.ts';
+import { claimWebhookEvent, markEventProcessed, releaseWebhookClaim } from '../_shared/webhook-utils.ts';
 
 const WEBHOOK_SECRET = Deno.env.get('REVENUECAT_WEBHOOK_SECRET');
 
@@ -160,6 +160,8 @@ Deno.serve(async (req: Request) => {
     );
   } catch (error) {
     console.error('Webhook error:', error);
+    // 処理失敗時はクレームを解放してRevenueCatの再試行を受け入れる
+    await releaseWebhookClaim(supabase, event.id, 'revenuecat');
     return new Response(
       JSON.stringify({ error: 'internal_error' }),
       { status: 500, headers: { 'Content-Type': 'application/json' } },

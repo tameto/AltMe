@@ -1,6 +1,6 @@
 import Stripe from 'npm:stripe';
 import { createServiceClient } from '../_shared/supabase.ts';
-import { claimWebhookEvent, markEventProcessed } from '../_shared/webhook-utils.ts';
+import { claimWebhookEvent, markEventProcessed, releaseWebhookClaim } from '../_shared/webhook-utils.ts';
 
 const stripe = new Stripe(Deno.env.get('STRIPE_SECRET_KEY') ?? '', {
   apiVersion: '2024-06-20',
@@ -66,11 +66,13 @@ Deno.serve(async (req: Request) => {
           const subscription = await stripe.subscriptions.retrieve(subscriptionId);
           const planType = detectPlanType(subscription);
 
+          const status = mapStripeStatus(subscription.status);
+
           await supabase.from('subscriptions').upsert({
             user_id: userId,
             stripe_subscription_id: subscriptionId,
             stripe_customer_id: session.customer as string,
-            status: 'active',
+            status,
             plan_type: planType,
             current_period_start: new Date(subscription.current_period_start * 1000).toISOString(),
             current_period_end: new Date(subscription.current_period_end * 1000).toISOString(),
@@ -180,6 +182,8 @@ Deno.serve(async (req: Request) => {
     });
   } catch (error) {
     console.error(`Stripe webhook handler error for ${event.type}:`, error);
+    // 処理失敗時はクレームを解放してStripeの再試行を受け入れる
+    await releaseWebhookClaim(supabase, event.id, 'stripe');
     return new Response(JSON.stringify({ error: 'internal_error' }), { status: 500 });
   }
 });
@@ -211,8 +215,11 @@ function mapStripeStatus(
     case 'unpaid':
     case 'incomplete_expired':
       return 'expired';
+    case 'incomplete':
+    case 'paused':
+      return 'expired';
     default:
-      return 'active';
+      return 'expired';
   }
 }
 

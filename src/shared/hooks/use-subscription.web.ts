@@ -173,7 +173,8 @@ export const useSubscription = create<SubscriptionStore>((set) => ({
             Authorization: `Bearer ${session.access_token}`,
           },
           body: JSON.stringify({
-            planType: pkg.planType,
+            // annual_intro は Stripe 側では annual として扱う
+            planType: pkg.planType === 'annual_intro' ? 'annual' : pkg.planType,
             successUrl: `${window.location.origin}/subscription-manage?success=true`,
             cancelUrl: `${window.location.origin}/(paywall)`,
           }),

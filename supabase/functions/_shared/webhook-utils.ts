@@ -60,6 +60,25 @@ export const claimWebhookEvent = async (
   return { claimed: true };
 };
 
+/**
+ * 処理失敗時にクレームを解放し、Stripe/RevenueCat の再試行を受け入れ可能にする。
+ */
+export const releaseWebhookClaim = async (
+  supabase: SupabaseClient,
+  eventId: string,
+  source: 'stripe' | 'revenuecat',
+): Promise<void> => {
+  const { error } = await supabase
+    .from('webhook_events')
+    .delete()
+    .eq('event_id', eventId)
+    .eq('source', source);
+
+  if (error) {
+    console.error('releaseWebhookClaim error:', error);
+  }
+};
+
 export const markEventProcessed = async (
   supabase: SupabaseClient,
   eventId: string,
