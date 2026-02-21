@@ -10,8 +10,10 @@ import {
   FlatList,
   Image,
   Dimensions,
+  Platform,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useResponsive } from '@/src/shared/hooks/use-responsive';
 import { useRouter } from 'expo-router';
 import Feather from '@expo/vector-icons/Feather';
 import { useTranslation } from 'react-i18next';
@@ -36,6 +38,7 @@ const CATEGORIES: CategoryKey[] = ['entertainment', 'lifestyle', 'technology', '
 export default function CommunityCreateScreen() {
   const router = useRouter();
   const { t } = useTranslation();
+  const { isMobile } = useResponsive();
 
   const [channelName, setChannelName] = useState('');
   const [description, setDescription] = useState('');
@@ -74,9 +77,12 @@ export default function CommunityCreateScreen() {
     }
   };
 
+  const Wrapper = Platform.OS === 'web' ? View : SafeAreaView;
+
   return (
     <CosmicBackground>
-      <SafeAreaView style={styles.container} edges={['top']}>
+      <Wrapper style={styles.container} {...(Platform.OS !== 'web' && { edges: ['top'] })}>
+        <View style={[styles.innerContent, !isMobile && styles.contentDesktop]}>
         <View style={styles.header}>
           <Pressable onPress={() => router.back()} hitSlop={12}>
             <Feather name="arrow-left" size={24} color="#F8FAFC" />
@@ -220,7 +226,8 @@ export default function CommunityCreateScreen() {
             disabled={!isValid || isLoading}
           />
         </ScrollView>
-      </SafeAreaView>
+        </View>
+      </Wrapper>
     </CosmicBackground>
   );
 }
@@ -228,6 +235,14 @@ export default function CommunityCreateScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+  },
+  innerContent: {
+    flex: 1,
+  },
+  contentDesktop: {
+    maxWidth: 600,
+    alignSelf: 'center' as const,
+    width: '100%' as unknown as number,
   },
   header: {
     flexDirection: 'row',

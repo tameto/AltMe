@@ -1,4 +1,4 @@
-import { StyleSheet, View, Text } from 'react-native';
+import { StyleSheet, View, Text, Platform } from 'react-native';
 import { router } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
@@ -7,20 +7,24 @@ import { CosmicBackground } from '@/src/shared/components/cosmic-background';
 import { GoldButton } from '@/src/shared/components/gold-button';
 import { fontFamily } from '@/src/config/theme';
 import { useOnboardingStore } from '@/src/features/onboarding/stores/onboarding-store';
+import { useResponsive } from '@/src/shared/hooks/use-responsive';
 
 export default function WelcomeScreen() {
   const { t } = useTranslation();
   const reset = useOnboardingStore((s) => s.reset);
+  const { isMobile } = useResponsive();
 
   const handleStart = () => {
     reset();
     router.push('/(onboarding)/personality-quiz');
   };
 
+  const Wrapper = Platform.OS === 'web' ? View : SafeAreaView;
+
   return (
     <CosmicBackground>
-      <SafeAreaView style={styles.container}>
-        <View style={styles.content}>
+      <Wrapper style={styles.container}>
+        <View style={[styles.content, !isMobile && styles.contentDesktop]}>
           <View style={styles.header}>
             <Text style={styles.appName}>AltMe</Text>
             <Text style={styles.appTagline}>Your AI Twin That Knows You</Text>
@@ -46,7 +50,7 @@ export default function WelcomeScreen() {
             </Text>
           </View>
         </View>
-      </SafeAreaView>
+      </Wrapper>
     </CosmicBackground>
   );
 }
@@ -111,6 +115,10 @@ const styles = StyleSheet.create({
   },
   ctaButton: {
     alignSelf: 'stretch',
+  },
+  contentDesktop: {
+    maxWidth: 480,
+    alignSelf: 'center' as const,
   },
   timeEstimate: {
     fontFamily: fontFamily.regular,

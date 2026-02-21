@@ -1,6 +1,7 @@
-import { StyleSheet, View, Text, ActivityIndicator, ScrollView, Pressable } from 'react-native';
+import { StyleSheet, View, Text, ActivityIndicator, ScrollView, Pressable, Platform } from 'react-native';
 import { router } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useResponsive } from '@/src/shared/hooks/use-responsive';
 import { useTranslation } from 'react-i18next';
 import Feather from '@expo/vector-icons/Feather';
 import { CosmicBackground } from '@/src/shared/components/cosmic-background';
@@ -34,16 +35,19 @@ function TraitBar({ label, value }: { label: string; value: number }) {
 
 export default function ResultScreen() {
   const { t } = useTranslation();
+  const { isMobile } = useResponsive();
   const { personalityResult, isAnalyzing } = useOnboardingStore();
 
   const handleMeetTwin = () => {
     router.push('/(onboarding)/choose-avatar');
   };
 
+  const Wrapper = Platform.OS === 'web' ? View : SafeAreaView;
+
   if (isAnalyzing || !personalityResult) {
     return (
       <CosmicBackground>
-        <SafeAreaView style={styles.container}>
+        <Wrapper style={styles.container}>
           <View style={styles.loadingContainer}>
             <ActivityIndicator size="large" color="#7DD3FC" />
             <Text style={styles.loadingText}>
@@ -53,7 +57,7 @@ export default function ResultScreen() {
               {t('onboarding.result.pleaseWait')}
             </Text>
           </View>
-        </SafeAreaView>
+        </Wrapper>
       </CosmicBackground>
     );
   }
@@ -62,7 +66,8 @@ export default function ResultScreen() {
 
   return (
     <CosmicBackground>
-      <SafeAreaView style={styles.container}>
+      <Wrapper style={styles.container}>
+        <View style={[styles.innerContent, !isMobile && styles.contentDesktop]}>
         <View style={styles.header}>
           <Pressable style={styles.backButton} onPress={() => router.back()}>
             <Feather name="arrow-left" size={24} color="#F8FAFC" />
@@ -137,7 +142,8 @@ export default function ResultScreen() {
             />
           </View>
         </ScrollView>
-      </SafeAreaView>
+        </View>
+      </Wrapper>
     </CosmicBackground>
   );
 }
@@ -178,6 +184,14 @@ const traitStyles = StyleSheet.create({
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+  },
+  innerContent: {
+    flex: 1,
+  },
+  contentDesktop: {
+    maxWidth: 600,
+    alignSelf: 'center' as const,
+    width: '100%' as unknown as number,
   },
   header: {
     flexDirection: 'row',

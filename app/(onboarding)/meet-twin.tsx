@@ -12,6 +12,7 @@ import {
 import { useState, useRef, useCallback, useEffect } from 'react';
 import { router } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useResponsive } from '@/src/shared/hooks/use-responsive';
 import { useTranslation } from 'react-i18next';
 import Feather from '@expo/vector-icons/Feather';
 import { CosmicBackground } from '@/src/shared/components/cosmic-background';
@@ -38,6 +39,8 @@ export default function MeetTwinScreen() {
   const toneStyle = useOnboardingStore((s) => s.toneStyle);
   const updateProfile = useAuthStore((s) => s.updateProfile);
   const isPro = useIsPro();
+
+  const { isMobile } = useResponsive();
 
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [inputText, setInputText] = useState('');
@@ -228,6 +231,137 @@ export default function MeetTwinScreen() {
 
   const keyExtractor = useCallback((item: ChatMessage) => item.id, []);
 
+  const isWeb = Platform.OS === 'web';
+
+  const inputSection = chatEnded ? (
+    <View style={styles.endSection}>
+      <GoldButton
+        title={t('onboarding.meetTwin.unlockButton')}
+        onPress={handlePaywall}
+        style={styles.unlockButton}
+      />
+      <Pressable style={styles.skipButton} onPress={handleSkip}>
+        <Text style={styles.skipButtonText}>
+          {t('onboarding.meetTwin.skipButton')}
+        </Text>
+      </Pressable>
+    </View>
+  ) : (
+    <View style={isWeb ? styles.inputSafeArea : undefined}>
+      {!isWeb ? (
+        <SafeAreaView edges={['bottom']} style={styles.inputSafeArea}>
+          <View style={styles.inputContainer}>
+            <TextInput
+              style={styles.textInput}
+              value={inputText}
+              onChangeText={setInputText}
+              placeholder={t('onboarding.meetTwin.inputPlaceholder')}
+              placeholderTextColor="#64748B"
+              multiline
+              maxLength={500}
+              returnKeyType="send"
+              onSubmitEditing={sendMessage}
+              blurOnSubmit={false}
+              editable={!isLoading}
+            />
+            <Pressable
+              style={[
+                styles.sendButton,
+                (!inputText.trim() || isLoading) && styles.sendButtonDisabled,
+              ]}
+              onPress={sendMessage}
+              disabled={!inputText.trim() || isLoading}
+            >
+              <Text style={styles.sendButtonText}>{t('onboarding.meetTwin.send')}</Text>
+            </Pressable>
+          </View>
+          <Text style={styles.messageCounter}>
+            {t('onboarding.meetTwin.remaining', { count: MAX_FREE_EXCHANGES - userMessageCount })}
+          </Text>
+        </SafeAreaView>
+      ) : (
+        <>
+          <View style={styles.inputContainer}>
+            <TextInput
+              style={styles.textInput}
+              value={inputText}
+              onChangeText={setInputText}
+              placeholder={t('onboarding.meetTwin.inputPlaceholder')}
+              placeholderTextColor="#64748B"
+              multiline
+              maxLength={500}
+              returnKeyType="send"
+              onSubmitEditing={sendMessage}
+              blurOnSubmit={false}
+              editable={!isLoading}
+            />
+            <Pressable
+              style={[
+                styles.sendButton,
+                (!inputText.trim() || isLoading) && styles.sendButtonDisabled,
+              ]}
+              onPress={sendMessage}
+              disabled={!inputText.trim() || isLoading}
+            >
+              <Text style={styles.sendButtonText}>{t('onboarding.meetTwin.send')}</Text>
+            </Pressable>
+          </View>
+          <Text style={styles.messageCounter}>
+            {t('onboarding.meetTwin.remaining', { count: MAX_FREE_EXCHANGES - userMessageCount })}
+          </Text>
+        </>
+      )}
+    </View>
+  );
+
+  const chatBody = (
+    <>
+      <View style={styles.header}>
+        <View style={styles.avatarWrapper}>
+          <Feather name="cpu" size={48} color="#7DD3FC" />
+        </View>
+        <Text style={styles.headerTitle}>
+          {t('onboarding.meetTwin.title')}
+        </Text>
+      </View>
+
+      <FlatList
+        ref={flatListRef}
+        data={messages}
+        renderItem={renderMessage}
+        keyExtractor={keyExtractor}
+        style={styles.messageList}
+        contentContainerStyle={styles.messageListContent}
+        onContentSizeChange={() =>
+          flatListRef.current?.scrollToEnd({ animated: true })
+        }
+      />
+
+      {isLoading ? (
+        <View style={styles.typingIndicator}>
+          <ActivityIndicator size="small" color="#7DD3FC" />
+          <Text style={styles.typingText}>
+            {t('onboarding.meetTwin.typing')}
+          </Text>
+        </View>
+      ) : null}
+
+      {inputSection}
+    </>
+  );
+
+  if (isWeb) {
+    return (
+      <CosmicBackground>
+        <View style={styles.container}>
+          <View style={[styles.keyboardAvoid, !isMobile && styles.contentDesktop]}>
+            {chatBody}
+          </View>
+        </View>
+      </CosmicBackground>
+    );
+  }
+
   return (
     <CosmicBackground>
       <SafeAreaView style={styles.container} edges={['top', 'left', 'right']}>
@@ -236,81 +370,7 @@ export default function MeetTwinScreen() {
           behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
           keyboardVerticalOffset={0}
         >
-          <View style={styles.header}>
-            <View style={styles.avatarWrapper}>
-              <Feather name="cpu" size={48} color="#7DD3FC" />
-            </View>
-            <Text style={styles.headerTitle}>
-              {t('onboarding.meetTwin.title')}
-            </Text>
-          </View>
-
-          <FlatList
-            ref={flatListRef}
-            data={messages}
-            renderItem={renderMessage}
-            keyExtractor={keyExtractor}
-            style={styles.messageList}
-            contentContainerStyle={styles.messageListContent}
-            onContentSizeChange={() =>
-              flatListRef.current?.scrollToEnd({ animated: true })
-            }
-          />
-
-          {isLoading ? (
-            <View style={styles.typingIndicator}>
-              <ActivityIndicator size="small" color="#7DD3FC" />
-              <Text style={styles.typingText}>
-                {t('onboarding.meetTwin.typing')}
-              </Text>
-            </View>
-          ) : null}
-
-          {chatEnded ? (
-            <View style={styles.endSection}>
-              <GoldButton
-                title={t('onboarding.meetTwin.unlockButton')}
-                onPress={handlePaywall}
-                style={styles.unlockButton}
-              />
-              <Pressable style={styles.skipButton} onPress={handleSkip}>
-                <Text style={styles.skipButtonText}>
-                  {t('onboarding.meetTwin.skipButton')}
-                </Text>
-              </Pressable>
-            </View>
-          ) : (
-            <SafeAreaView edges={['bottom']} style={styles.inputSafeArea}>
-              <View style={styles.inputContainer}>
-                <TextInput
-                  style={styles.textInput}
-                  value={inputText}
-                  onChangeText={setInputText}
-                  placeholder={t('onboarding.meetTwin.inputPlaceholder')}
-                  placeholderTextColor="#64748B"
-                  multiline
-                  maxLength={500}
-                  returnKeyType="send"
-                  onSubmitEditing={sendMessage}
-                  blurOnSubmit={false}
-                  editable={!isLoading}
-                />
-                <Pressable
-                  style={[
-                    styles.sendButton,
-                    (!inputText.trim() || isLoading) && styles.sendButtonDisabled,
-                  ]}
-                  onPress={sendMessage}
-                  disabled={!inputText.trim() || isLoading}
-                >
-                  <Text style={styles.sendButtonText}>{t('onboarding.meetTwin.send')}</Text>
-                </Pressable>
-              </View>
-              <Text style={styles.messageCounter}>
-                {t('onboarding.meetTwin.remaining', { count: MAX_FREE_EXCHANGES - userMessageCount })}
-              </Text>
-            </SafeAreaView>
-          )}
+          {chatBody}
         </KeyboardAvoidingView>
       </SafeAreaView>
     </CosmicBackground>
@@ -323,6 +383,11 @@ const styles = StyleSheet.create({
   },
   keyboardAvoid: {
     flex: 1,
+  },
+  contentDesktop: {
+    maxWidth: 600,
+    alignSelf: 'center' as const,
+    width: '100%' as unknown as number,
   },
   header: {
     alignItems: 'center',

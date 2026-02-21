@@ -1,24 +1,58 @@
+// Platform-resolved hook:
+//   Web:    use-network.web.ts    (navigator.onLine + events)
+//   Native: use-network.native.ts (expo-network)
+//
+// This base file is used for TypeScript resolution and as fallback.
+// It contains the native implementation inline.
+
 import { useState, useEffect } from 'react';
 import * as Network from 'expo-network';
+import type { NetworkState } from '@/src/shared/types/platform';
 
-type NetworkState = {
+type UseNetworkReturn = {
   isConnected: boolean;
   isLoading: boolean;
+  networkState: NetworkState;
 };
 
-export const useNetwork = (): NetworkState => {
+const mapNetworkType = (type: Network.NetworkStateType | undefined): NetworkState['type'] => {
+  switch (type) {
+    case Network.NetworkStateType.WIFI:
+      return 'wifi';
+    case Network.NetworkStateType.CELLULAR:
+      return 'cellular';
+    case Network.NetworkStateType.ETHERNET:
+      return 'ethernet';
+    case Network.NetworkStateType.NONE:
+      return 'none';
+    default:
+      return 'unknown';
+  }
+};
+
+export const useNetwork = (): UseNetworkReturn => {
   const [isConnected, setIsConnected] = useState(true);
   const [isLoading, setIsLoading] = useState(true);
+  const [networkState, setNetworkState] = useState<NetworkState>({
+    isConnected: true,
+    isInternetReachable: null,
+    type: 'unknown',
+  });
 
   useEffect(() => {
     let mounted = true;
 
-    // Initial check
     const checkNetwork = async () => {
       try {
         const state = await Network.getNetworkStateAsync();
         if (mounted) {
-          setIsConnected(state.isConnected ?? true);
+          const connected = state.isConnected ?? true;
+          setIsConnected(connected);
+          setNetworkState({
+            isConnected: connected,
+            isInternetReachable: state.isInternetReachable ?? null,
+            type: mapNetworkType(state.type),
+          });
           setIsLoading(false);
         }
       } catch {
@@ -31,10 +65,15 @@ export const useNetwork = (): NetworkState => {
 
     checkNetwork();
 
-    // Event-driven listener instead of polling
     const subscription = Network.addNetworkStateListener((state) => {
       if (mounted) {
-        setIsConnected(state.isConnected ?? true);
+        const connected = state.isConnected ?? true;
+        setIsConnected(connected);
+        setNetworkState({
+          isConnected: connected,
+          isInternetReachable: state.isInternetReachable ?? null,
+          type: mapNetworkType(state.type),
+        });
       }
     });
 
@@ -44,5 +83,5 @@ export const useNetwork = (): NetworkState => {
     };
   }, []);
 
-  return { isConnected, isLoading };
+  return { isConnected, isLoading, networkState };
 };

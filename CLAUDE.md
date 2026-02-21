@@ -28,6 +28,14 @@
 - 初回限定年額: ¥29,800（50%OFF、24時間限定）
 - 3日間無料トライアル
 
+## Web 対応アーキテクチャ
+- プラットフォーム分離: `.web.ts`/`.native.ts` パターン（Metro auto-resolution）
+- Stripe Checkout（Web課金）+ RevenueCat（Native課金）の共存
+- WebSidebar レスポンシブレイアウト（desktop 240px / tablet 64px / mobile ボトムタブ）
+- SSE (Free) + WebSocket (Pro) チャット通信
+- Playwright E2E テスト（5ブラウザプロジェクト）
+- jest-expo 4プロジェクト設定（shared/web/ios/android）
+
 ---
 
 ## 開発方法論：仕様駆動開発（Spec-Driven Development）
@@ -61,11 +69,20 @@
 - `app/` — Expo Routerのルーティング。画面コンポーネントのみ配置
 - `src/features/` — 機能ごとのモジュール（AgentTeam分割単位）
 - `src/shared/` — 共通コンポーネント・hooks・types（変更時はAgent間調整必要）
-- `src/services/` — 外部サービス連携（supabase, revenuecat, openclaw, digitalocean）
+- `src/services/` — 外部サービス連携
+  - `supabase/` — Supabase Auth/DB/Functions 連携
+  - `stripe/` — Stripe API クライアント（Web 課金専用、Edge Function 経由）
+  - `revenuecat/` — RevenueCat SDK 連携（モバイル課金 + Stripe Provider 統合）
+  - `openclaw/` — OpenClaw インスタンス管理
+  - `digitalocean/` — DigitalOcean API クライアント
+  - `notifications/` — プッシュ通知（Expo Notifications / Web Push）
+  - `analytics/` — Analytics トラッキング
 - `src/config/` — 環境変数、定数、テーマ
 - `specs/` — 仕様書（Single Source of Truth）
 - `supabase/functions/` — Edge Functions
+- `supabase/functions/_shared/` — 共有ユーティリティ（CORS、Supabase クライアント、Webhook 処理）
 - `supabase/migrations/` — DBマイグレーション
+- `e2e/` — Playwright E2E テスト（Web 専用）
 
 ## コーディング規約
 - TypeScript strict mode
@@ -75,11 +92,55 @@
 - 1ファイル1コンポーネント
 - `export default` 禁止、named export のみ（Expo Routerの画面ファイルは例外）
 
+## Web 開発ルール
+- プラットフォーム分離: 構造的差異は `.web.ts`/`.native.ts`（Metro auto-resolution）、軽微な差異は `Platform.select()`
+  - ファイル命名: `service.web.ts` / `service.native.ts`（ドット形式を統一）
+  - Metro resolver が自動的にプラットフォームを判定
+- レスポンシブ: `useResponsive()` hook で4ブレークポイント（mobile<768 / tablet<1024 / desktop<1440 / wide>=1440）
+- テスト: Jest 4プロジェクト設定（jest.config.ts）
+  - `npx jest --selectProjects shared` — 共通テスト（全プラットフォーム対応）
+  - `npx jest --selectProjects web` — Web 専用テスト
+  - `npx jest --selectProjects ios,android` — ネイティブテスト
+  - カバレッジ目標: 行カバレッジ 80% 以上
+- E2E テスト: Playwright（Web専用）
+  - 5ブラウザプロジェクト: Chrome, Firefox, Safari, Edge, WebKit
+  - テスト実行: `npx playwright test`
+- Stripe Edge Functions
+  - `supabase/functions/create-checkout-session/` — Checkout セッション作成（JWT認証、planType または priceId パラメータ）
+  - `supabase/functions/create-portal-session/` — Customer Portal セッション作成
+  - `supabase/functions/webhook-stripe/` — Webhook 処理（Stripe署名検証、イベント原子性チェック）
+  - `supabase/functions/reconcile-stripe/` — セッション有効期限チェック（期限切れ検出・キャンセル処理）
+- CORS: 全 Edge Function で `getCorsHeaders(origin)` を使用（ワイルドカード禁止）、webhook は除外
+
+## 課金・Stripe 環境変数
+### Web 課金（Stripe）
+```env
+# Stripe API
+STRIPE_SECRET_KEY=sk_live_... または sk_test_...
+STRIPE_WEBHOOK_SECRET=whsec_...
+
+# Stripe Price IDs
+STRIPE_MONTHLY_PRICE_ID=price_monthly_...
+STRIPE_YEARLY_PRICE_ID=price_annual_...
+
+# RevenueCat Stripe Provider
+REVENUECAT_STRIPE_PROVIDER_API_KEY=...
+```
+
+### モバイル課金（RevenueCat）
+```env
+REVENUECAT_API_KEY=...
+REVENUECAT_ANDROID_API_KEY=...
+REVENUECAT_IOS_API_KEY=...
+```
+
 ## RevenueCat実装ルール
 - Entitlement名: `pro`
 - 課金状態の型: `src/shared/types/subscription.ts` に定義
 - 課金チェック: `useSubscription()` hook を必ず使う
 - テスト: サンドボックスアカウントで必ず課金フローをテスト
+- Stripe統合: モバイル（App Store / Google Play）とWeb（Stripe）のサブスク状態を `pro` Entitlementで統一管理
+  - クライアントは `useSubscription()` で課金元プラットフォームを意識しない
 
 ## OpenClaw関連
 - インスタンス管理: `src/services/openclaw/client.ts`

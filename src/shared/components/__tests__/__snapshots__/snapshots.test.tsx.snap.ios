@@ -1,0 +1,507 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`Shared component snapshots ErrorBoundary matches snapshot with children 1`] = `
+<Text>
+  Normal content
+</Text>
+`;
+
+exports[`Shared component snapshots GlassCard matches snapshot with bubble-ai variant 1`] = `
+<View
+  style={
+    [
+      {
+        "borderRadius": 16,
+        "borderWidth": 1,
+        "overflow": "hidden",
+      },
+      {
+        "borderColor": "#FFFFFF15",
+      },
+      undefined,
+    ]
+  }
+>
+  <View
+    intensity={16}
+    style={
+      {
+        "bottom": 0,
+        "left": 0,
+        "position": "absolute",
+        "right": 0,
+        "top": 0,
+      }
+    }
+    testID="blur-view"
+    tint="dark"
+  />
+  <View
+    style={
+      [
+        {
+          "flex": 1,
+        },
+        {
+          "backgroundColor": "#FFFFFF4D",
+        },
+      ]
+    }
+  >
+    <Text>
+      AI message
+    </Text>
+  </View>
+</View>
+`;
+
+exports[`Shared component snapshots GlassCard matches snapshot with bubble-user variant 1`] = `
+<View
+  style={
+    [
+      {
+        "borderRadius": 16,
+        "borderWidth": 1,
+        "overflow": "hidden",
+      },
+      {
+        "borderColor": "#7DD3FC30",
+      },
+      undefined,
+    ]
+  }
+>
+  <View
+    intensity={16}
+    style={
+      {
+        "bottom": 0,
+        "left": 0,
+        "position": "absolute",
+        "right": 0,
+        "top": 0,
+      }
+    }
+    testID="blur-view"
+    tint="dark"
+  />
+  <View
+    style={
+      [
+        {
+          "flex": 1,
+        },
+        {
+          "backgroundColor": "#7DD3FC4D",
+        },
+      ]
+    }
+  >
+    <Text>
+      User message
+    </Text>
+  </View>
+</View>
+`;
+
+exports[`Shared component snapshots GlassCard matches snapshot with default variant 1`] = `
+<View
+  style={
+    [
+      {
+        "borderRadius": 16,
+        "borderWidth": 1,
+        "overflow": "hidden",
+      },
+      {
+        "borderColor": "#FFFFFF25",
+      },
+      undefined,
+    ]
+  }
+>
+  <View
+    intensity={16}
+    style={
+      {
+        "bottom": 0,
+        "left": 0,
+        "position": "absolute",
+        "right": 0,
+        "top": 0,
+      }
+    }
+    testID="blur-view"
+    tint="dark"
+  />
+  <View
+    style={
+      [
+        {
+          "flex": 1,
+        },
+        {
+          "backgroundColor": "#FFFFFF12",
+        },
+      ]
+    }
+  >
+    <Text>
+      Card content
+    </Text>
+  </View>
+</View>
+`;
+
+exports[`Shared component snapshots GlassCard matches snapshot with input variant 1`] = `
+<View
+  style={
+    [
+      {
+        "borderRadius": 16,
+        "borderWidth": 1,
+        "overflow": "hidden",
+      },
+      {
+        "borderColor": "#FFFFFF15",
+      },
+      undefined,
+    ]
+  }
+>
+  <View
+    intensity={16}
+    style={
+      {
+        "bottom": 0,
+        "left": 0,
+        "position": "absolute",
+        "right": 0,
+        "top": 0,
+      }
+    }
+    testID="blur-view"
+    tint="dark"
+  />
+  <View
+    style={
+      [
+        {
+          "flex": 1,
+        },
+        {
+          "backgroundColor": "#FFFFFF0D",
+        },
+      ]
+    }
+  >
+    <Text>
+      Input area
+    </Text>
+  </View>
+</View>
+`;
+
+exports[`Shared component snapshots GoldButton matches snapshot in default state 1`] = `
+<View
+  accessibilityState={
+    {
+      "busy": undefined,
+      "checked": undefined,
+      "disabled": undefined,
+      "expanded": undefined,
+      "selected": undefined,
+    }
+  }
+  accessibilityValue={
+    {
+      "max": undefined,
+      "min": undefined,
+      "now": undefined,
+      "text": undefined,
+    }
+  }
+  accessible={true}
+  collapsable={false}
+  focusable={true}
+  onBlur={[Function]}
+  onClick={[Function]}
+  onFocus={[Function]}
+  onResponderGrant={[Function]}
+  onResponderMove={[Function]}
+  onResponderRelease={[Function]}
+  onResponderTerminate={[Function]}
+  onResponderTerminationRequest={[Function]}
+  onStartShouldSetResponder={[Function]}
+  style={
+    [
+      {
+        "borderColor": "#D4A853",
+        "borderRadius": 22,
+        "borderWidth": 1,
+        "height": 54,
+        "overflow": "hidden",
+      },
+      false,
+      undefined,
+      false,
+      undefined,
+    ]
+  }
+>
+  <View
+    colors={
+      [
+        "#E8C567",
+        "#C9A033",
+        "#A07B1A",
+      ]
+    }
+    end={
+      {
+        "x": 0,
+        "y": 1,
+      }
+    }
+    start={
+      {
+        "x": 0,
+        "y": 0,
+      }
+    }
+    style={
+      {
+        "alignItems": "center",
+        "flex": 1,
+        "justifyContent": "center",
+      }
+    }
+    testID="linear-gradient"
+  >
+    <Text
+      style={
+        {
+          "color": "#1A1A2E",
+          "fontFamily": "Outfit_700Bold",
+          "fontSize": 17,
+        }
+      }
+    >
+      Subscribe
+    </Text>
+  </View>
+</View>
+`;
+
+exports[`Shared component snapshots GoldButton matches snapshot in disabled state 1`] = `
+<View
+  accessibilityState={
+    {
+      "busy": undefined,
+      "checked": undefined,
+      "disabled": true,
+      "expanded": undefined,
+      "selected": undefined,
+    }
+  }
+  accessibilityValue={
+    {
+      "max": undefined,
+      "min": undefined,
+      "now": undefined,
+      "text": undefined,
+    }
+  }
+  accessible={true}
+  collapsable={false}
+  focusable={true}
+  onBlur={[Function]}
+  onClick={[Function]}
+  onFocus={[Function]}
+  onResponderGrant={[Function]}
+  onResponderMove={[Function]}
+  onResponderRelease={[Function]}
+  onResponderTerminate={[Function]}
+  onResponderTerminationRequest={[Function]}
+  onStartShouldSetResponder={[Function]}
+  style={
+    [
+      {
+        "borderColor": "#D4A853",
+        "borderRadius": 22,
+        "borderWidth": 1,
+        "height": 54,
+        "overflow": "hidden",
+      },
+      false,
+      {
+        "opacity": 0.6,
+      },
+      false,
+      undefined,
+    ]
+  }
+>
+  <View
+    colors={
+      [
+        "#E8C567",
+        "#C9A033",
+        "#A07B1A",
+      ]
+    }
+    end={
+      {
+        "x": 0,
+        "y": 1,
+      }
+    }
+    start={
+      {
+        "x": 0,
+        "y": 0,
+      }
+    }
+    style={
+      {
+        "alignItems": "center",
+        "flex": 1,
+        "justifyContent": "center",
+      }
+    }
+    testID="linear-gradient"
+  >
+    <Text
+      style={
+        {
+          "color": "#1A1A2E",
+          "fontFamily": "Outfit_700Bold",
+          "fontSize": 17,
+        }
+      }
+    >
+      Subscribe
+    </Text>
+  </View>
+</View>
+`;
+
+exports[`Shared component snapshots GoldButton matches snapshot in loading state 1`] = `
+<View
+  accessibilityState={
+    {
+      "busy": undefined,
+      "checked": undefined,
+      "disabled": true,
+      "expanded": undefined,
+      "selected": undefined,
+    }
+  }
+  accessibilityValue={
+    {
+      "max": undefined,
+      "min": undefined,
+      "now": undefined,
+      "text": undefined,
+    }
+  }
+  accessible={true}
+  collapsable={false}
+  focusable={true}
+  onBlur={[Function]}
+  onClick={[Function]}
+  onFocus={[Function]}
+  onResponderGrant={[Function]}
+  onResponderMove={[Function]}
+  onResponderRelease={[Function]}
+  onResponderTerminate={[Function]}
+  onResponderTerminationRequest={[Function]}
+  onStartShouldSetResponder={[Function]}
+  style={
+    [
+      {
+        "borderColor": "#D4A853",
+        "borderRadius": 22,
+        "borderWidth": 1,
+        "height": 54,
+        "overflow": "hidden",
+      },
+      false,
+      {
+        "opacity": 0.6,
+      },
+      false,
+      undefined,
+    ]
+  }
+>
+  <View
+    colors={
+      [
+        "#E8C567",
+        "#C9A033",
+        "#A07B1A",
+      ]
+    }
+    end={
+      {
+        "x": 0,
+        "y": 1,
+      }
+    }
+    start={
+      {
+        "x": 0,
+        "y": 0,
+      }
+    }
+    style={
+      {
+        "alignItems": "center",
+        "flex": 1,
+        "justifyContent": "center",
+      }
+    }
+    testID="linear-gradient"
+  >
+    <ActivityIndicator
+      color="#0F172A"
+      size="small"
+    />
+  </View>
+</View>
+`;
+
+exports[`Shared component snapshots ResponsiveContainer matches snapshot on mobile 1`] = `
+<View
+  style={
+    [
+      {
+        "alignItems": "center",
+        "flex": 1,
+      },
+      undefined,
+    ]
+  }
+  testID="safe-area-view"
+>
+  <View
+    style={
+      [
+        {
+          "flex": 1,
+          "width": "100%",
+        },
+        false,
+        false,
+      ]
+    }
+  >
+    <View>
+      <Text>
+        Page content
+      </Text>
+    </View>
+  </View>
+</View>
+`;

@@ -11,6 +11,7 @@ type WebSocketClientOptions = {
   userId: string;
   gatewayToken: string;
   deviceId: string;
+  clientType?: 'mobile' | 'web';
   onTextDelta: (delta: string, sessionId: string) => void;
   onTextDone: (content: string, sessionId: string) => void;
   onConnected: (sessionId: string) => void;
@@ -121,7 +122,7 @@ export class OpenClawWebSocketClient {
       params: {
         auth: { token: this.options.gatewayToken },
         deviceId: this.options.deviceId,
-        clientType: 'mobile',
+        clientType: this.options.clientType ?? 'mobile',
       },
     };
 

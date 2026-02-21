@@ -1,0 +1,3295 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<coverage generated="1771657942260" clover="3.2.0">
+  <project timestamp="1771657942260" name="All files">
+    <metrics statements="2755" coveredstatements="1939" conditionals="1740" coveredconditionals="955" methods="770" coveredmethods="512" elements="5265" coveredelements="3406" complexity="0" loc="2755" ncloc="2755" packages="29" files="149" classes="149"/>
+    <package name="app">
+      <metrics statements="256" coveredstatements="187" conditionals="214" coveredconditionals="129" methods="69" coveredmethods="40"/>
+      <file name="+not-found.tsx" path="/Users/tm/work/AltMe/app/+not-found.tsx">
+        <metrics statements="2" coveredstatements="2" conditionals="0" coveredconditionals="0" methods="1" coveredmethods="1"/>
+        <line num="6" count="6" type="stmt"/>
+        <line num="19" count="4" type="stmt"/>
+      </file>
+      <file name="_layout.tsx" path="/Users/tm/work/AltMe/app/_layout.tsx">
+        <metrics statements="49" coveredstatements="46" conditionals="41" coveredconditionals="34" methods="13" coveredmethods="10"/>
+        <line num="30" count="4" type="stmt"/>
+        <line num="35" count="4" type="stmt"/>
+        <line num="36" count="4" type="stmt"/>
+        <line num="42" count="16" type="stmt"/>
+        <line num="51" count="16" type="stmt"/>
+        <line num="52" count="16" type="stmt"/>
+        <line num="55" count="16" type="stmt"/>
+        <line num="56" count="16" type="cond" truecount="1" falsecount="1"/>
+        <line num="59" count="16" type="stmt"/>
+        <line num="60" count="16" type="cond" truecount="1" falsecount="1"/>
+        <line num="61" count="16" type="stmt"/>
+        <line num="67" count="16" type="cond" truecount="1" falsecount="1"/>
+        <line num="68" count="0" type="stmt"/>
+        <line num="71" count="16" type="stmt"/>
+        <line num="75" count="16" type="stmt"/>
+        <line num="76" count="16" type="stmt"/>
+        <line num="78" count="16" type="stmt"/>
+        <line num="79" count="16" type="stmt"/>
+        <line num="82" count="16" type="stmt"/>
+        <line num="83" count="16" type="stmt"/>
+        <line num="84" count="16" type="stmt"/>
+        <line num="88" count="16" type="stmt"/>
+        <line num="89" count="16" type="cond" truecount="5" falsecount="0"/>
+        <line num="91" count="1" type="stmt"/>
+        <line num="92" count="1" type="stmt"/>
+        <line num="93" count="0" type="stmt"/>
+        <line num="96" count="1" type="stmt"/>
+        <line num="97" count="0" type="stmt"/>
+        <line num="100" count="1" type="stmt"/>
+        <line num="104" count="16" type="stmt"/>
+        <line num="105" count="16" type="cond" truecount="4" falsecount="0"/>
+        <line num="106" count="12" type="stmt"/>
+        <line num="111" count="16" type="stmt"/>
+        <line num="112" count="16" type="cond" truecount="2" falsecount="0"/>
+        <line num="114" count="15" type="stmt"/>
+        <line num="115" count="15" type="stmt"/>
+        <line num="116" count="15" type="stmt"/>
+        <line num="118" count="15" type="cond" truecount="4" falsecount="0"/>
+        <line num="120" count="11" type="cond" truecount="1" falsecount="1"/>
+        <line num="121" count="11" type="stmt"/>
+        <line num="123" count="4" type="cond" truecount="4" falsecount="0"/>
+        <line num="125" count="2" type="cond" truecount="2" falsecount="0"/>
+        <line num="126" count="1" type="stmt"/>
+        <line num="128" count="2" type="cond" truecount="4" falsecount="0"/>
+        <line num="130" count="1" type="cond" truecount="1" falsecount="1"/>
+        <line num="131" count="1" type="stmt"/>
+        <line num="135" count="1" type="cond" truecount="2" falsecount="2"/>
+        <line num="136" count="1" type="stmt"/>
+        <line num="141" count="16" type="stmt"/>
+      </file>
+      <file name="account-delete-confirm.tsx" path="/Users/tm/work/AltMe/app/account-delete-confirm.tsx">
+        <metrics statements="23" coveredstatements="13" conditionals="14" coveredconditionals="6" methods="6" coveredmethods="3"/>
+        <line num="21" count="10" type="stmt"/>
+        <line num="22" count="10" type="stmt"/>
+        <line num="23" count="10" type="stmt"/>
+        <line num="25" count="10" type="stmt"/>
+        <line num="27" count="10" type="stmt"/>
+        <line num="28" count="10" type="stmt"/>
+        <line num="29" count="10" type="stmt"/>
+        <line num="31" count="10" type="stmt"/>
+        <line num="33" count="10" type="stmt"/>
+        <line num="34" count="0" type="cond" truecount="0" falsecount="4"/>
+        <line num="36" count="0" type="stmt"/>
+        <line num="37" count="0" type="stmt"/>
+        <line num="39" count="0" type="stmt"/>
+        <line num="40" count="0" type="stmt"/>
+        <line num="41" count="0" type="stmt"/>
+        <line num="43" count="0" type="stmt"/>
+        <line num="44" count="0" type="stmt"/>
+        <line num="48" count="10" type="stmt"/>
+        <line num="55" count="10" type="stmt"/>
+        <line num="59" count="0" type="stmt"/>
+        <line num="84" count="40" type="stmt"/>
+        <line num="132" count="0" type="stmt"/>
+        <line num="143" count="5" type="stmt"/>
+      </file>
+      <file name="community-create.tsx" path="/Users/tm/work/AltMe/app/community-create.tsx">
+        <metrics statements="38" coveredstatements="23" conditionals="34" coveredconditionals="15" methods="11" coveredmethods="3"/>
+        <line num="27" count="4" type="stmt"/>
+        <line num="28" count="4" type="stmt"/>
+        <line num="29" count="4" type="stmt"/>
+        <line num="30" count="4" type="stmt"/>
+        <line num="35" count="4" type="stmt"/>
+        <line num="36" count="4" type="stmt"/>
+        <line num="39" count="6" type="stmt"/>
+        <line num="40" count="6" type="stmt"/>
+        <line num="41" count="6" type="stmt"/>
+        <line num="43" count="6" type="stmt"/>
+        <line num="44" count="6" type="stmt"/>
+        <line num="45" count="6" type="stmt"/>
+        <line num="46" count="6" type="stmt"/>
+        <line num="47" count="6" type="stmt"/>
+        <line num="48" count="6" type="stmt"/>
+        <line num="49" count="6" type="stmt"/>
+        <line num="51" count="6" type="stmt"/>
+        <line num="53" count="6" type="stmt"/>
+        <line num="54" count="0" type="cond" truecount="0" falsecount="4"/>
+        <line num="56" count="0" type="stmt"/>
+        <line num="57" count="0" type="stmt"/>
+        <line num="58" count="0" type="stmt"/>
+        <line num="66" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="67" count="0" type="stmt"/>
+        <line num="69" count="0" type="stmt"/>
+        <line num="76" count="0" type="stmt"/>
+        <line num="80" count="6" type="cond" truecount="2" falsecount="0"/>
+        <line num="82" count="6" type="stmt"/>
+        <line num="87" count="0" type="stmt"/>
+        <line num="99" count="0" type="stmt"/>
+        <line num="117" count="0" type="stmt"/>
+        <line num="122" count="0" type="stmt"/>
+        <line num="129" count="0" type="stmt"/>
+        <line num="175" count="18" type="stmt"/>
+        <line num="181" count="0" type="stmt"/>
+        <line num="201" count="24" type="stmt"/>
+        <line num="207" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="235" count="4" type="stmt"/>
+      </file>
+      <file name="mbti-select.tsx" path="/Users/tm/work/AltMe/app/mbti-select.tsx">
+        <metrics statements="14" coveredstatements="13" conditionals="10" coveredconditionals="10" methods="5" coveredmethods="4"/>
+        <line num="10" count="14" type="stmt"/>
+        <line num="11" count="14" type="stmt"/>
+        <line num="12" count="14" type="stmt"/>
+        <line num="15" count="14" type="stmt"/>
+        <line num="16" count="14" type="cond" truecount="2" falsecount="0"/>
+        <line num="17" count="12" type="stmt"/>
+        <line num="18" count="2" type="cond" truecount="2" falsecount="0"/>
+        <line num="19" count="1" type="stmt"/>
+        <line num="22" count="12" type="stmt"/>
+        <line num="23" count="12" type="stmt"/>
+        <line num="26" count="14" type="cond" truecount="2" falsecount="0"/>
+        <line num="28" count="14" type="stmt"/>
+        <line num="32" count="0" type="stmt"/>
+        <line num="45" count="5" type="stmt"/>
+      </file>
+      <file name="notification-settings.tsx" path="/Users/tm/work/AltMe/app/notification-settings.tsx">
+        <metrics statements="46" coveredstatements="25" conditionals="37" coveredconditionals="13" methods="14" coveredmethods="4"/>
+        <line num="39" count="5" type="stmt"/>
+        <line num="48" count="10" type="stmt"/>
+        <line num="49" count="10" type="stmt"/>
+        <line num="50" count="10" type="stmt"/>
+        <line num="52" count="10" type="stmt"/>
+        <line num="53" count="10" type="stmt"/>
+        <line num="54" count="10" type="stmt"/>
+        <line num="55" count="10" type="stmt"/>
+        <line num="57" count="10" type="stmt"/>
+        <line num="58" count="8" type="cond" truecount="2" falsecount="0"/>
+        <line num="60" count="3" type="stmt"/>
+        <line num="61" count="3" type="stmt"/>
+        <line num="63" count="3" type="stmt"/>
+        <line num="64" count="3" type="stmt"/>
+        <line num="73" count="3" type="stmt"/>
+        <line num="75" count="3" type="cond" truecount="2" falsecount="2"/>
+        <line num="77" count="0" type="stmt"/>
+        <line num="83" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="84" count="0" type="stmt"/>
+        <line num="85" count="3" type="cond" truecount="1" falsecount="1"/>
+        <line num="86" count="0" type="stmt"/>
+        <line num="88" count="3" type="stmt"/>
+        <line num="91" count="0" type="stmt"/>
+        <line num="93" count="3" type="stmt"/>
+        <line num="97" count="10" type="stmt"/>
+        <line num="98" count="8" type="stmt"/>
+        <line num="101" count="10" type="stmt"/>
+        <line num="103" count="0" type="cond" truecount="0" falsecount="4"/>
+        <line num="106" count="0" type="stmt"/>
+        <line num="107" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="109" count="0" type="stmt"/>
+        <line num="110" count="0" type="stmt"/>
+        <line num="115" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="118" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="119" count="0" type="stmt"/>
+        <line num="125" count="10" type="stmt"/>
+        <line num="126" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="127" count="0" type="stmt"/>
+        <line num="131" count="10" type="stmt"/>
+        <line num="137" count="0" type="stmt"/>
+        <line num="189" count="0" type="stmt"/>
+        <line num="196" count="0" type="stmt"/>
+        <line num="203" count="0" type="stmt"/>
+        <line num="210" count="0" type="stmt"/>
+        <line num="238" count="0" type="stmt"/>
+        <line num="258" count="5" type="stmt"/>
+      </file>
+      <file name="subscription-manage.tsx" path="/Users/tm/work/AltMe/app/subscription-manage.tsx">
+        <metrics statements="57" coveredstatements="40" conditionals="58" coveredconditionals="32" methods="11" coveredmethods="8"/>
+        <line num="33" count="22" type="stmt"/>
+        <line num="34" count="22" type="stmt"/>
+        <line num="35" count="22" type="stmt"/>
+        <line num="36" count="22" type="stmt"/>
+        <line num="37" count="22" type="stmt"/>
+        <line num="38" count="22" type="stmt"/>
+        <line num="39" count="22" type="stmt"/>
+        <line num="41" count="22" type="stmt"/>
+        <line num="42" count="14" type="stmt"/>
+        <line num="43" count="14" type="cond" truecount="2" falsecount="0"/>
+        <line num="44" count="8" type="stmt"/>
+        <line num="45" count="8" type="stmt"/>
+        <line num="61" count="8" type="stmt"/>
+        <line num="62" count="8" type="stmt"/>
+        <line num="63" count="8" type="stmt"/>
+        <line num="65" count="8" type="stmt"/>
+        <line num="72" count="0" type="stmt"/>
+        <line num="74" count="8" type="stmt"/>
+        <line num="77" count="14" type="stmt"/>
+        <line num="80" count="22" type="stmt"/>
+        <line num="81" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="83" count="0" type="stmt"/>
+        <line num="84" count="0" type="stmt"/>
+        <line num="86" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="87" count="0" type="stmt"/>
+        <line num="101" count="22" type="stmt"/>
+        <line num="102" count="6" type="cond" truecount="1" falsecount="1"/>
+        <line num="103" count="6" type="stmt"/>
+        <line num="104" count="6" type="stmt"/>
+        <line num="105" count="6" type="stmt"/>
+        <line num="107" count="3" type="cond" truecount="1" falsecount="1"/>
+        <line num="108" count="3" type="cond" truecount="2" falsecount="0"/>
+        <line num="109" count="2" type="stmt"/>
+        <line num="114" count="1" type="stmt"/>
+        <line num="120" count="6" type="stmt"/>
+        <line num="122" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="123" count="0" type="stmt"/>
+        <line num="125" count="0" type="stmt"/>
+        <line num="129" count="22" type="stmt"/>
+        <line num="130" count="22" type="cond" truecount="2" falsecount="2"/>
+        <line num="131" count="16" type="stmt"/>
+        <line num="132" count="0" type="stmt"/>
+        <line num="133" count="0" type="stmt"/>
+        <line num="134" count="6" type="stmt"/>
+        <line num="138" count="22" type="stmt"/>
+        <line num="139" count="22" type="cond" truecount="2" falsecount="4"/>
+        <line num="140" count="16" type="stmt"/>
+        <line num="141" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="142" count="0" type="stmt"/>
+        <line num="143" count="0" type="stmt"/>
+        <line num="144" count="0" type="stmt"/>
+        <line num="145" count="6" type="stmt"/>
+        <line num="149" count="22" type="stmt"/>
+        <line num="153" count="0" type="stmt"/>
+        <line num="265" count="0" type="stmt"/>
+        <line num="280" count="32" type="stmt"/>
+        <line num="289" count="6" type="stmt"/>
+      </file>
+      <file name="token-purchase.tsx" path="/Users/tm/work/AltMe/app/token-purchase.tsx">
+        <metrics statements="20" coveredstatements="19" conditionals="10" coveredconditionals="9" methods="5" coveredmethods="5"/>
+        <line num="23" count="6" type="stmt"/>
+        <line num="30" count="26" type="stmt"/>
+        <line num="31" count="26" type="stmt"/>
+        <line num="32" count="26" type="stmt"/>
+        <line num="34" count="26" type="stmt"/>
+        <line num="35" count="7" type="cond" truecount="1" falsecount="1"/>
+        <line num="36" count="7" type="stmt"/>
+        <line num="37" count="7" type="stmt"/>
+        <line num="40" count="7" type="stmt"/>
+        <line num="41" count="7" type="stmt"/>
+        <line num="43" count="2" type="stmt"/>
+        <line num="48" count="7" type="stmt"/>
+        <line num="52" count="0" type="stmt"/>
+        <line num="59" count="26" type="stmt"/>
+        <line num="62" count="1" type="stmt"/>
+        <line num="74" count="78" type="stmt"/>
+        <line num="75" count="78" type="stmt"/>
+        <line num="76" count="78" type="stmt"/>
+        <line num="80" count="7" type="stmt"/>
+        <line num="111" count="6" type="stmt"/>
+      </file>
+      <file name="twin-conversation-detail.tsx" path="/Users/tm/work/AltMe/app/twin-conversation-detail.tsx">
+        <metrics statements="7" coveredstatements="6" conditionals="10" coveredconditionals="10" methods="3" coveredmethods="2"/>
+        <line num="12" count="8" type="stmt"/>
+        <line num="13" count="8" type="stmt"/>
+        <line num="16" count="8" type="stmt"/>
+        <line num="23" count="8" type="stmt"/>
+        <line num="28" count="0" type="stmt"/>
+        <line num="51" count="32" type="stmt"/>
+        <line num="77" count="4" type="stmt"/>
+      </file>
+    </package>
+    <package name="app.(auth)">
+      <metrics statements="31" coveredstatements="23" conditionals="14" coveredconditionals="9" methods="11" coveredmethods="7"/>
+      <file name="_layout.tsx" path="/Users/tm/work/AltMe/app/(auth)/_layout.tsx">
+        <metrics statements="1" coveredstatements="1" conditionals="0" coveredconditionals="0" methods="1" coveredmethods="1"/>
+        <line num="4" count="3" type="stmt"/>
+      </file>
+      <file name="login.tsx" path="/Users/tm/work/AltMe/app/(auth)/login.tsx">
+        <metrics statements="30" coveredstatements="22" conditionals="14" coveredconditionals="9" methods="10" coveredmethods="6"/>
+        <line num="17" count="21" type="stmt"/>
+        <line num="18" count="21" type="stmt"/>
+        <line num="19" count="21" type="stmt"/>
+        <line num="20" count="21" type="stmt"/>
+        <line num="21" count="21" type="stmt"/>
+        <line num="23" count="21" type="stmt"/>
+        <line num="24" count="0" type="stmt"/>
+        <line num="25" count="0" type="stmt"/>
+        <line num="26" count="0" type="stmt"/>
+        <line num="28" count="0" type="stmt"/>
+        <line num="30" count="0" type="stmt"/>
+        <line num="34" count="21" type="stmt"/>
+        <line num="35" count="2" type="stmt"/>
+        <line num="36" count="2" type="stmt"/>
+        <line num="37" count="2" type="stmt"/>
+        <line num="39" count="1" type="stmt"/>
+        <line num="41" count="2" type="stmt"/>
+        <line num="45" count="21" type="stmt"/>
+        <line num="46" count="6" type="stmt"/>
+        <line num="49" count="21" type="stmt"/>
+        <line num="50" count="0" type="stmt"/>
+        <line num="53" count="21" type="stmt"/>
+        <line num="54" count="1" type="stmt"/>
+        <line num="55" count="1" type="stmt"/>
+        <line num="58" count="21" type="stmt"/>
+        <line num="135" count="10" type="stmt"/>
+        <line num="156" count="10" type="stmt"/>
+        <line num="194" count="0" type="stmt"/>
+        <line num="200" count="0" type="stmt"/>
+        <line num="213" count="4" type="stmt"/>
+      </file>
+    </package>
+    <package name="app.(onboarding)">
+      <metrics statements="192" coveredstatements="100" conditionals="137" coveredconditionals="58" methods="56" coveredmethods="26"/>
+      <file name="_layout.tsx" path="/Users/tm/work/AltMe/app/(onboarding)/_layout.tsx">
+        <metrics statements="1" coveredstatements="1" conditionals="0" coveredconditionals="0" methods="1" coveredmethods="1"/>
+        <line num="4" count="6" type="stmt"/>
+      </file>
+      <file name="choose-avatar.tsx" path="/Users/tm/work/AltMe/app/(onboarding)/choose-avatar.tsx">
+        <metrics statements="20" coveredstatements="16" conditionals="16" coveredconditionals="10" methods="9" coveredmethods="6"/>
+        <line num="16" count="4" type="stmt"/>
+        <line num="23" count="96" type="stmt"/>
+        <line num="26" count="6" type="stmt"/>
+        <line num="27" count="6" type="stmt"/>
+        <line num="28" count="6" type="stmt"/>
+        <line num="29" count="6" type="stmt"/>
+        <line num="31" count="6" type="stmt"/>
+        <line num="32" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="33" count="0" type="stmt"/>
+        <line num="36" count="6" type="stmt"/>
+        <line num="38" count="108" type="stmt"/>
+        <line num="39" count="108" type="stmt"/>
+        <line num="42" count="0" type="stmt"/>
+        <line num="55" count="118" type="stmt"/>
+        <line num="57" count="6" type="cond" truecount="1" falsecount="1"/>
+        <line num="59" count="6" type="cond" truecount="2" falsecount="0"/>
+        <line num="60" count="6" type="cond" truecount="2" falsecount="0"/>
+        <line num="62" count="6" type="stmt"/>
+        <line num="67" count="0" type="stmt"/>
+        <line num="118" count="4" type="stmt"/>
+      </file>
+      <file name="choose-tone.tsx" path="/Users/tm/work/AltMe/app/(onboarding)/choose-tone.tsx">
+        <metrics statements="15" coveredstatements="11" conditionals="12" coveredconditionals="7" methods="7" coveredmethods="4"/>
+        <line num="15" count="4" type="stmt"/>
+        <line num="24" count="6" type="stmt"/>
+        <line num="25" count="6" type="stmt"/>
+        <line num="26" count="6" type="stmt"/>
+        <line num="27" count="6" type="stmt"/>
+        <line num="29" count="6" type="stmt"/>
+        <line num="30" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="31" count="0" type="stmt"/>
+        <line num="34" count="6" type="cond" truecount="2" falsecount="0"/>
+        <line num="36" count="6" type="stmt"/>
+        <line num="41" count="0" type="stmt"/>
+        <line num="55" count="30" type="stmt"/>
+        <line num="56" count="30" type="stmt"/>
+        <line num="60" count="0" type="stmt"/>
+        <line num="91" count="4" type="stmt"/>
+      </file>
+      <file name="meet-twin.tsx" path="/Users/tm/work/AltMe/app/(onboarding)/meet-twin.tsx">
+        <metrics statements="89" coveredstatements="39" conditionals="65" coveredconditionals="24" methods="20" coveredmethods="10"/>
+        <line num="27" count="4" type="stmt"/>
+        <line num="36" count="14" type="stmt"/>
+        <line num="37" count="14" type="stmt"/>
+        <line num="38" count="14" type="stmt"/>
+        <line num="39" count="14" type="stmt"/>
+        <line num="40" count="14" type="stmt"/>
+        <line num="41" count="14" type="stmt"/>
+        <line num="43" count="14" type="stmt"/>
+        <line num="45" count="14" type="stmt"/>
+        <line num="46" count="14" type="stmt"/>
+        <line num="47" count="14" type="stmt"/>
+        <line num="48" count="14" type="stmt"/>
+        <line num="49" count="14" type="stmt"/>
+        <line num="51" count="14" type="stmt"/>
+        <line num="54" count="14" type="stmt"/>
+        <line num="55" count="7" type="cond" truecount="2" falsecount="2"/>
+        <line num="56" count="0" type="stmt"/>
+        <line num="57" count="0" type="stmt"/>
+        <line num="58" count="0" type="stmt"/>
+        <line num="61" count="0" type="stmt"/>
+        <line num="67" count="0" type="stmt"/>
+        <line num="69" count="0" type="stmt"/>
+        <line num="71" count="0" type="stmt"/>
+        <line num="75" count="14" type="stmt"/>
+        <line num="76" count="7" type="stmt"/>
+        <line num="77" count="7" type="stmt"/>
+        <line num="86" count="14" type="stmt"/>
+        <line num="87" count="7" type="stmt"/>
+        <line num="88" count="7" type="cond" truecount="1" falsecount="1"/>
+        <line num="89" count="7" type="stmt"/>
+        <line num="92" count="0" type="stmt"/>
+        <line num="93" count="0" type="stmt"/>
+        <line num="106" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="109" count="14" type="stmt"/>
+        <line num="110" count="0" type="stmt"/>
+        <line num="111" count="0" type="stmt"/>
+        <line num="112" count="0" type="stmt"/>
+        <line num="113" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="114" count="0" type="stmt"/>
+        <line num="115" count="0" type="stmt"/>
+        <line num="118" count="0" type="stmt"/>
+        <line num="121" count="14" type="stmt"/>
+        <line num="122" count="0" type="stmt"/>
+        <line num="123" count="0" type="cond" truecount="0" falsecount="5"/>
+        <line num="125" count="0" type="stmt"/>
+        <line num="131" count="0" type="stmt"/>
+        <line num="132" count="0" type="stmt"/>
+        <line num="133" count="0" type="stmt"/>
+        <line num="134" count="0" type="stmt"/>
+        <line num="136" count="0" type="stmt"/>
+        <line num="137" count="0" type="stmt"/>
+        <line num="139" count="0" type="stmt"/>
+        <line num="140" count="0" type="stmt"/>
+        <line num="142" count="0" type="stmt"/>
+        <line num="151" count="0" type="stmt"/>
+        <line num="160" count="0" type="stmt"/>
+        <line num="162" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="163" count="0" type="stmt"/>
+        <line num="166" count="0" type="stmt"/>
+        <line num="167" count="0" type="stmt"/>
+        <line num="172" count="0" type="stmt"/>
+        <line num="174" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="175" count="0" type="stmt"/>
+        <line num="178" count="0" type="stmt"/>
+        <line num="182" count="14" type="stmt"/>
+        <line num="183" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="184" count="0" type="stmt"/>
+        <line num="186" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="187" count="0" type="stmt"/>
+        <line num="189" count="0" type="stmt"/>
+        <line num="192" count="14" type="stmt"/>
+        <line num="193" count="0" type="stmt"/>
+        <line num="196" count="14" type="stmt"/>
+        <line num="197" count="0" type="stmt"/>
+        <line num="198" count="0" type="stmt"/>
+        <line num="200" count="0" type="stmt"/>
+        <line num="202" count="0" type="stmt"/>
+        <line num="205" count="14" type="stmt"/>
+        <line num="207" count="7" type="stmt"/>
+        <line num="208" count="7" type="stmt"/>
+        <line num="232" count="14" type="stmt"/>
+        <line num="234" count="14" type="stmt"/>
+        <line num="236" count="14" type="cond" truecount="1" falsecount="1"/>
+        <line num="318" count="14" type="stmt"/>
+        <line num="336" count="0" type="stmt"/>
+        <line num="353" count="14" type="cond" truecount="2" falsecount="0"/>
+        <line num="354" count="10" type="stmt"/>
+        <line num="365" count="4" type="stmt"/>
+        <line num="380" count="4" type="stmt"/>
+      </file>
+      <file name="personality-quiz.tsx" path="/Users/tm/work/AltMe/app/(onboarding)/personality-quiz.tsx">
+        <metrics statements="42" coveredstatements="16" conditionals="28" coveredconditionals="8" methods="11" coveredmethods="2"/>
+        <line num="25" count="7" type="stmt"/>
+        <line num="27" count="7" type="stmt"/>
+        <line num="28" count="7" type="stmt"/>
+        <line num="30" count="7" type="stmt"/>
+        <line num="31" count="7" type="stmt"/>
+        <line num="32" count="7" type="stmt"/>
+        <line num="34" count="7" type="stmt"/>
+        <line num="36" count="0" type="stmt"/>
+        <line num="41" count="0" type="stmt"/>
+        <line num="42" count="0" type="stmt"/>
+        <line num="52" count="7" type="stmt"/>
+        <line num="53" count="0" type="stmt"/>
+        <line num="54" count="0" type="stmt"/>
+        <line num="55" count="0" type="stmt"/>
+        <line num="56" count="0" type="stmt"/>
+        <line num="60" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="61" count="0" type="stmt"/>
+        <line num="62" count="0" type="stmt"/>
+        <line num="78" count="0" type="stmt"/>
+        <line num="95" count="0" type="stmt"/>
+        <line num="96" count="0" type="stmt"/>
+        <line num="97" count="0" type="stmt"/>
+        <line num="113" count="0" type="stmt"/>
+        <line num="117" count="7" type="stmt"/>
+        <line num="118" count="0" type="stmt"/>
+        <line num="120" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="121" count="0" type="stmt"/>
+        <line num="122" count="0" type="stmt"/>
+        <line num="125" count="0" type="stmt"/>
+        <line num="126" count="0" type="stmt"/>
+        <line num="130" count="7" type="stmt"/>
+        <line num="131" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="132" count="0" type="stmt"/>
+        <line num="133" count="0" type="stmt"/>
+        <line num="138" count="7" type="cond" truecount="2" falsecount="0"/>
+        <line num="140" count="7" type="stmt"/>
+        <line num="172" count="14" type="stmt"/>
+        <line num="173" count="0" type="stmt"/>
+        <line num="176" count="14" type="stmt"/>
+        <line num="178" count="14" type="stmt"/>
+        <line num="185" count="0" type="stmt"/>
+        <line num="214" count="4" type="stmt"/>
+      </file>
+      <file name="result.tsx" path="/Users/tm/work/AltMe/app/(onboarding)/result.tsx">
+        <metrics statements="16" coveredstatements="10" conditionals="12" coveredconditionals="5" methods="5" coveredmethods="1"/>
+        <line num="14" count="4" type="stmt"/>
+        <line num="23" count="0" type="stmt"/>
+        <line num="37" count="6" type="stmt"/>
+        <line num="38" count="6" type="stmt"/>
+        <line num="39" count="6" type="stmt"/>
+        <line num="41" count="6" type="stmt"/>
+        <line num="42" count="0" type="stmt"/>
+        <line num="45" count="6" type="cond" truecount="2" falsecount="0"/>
+        <line num="47" count="6" type="cond" truecount="3" falsecount="1"/>
+        <line num="48" count="6" type="stmt"/>
+        <line num="65" count="0" type="stmt"/>
+        <line num="67" count="0" type="stmt"/>
+        <line num="72" count="0" type="stmt"/>
+        <line num="101" count="0" type="stmt"/>
+        <line num="151" count="4" type="stmt"/>
+        <line num="184" count="4" type="stmt"/>
+      </file>
+      <file name="welcome.tsx" path="/Users/tm/work/AltMe/app/(onboarding)/welcome.tsx">
+        <metrics statements="9" coveredstatements="7" conditionals="4" coveredconditionals="4" methods="3" coveredmethods="2"/>
+        <line num="13" count="7" type="stmt"/>
+        <line num="14" count="7" type="stmt"/>
+        <line num="15" count="7" type="stmt"/>
+        <line num="17" count="7" type="stmt"/>
+        <line num="18" count="0" type="stmt"/>
+        <line num="19" count="0" type="stmt"/>
+        <line num="22" count="7" type="cond" truecount="2" falsecount="0"/>
+        <line num="24" count="7" type="stmt"/>
+        <line num="58" count="4" type="stmt"/>
+      </file>
+    </package>
+    <package name="app.(paywall)">
+      <metrics statements="125" coveredstatements="61" conditionals="68" coveredconditionals="27" methods="31" coveredmethods="15"/>
+      <file name="_layout.tsx" path="/Users/tm/work/AltMe/app/(paywall)/_layout.tsx">
+        <metrics statements="1" coveredstatements="1" conditionals="0" coveredconditionals="0" methods="1" coveredmethods="1"/>
+        <line num="4" count="3" type="stmt"/>
+      </file>
+      <file name="index.tsx" path="/Users/tm/work/AltMe/app/(paywall)/index.tsx">
+        <metrics statements="124" coveredstatements="60" conditionals="68" coveredconditionals="27" methods="30" coveredmethods="14"/>
+        <line num="17" count="4" type="stmt"/>
+        <line num="20" count="4" type="stmt"/>
+        <line num="21" count="4" type="cond" truecount="2" falsecount="0"/>
+        <line num="27" count="4" type="stmt"/>
+        <line num="36" count="4" type="stmt"/>
+        <line num="37" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="38" count="0" type="stmt"/>
+        <line num="39" count="0" type="stmt"/>
+        <line num="40" count="0" type="stmt"/>
+        <line num="41" count="0" type="stmt"/>
+        <line num="42" count="0" type="stmt"/>
+        <line num="48" count="16" type="stmt"/>
+        <line num="49" count="16" type="stmt"/>
+        <line num="50" count="16" type="stmt"/>
+        <line num="51" count="16" type="stmt"/>
+        <line num="52" count="16" type="stmt"/>
+        <line num="54" count="16" type="stmt"/>
+        <line num="55" count="4" type="stmt"/>
+        <line num="56" count="4" type="cond" truecount="2" falsecount="0"/>
+        <line num="57" count="1" type="stmt"/>
+        <line num="58" count="1" type="stmt"/>
+        <line num="61" count="3" type="stmt"/>
+        <line num="62" count="3" type="stmt"/>
+        <line num="63" count="3" type="stmt"/>
+        <line num="64" count="3" type="stmt"/>
+        <line num="66" count="1" type="cond" truecount="1" falsecount="1"/>
+        <line num="67" count="1" type="stmt"/>
+        <line num="68" count="1" type="stmt"/>
+        <line num="72" count="16" type="stmt"/>
+        <line num="73" count="1" type="stmt"/>
+        <line num="76" count="16" type="stmt"/>
+        <line num="97" count="96" type="stmt"/>
+        <line num="109" count="1" type="stmt"/>
+        <line num="120" count="0" type="stmt"/>
+        <line num="169" count="2" type="stmt"/>
+        <line num="170" count="2" type="stmt"/>
+        <line num="171" count="2" type="stmt"/>
+        <line num="172" count="2" type="stmt"/>
+        <line num="174" count="2" type="stmt"/>
+        <line num="175" count="2" type="stmt"/>
+        <line num="176" count="2" type="stmt"/>
+        <line num="177" count="2" type="stmt"/>
+        <line num="178" count="2" type="stmt"/>
+        <line num="179" count="2" type="stmt"/>
+        <line num="181" count="2" type="stmt"/>
+        <line num="182" count="2" type="stmt"/>
+        <line num="185" count="2" type="stmt"/>
+        <line num="186" count="2" type="stmt"/>
+        <line num="187" count="2" type="stmt"/>
+        <line num="188" count="2" type="cond" truecount="1" falsecount="1"/>
+        <line num="189" count="2" type="stmt"/>
+        <line num="190" count="2" type="stmt"/>
+        <line num="193" count="0" type="stmt"/>
+        <line num="194" count="0" type="stmt"/>
+        <line num="195" count="0" type="stmt"/>
+        <line num="196" count="0" type="stmt"/>
+        <line num="198" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="199" count="0" type="stmt"/>
+        <line num="200" count="0" type="stmt"/>
+        <line num="203" count="0" type="stmt"/>
+        <line num="204" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="205" count="0" type="stmt"/>
+        <line num="206" count="0" type="stmt"/>
+        <line num="209" count="0" type="stmt"/>
+        <line num="210" count="0" type="stmt"/>
+        <line num="211" count="0" type="stmt"/>
+        <line num="213" count="0" type="stmt"/>
+        <line num="217" count="2" type="stmt"/>
+        <line num="220" count="2" type="stmt"/>
+        <line num="221" count="2" type="cond" truecount="1" falsecount="1"/>
+        <line num="223" count="0" type="stmt"/>
+        <line num="224" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="226" count="0" type="stmt"/>
+        <line num="227" count="0" type="stmt"/>
+        <line num="229" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="230" count="0" type="stmt"/>
+        <line num="231" count="0" type="stmt"/>
+        <line num="232" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="233" count="0" type="stmt"/>
+        <line num="235" count="0" type="stmt"/>
+        <line num="239" count="0" type="stmt"/>
+        <line num="242" count="2" type="stmt"/>
+        <line num="243" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="245" count="0" type="stmt"/>
+        <line num="246" count="0" type="cond" truecount="0" falsecount="4"/>
+        <line num="248" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="250" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="252" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="254" count="0" type="stmt"/>
+        <line num="258" count="2" type="stmt"/>
+        <line num="259" count="0" type="stmt"/>
+        <line num="260" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="261" count="0" type="stmt"/>
+        <line num="262" count="0" type="stmt"/>
+        <line num="265" count="0" type="stmt"/>
+        <line num="266" count="0" type="stmt"/>
+        <line num="267" count="0" type="stmt"/>
+        <line num="268" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="269" count="0" type="stmt"/>
+        <line num="272" count="0" type="stmt"/>
+        <line num="274" count="0" type="stmt"/>
+        <line num="278" count="2" type="stmt"/>
+        <line num="279" count="0" type="stmt"/>
+        <line num="280" count="0" type="stmt"/>
+        <line num="281" count="0" type="stmt"/>
+        <line num="282" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="283" count="0" type="stmt"/>
+        <line num="284" count="0" type="stmt"/>
+        <line num="287" count="0" type="stmt"/>
+        <line num="290" count="0" type="stmt"/>
+        <line num="292" count="0" type="stmt"/>
+        <line num="296" count="2" type="stmt"/>
+        <line num="297" count="0" type="stmt"/>
+        <line num="300" count="2" type="stmt"/>
+        <line num="304" count="2" type="stmt"/>
+        <line num="332" count="12" type="stmt"/>
+        <line num="342" count="0" type="stmt"/>
+        <line num="351" count="0" type="stmt"/>
+        <line num="361" count="0" type="stmt"/>
+        <line num="404" count="3" type="cond" truecount="2" falsecount="0"/>
+        <line num="405" count="1" type="stmt"/>
+        <line num="407" count="2" type="stmt"/>
+        <line num="412" count="4" type="stmt"/>
+        <line num="555" count="4" type="stmt"/>
+      </file>
+    </package>
+    <package name="app.(tabs)">
+      <metrics statements="220" coveredstatements="136" conditionals="194" coveredconditionals="108" methods="70" coveredmethods="33"/>
+      <file name="_layout.tsx" path="/Users/tm/work/AltMe/app/(tabs)/_layout.tsx">
+        <metrics statements="7" coveredstatements="2" conditionals="0" coveredconditionals="0" methods="6" coveredmethods="1"/>
+        <line num="12" count="0" type="stmt"/>
+        <line num="16" count="2" type="stmt"/>
+        <line num="18" count="2" type="stmt"/>
+        <line num="37" count="0" type="stmt"/>
+        <line num="45" count="0" type="stmt"/>
+        <line num="53" count="0" type="stmt"/>
+        <line num="61" count="0" type="stmt"/>
+      </file>
+      <file name="_layout.web.tsx" path="/Users/tm/work/AltMe/app/(tabs)/_layout.web.tsx">
+        <metrics statements="5" coveredstatements="5" conditionals="2" coveredconditionals="2" methods="1" coveredmethods="1"/>
+        <line num="11" count="13" type="stmt"/>
+        <line num="16" count="13" type="cond" truecount="2" falsecount="0"/>
+        <line num="17" count="4" type="stmt"/>
+        <line num="27" count="9" type="stmt"/>
+        <line num="37" count="3" type="stmt"/>
+      </file>
+      <file name="community.tsx" path="/Users/tm/work/AltMe/app/(tabs)/community.tsx">
+        <metrics statements="25" coveredstatements="19" conditionals="26" coveredconditionals="18" methods="9" coveredmethods="2"/>
+        <line num="31" count="12" type="stmt"/>
+        <line num="32" count="12" type="stmt"/>
+        <line num="33" count="12" type="stmt"/>
+        <line num="34" count="12" type="stmt"/>
+        <line num="35" count="12" type="stmt"/>
+        <line num="36" count="12" type="stmt"/>
+        <line num="37" count="12" type="stmt"/>
+        <line num="39" count="12" type="cond" truecount="1" falsecount="1"/>
+        <line num="40" count="12" type="stmt"/>
+        <line num="42" count="12" type="stmt"/>
+        <line num="43" count="0" type="stmt"/>
+        <line num="46" count="12" type="stmt"/>
+        <line num="48" count="0" type="stmt"/>
+        <line num="53" count="12" type="cond" truecount="4" falsecount="0"/>
+        <line num="55" count="12" type="stmt"/>
+        <line num="57" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="64" count="12" type="stmt"/>
+        <line num="67" count="12" type="stmt"/>
+        <line num="73" count="0" type="stmt"/>
+        <line num="79" count="0" type="stmt"/>
+        <line num="90" count="0" type="stmt"/>
+        <line num="102" count="12" type="stmt"/>
+        <line num="129" count="12" type="cond" truecount="2" falsecount="0"/>
+        <line num="131" count="12" type="stmt"/>
+        <line num="160" count="5" type="stmt"/>
+      </file>
+      <file name="index.tsx" path="/Users/tm/work/AltMe/app/(tabs)/index.tsx">
+        <metrics statements="24" coveredstatements="13" conditionals="42" coveredconditionals="1" methods="5" coveredmethods="3"/>
+        <line num="36" count="4" type="stmt"/>
+        <line num="39" count="4" type="stmt"/>
+        <line num="40" count="4" type="stmt"/>
+        <line num="41" count="4" type="stmt"/>
+        <line num="42" count="4" type="stmt"/>
+        <line num="43" count="4" type="stmt"/>
+        <line num="44" count="4" type="stmt"/>
+        <line num="59" count="4" type="stmt"/>
+        <line num="61" count="4" type="stmt"/>
+        <line num="63" count="4" type="stmt"/>
+        <line num="64" count="0" type="cond" truecount="0" falsecount="4"/>
+        <line num="65" count="0" type="stmt"/>
+        <line num="67" count="0" type="stmt"/>
+        <line num="68" count="0" type="stmt"/>
+        <line num="79" count="4" type="cond" truecount="1" falsecount="1"/>
+        <line num="80" count="4" type="stmt"/>
+        <line num="89" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="90" count="0" type="stmt"/>
+        <line num="101" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="102" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="105" count="0" type="stmt"/>
+        <line num="152" count="0" type="stmt"/>
+        <line num="212" count="0" type="stmt"/>
+        <line num="227" count="4" type="stmt"/>
+      </file>
+      <file name="settings.tsx" path="/Users/tm/work/AltMe/app/(tabs)/settings.tsx">
+        <metrics statements="112" coveredstatements="58" conditionals="68" coveredconditionals="40" methods="37" coveredmethods="16"/>
+        <line num="25" count="6" type="stmt"/>
+        <line num="26" count="6" type="stmt"/>
+        <line num="27" count="6" type="stmt"/>
+        <line num="29" count="6" type="stmt"/>
+        <line num="37" count="7" type="stmt"/>
+        <line num="38" count="7" type="stmt"/>
+        <line num="39" count="7" type="stmt"/>
+        <line num="40" count="7" type="cond" truecount="1" falsecount="1"/>
+        <line num="41" count="7" type="cond" truecount="3" falsecount="0"/>
+        <line num="42" count="7" type="stmt"/>
+        <line num="44" count="7" type="stmt"/>
+        <line num="45" count="0" type="stmt"/>
+        <line num="46" count="0" type="stmt"/>
+        <line num="47" count="0" type="stmt"/>
+        <line num="49" count="0" type="stmt"/>
+        <line num="51" count="0" type="stmt"/>
+        <line num="55" count="7" type="stmt"/>
+        <line num="56" count="0" type="stmt"/>
+        <line num="57" count="0" type="stmt"/>
+        <line num="58" count="0" type="stmt"/>
+        <line num="60" count="0" type="stmt"/>
+        <line num="62" count="0" type="stmt"/>
+        <line num="66" count="7" type="stmt"/>
+        <line num="116" count="28" type="stmt"/>
+        <line num="125" count="0" type="stmt"/>
+        <line num="126" count="0" type="stmt"/>
+        <line num="127" count="0" type="stmt"/>
+        <line num="138" count="25" type="stmt"/>
+        <line num="139" count="25" type="stmt"/>
+        <line num="140" count="25" type="stmt"/>
+        <line num="141" count="25" type="stmt"/>
+        <line num="142" count="25" type="stmt"/>
+        <line num="143" count="25" type="stmt"/>
+        <line num="144" count="25" type="stmt"/>
+        <line num="145" count="25" type="stmt"/>
+        <line num="147" count="25" type="cond" truecount="1" falsecount="1"/>
+        <line num="148" count="25" type="cond" truecount="3" falsecount="0"/>
+        <line num="151" count="25" type="stmt"/>
+        <line num="154" count="25" type="stmt"/>
+        <line num="155" count="25" type="cond" truecount="4" falsecount="0"/>
+        <line num="157" count="5" type="stmt"/>
+        <line num="159" count="5" type="stmt"/>
+        <line num="160" count="5" type="stmt"/>
+        <line num="161" count="5" type="stmt"/>
+        <line num="162" count="5" type="stmt"/>
+        <line num="164" count="0" type="stmt"/>
+        <line num="168" count="5" type="stmt"/>
+        <line num="171" count="5" type="stmt"/>
+        <line num="172" count="0" type="stmt"/>
+        <line num="175" count="5" type="stmt"/>
+        <line num="176" count="5" type="stmt"/>
+        <line num="180" count="25" type="stmt"/>
+        <line num="181" count="25" type="stmt"/>
+        <line num="183" count="25" type="cond" truecount="2" falsecount="0"/>
+        <line num="184" count="18" type="stmt"/>
+        <line num="186" count="7" type="stmt"/>
+        <line num="189" count="25" type="cond" truecount="3" falsecount="1"/>
+        <line num="190" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="191" count="0" type="stmt"/>
+        <line num="192" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="193" count="0" type="stmt"/>
+        <line num="194" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="195" count="0" type="stmt"/>
+        <line num="197" count="0" type="stmt"/>
+        <line num="201" count="25" type="stmt"/>
+        <line num="204" count="25" type="stmt"/>
+        <line num="205" count="25" type="stmt"/>
+        <line num="207" count="25" type="stmt"/>
+        <line num="209" count="25" type="cond" truecount="3" falsecount="1"/>
+        <line num="210" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="211" count="0" type="stmt"/>
+        <line num="212" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="213" count="0" type="stmt"/>
+        <line num="215" count="0" type="stmt"/>
+        <line num="218" count="25" type="stmt"/>
+        <line num="221" count="25" type="cond" truecount="2" falsecount="0"/>
+        <line num="222" count="7" type="stmt"/>
+        <line num="225" count="18" type="stmt"/>
+        <line num="226" count="0" type="stmt"/>
+        <line num="230" count="0" type="stmt"/>
+        <line num="231" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="232" count="0" type="stmt"/>
+        <line num="233" count="0" type="stmt"/>
+        <line num="235" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="236" count="0" type="stmt"/>
+        <line num="237" count="0" type="stmt"/>
+        <line num="241" count="0" type="stmt"/>
+        <line num="244" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="245" count="0" type="stmt"/>
+        <line num="246" count="0" type="stmt"/>
+        <line num="250" count="0" type="stmt"/>
+        <line num="252" count="0" type="stmt"/>
+        <line num="260" count="18" type="stmt"/>
+        <line num="261" count="0" type="stmt"/>
+        <line num="268" count="0" type="stmt"/>
+        <line num="274" count="18" type="stmt"/>
+        <line num="275" count="0" type="stmt"/>
+        <line num="281" count="0" type="stmt"/>
+        <line num="282" count="0" type="stmt"/>
+        <line num="288" count="18" type="stmt"/>
+        <line num="317" count="0" type="stmt"/>
+        <line num="337" count="0" type="stmt"/>
+        <line num="344" count="0" type="stmt"/>
+        <line num="350" count="0" type="stmt"/>
+        <line num="372" count="0" type="stmt"/>
+        <line num="378" count="0" type="stmt"/>
+        <line num="384" count="0" type="stmt"/>
+        <line num="392" count="0" type="stmt"/>
+        <line num="430" count="165" type="cond" truecount="2" falsecount="0"/>
+        <line num="432" count="165" type="stmt"/>
+        <line num="444" count="18" type="stmt"/>
+        <line num="459" count="6" type="stmt"/>
+      </file>
+      <file name="twin.tsx" path="/Users/tm/work/AltMe/app/(tabs)/twin.tsx">
+        <metrics statements="47" coveredstatements="39" conditionals="56" coveredconditionals="47" methods="12" coveredmethods="10"/>
+        <line num="36" count="6" type="stmt"/>
+        <line num="39" count="29" type="cond" truecount="3" falsecount="1"/>
+        <line num="40" count="0" type="cond" truecount="0" falsecount="4"/>
+        <line num="42" count="0" type="stmt"/>
+        <line num="44" count="0" type="stmt"/>
+        <line num="46" count="0" type="stmt"/>
+        <line num="48" count="0" type="stmt"/>
+        <line num="53" count="35" type="stmt"/>
+        <line num="54" count="35" type="stmt"/>
+        <line num="55" count="35" type="stmt"/>
+        <line num="56" count="35" type="stmt"/>
+        <line num="57" count="35" type="stmt"/>
+        <line num="58" count="35" type="stmt"/>
+        <line num="59" count="35" type="stmt"/>
+        <line num="60" count="35" type="stmt"/>
+        <line num="61" count="35" type="stmt"/>
+        <line num="62" count="35" type="stmt"/>
+        <line num="63" count="35" type="stmt"/>
+        <line num="65" count="35" type="stmt"/>
+        <line num="66" count="33" type="cond" truecount="4" falsecount="0"/>
+        <line num="67" count="19" type="stmt"/>
+        <line num="69" count="19" type="stmt"/>
+        <line num="70" count="19" type="cond" truecount="3" falsecount="1"/>
+        <line num="71" count="0" type="stmt"/>
+        <line num="75" count="19" type="stmt"/>
+        <line num="76" count="19" type="stmt"/>
+        <line num="80" count="35" type="stmt"/>
+        <line num="81" count="35" type="cond" truecount="2" falsecount="0"/>
+        <line num="83" count="35" type="cond" truecount="2" falsecount="0"/>
+        <line num="84" count="6" type="stmt"/>
+        <line num="93" count="29" type="cond" truecount="1" falsecount="1"/>
+        <line num="94" count="29" type="stmt"/>
+        <line num="96" count="29" type="cond" truecount="2" falsecount="0"/>
+        <line num="97" count="120" type="stmt"/>
+        <line num="104" count="29" type="stmt"/>
+        <line num="105" count="1" type="stmt"/>
+        <line num="106" count="1" type="stmt"/>
+        <line num="107" count="1" type="stmt"/>
+        <line num="108" count="1" type="stmt"/>
+        <line num="109" count="1" type="stmt"/>
+        <line num="110" count="1" type="stmt"/>
+        <line num="113" count="29" type="stmt"/>
+        <line num="115" count="29" type="stmt"/>
+        <line num="173" count="120" type="stmt"/>
+        <line num="203" count="0" type="stmt"/>
+        <line num="209" count="0" type="stmt"/>
+        <line num="230" count="6" type="stmt"/>
+      </file>
+    </package>
+    <package name="app.auth">
+      <metrics statements="50" coveredstatements="50" conditionals="26" coveredconditionals="20" methods="5" coveredmethods="5"/>
+      <file name="callback.tsx" path="/Users/tm/work/AltMe/app/auth/callback.tsx">
+        <metrics statements="50" coveredstatements="50" conditionals="26" coveredconditionals="20" methods="5" coveredmethods="5"/>
+        <line num="27" count="21" type="stmt"/>
+        <line num="28" count="21" type="stmt"/>
+        <line num="34" count="21" type="stmt"/>
+        <line num="35" count="21" type="stmt"/>
+        <line num="37" count="21" type="stmt"/>
+        <line num="38" count="15" type="stmt"/>
+        <line num="40" count="15" type="stmt"/>
+        <line num="42" count="15" type="cond" truecount="2" falsecount="0"/>
+        <line num="43" count="6" type="cond" truecount="2" falsecount="0"/>
+        <line num="46" count="6" type="cond" truecount="1" falsecount="1"/>
+        <line num="47" count="6" type="stmt"/>
+        <line num="48" count="6" type="stmt"/>
+        <line num="50" count="6" type="stmt"/>
+        <line num="53" count="9" type="stmt"/>
+        <line num="56" count="9" type="stmt"/>
+        <line num="58" count="6" type="cond" truecount="4" falsecount="0"/>
+        <line num="59" count="2" type="cond" truecount="1" falsecount="1"/>
+        <line num="60" count="2" type="stmt"/>
+        <line num="61" count="2" type="stmt"/>
+        <line num="63" count="2" type="stmt"/>
+        <line num="66" count="4" type="stmt"/>
+        <line num="69" count="4" type="stmt"/>
+        <line num="70" count="4" type="cond" truecount="2" falsecount="0"/>
+        <line num="71" count="2" type="cond" truecount="1" falsecount="1"/>
+        <line num="72" count="2" type="stmt"/>
+        <line num="73" count="2" type="stmt"/>
+        <line num="75" count="2" type="stmt"/>
+        <line num="78" count="2" type="cond" truecount="1" falsecount="1"/>
+        <line num="81" count="2" type="stmt"/>
+        <line num="83" count="2" type="stmt"/>
+        <line num="84" count="2" type="stmt"/>
+        <line num="85" count="2" type="stmt"/>
+        <line num="88" count="2" type="stmt"/>
+        <line num="90" count="2" type="cond" truecount="1" falsecount="1"/>
+        <line num="93" count="2" type="cond" truecount="2" falsecount="0"/>
+        <line num="94" count="1" type="stmt"/>
+        <line num="96" count="1" type="stmt"/>
+        <line num="99" count="2" type="stmt"/>
+        <line num="100" count="2" type="cond" truecount="1" falsecount="1"/>
+        <line num="101" count="2" type="stmt"/>
+        <line num="102" count="2" type="stmt"/>
+        <line num="107" count="15" type="stmt"/>
+        <line num="109" count="15" type="stmt"/>
+        <line num="110" count="15" type="stmt"/>
+        <line num="114" count="21" type="stmt"/>
+        <line num="115" count="1" type="stmt"/>
+        <line num="118" count="21" type="cond" truecount="2" falsecount="0"/>
+        <line num="119" count="12" type="stmt"/>
+        <line num="130" count="9" type="stmt"/>
+        <line num="138" count="1" type="stmt"/>
+      </file>
+    </package>
+    <package name="app.community">
+      <metrics statements="31" coveredstatements="22" conditionals="30" coveredconditionals="19" methods="9" coveredmethods="3"/>
+      <file name="[id].tsx" path="/Users/tm/work/AltMe/app/community/[id].tsx">
+        <metrics statements="31" coveredstatements="22" conditionals="30" coveredconditionals="19" methods="9" coveredmethods="3"/>
+        <line num="30" count="5" type="stmt"/>
+        <line num="33" count="0" type="stmt"/>
+        <line num="34" count="0" type="stmt"/>
+        <line num="35" count="0" type="stmt"/>
+        <line num="37" count="0" type="stmt"/>
+        <line num="40" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="56" count="8" type="stmt"/>
+        <line num="57" count="8" type="stmt"/>
+        <line num="58" count="8" type="stmt"/>
+        <line num="59" count="8" type="stmt"/>
+        <line num="70" count="8" type="cond" truecount="2" falsecount="0"/>
+        <line num="72" count="8" type="cond" truecount="2" falsecount="0"/>
+        <line num="74" count="8" type="stmt"/>
+        <line num="75" count="0" type="stmt"/>
+        <line num="79" count="8" type="stmt"/>
+        <line num="81" count="8" type="stmt"/>
+        <line num="82" count="1" type="cond" truecount="1" falsecount="1"/>
+        <line num="83" count="0" type="stmt"/>
+        <line num="90" count="8" type="stmt"/>
+        <line num="92" count="1" type="stmt"/>
+        <line num="99" count="8" type="cond" truecount="2" falsecount="0"/>
+        <line num="101" count="8" type="cond" truecount="2" falsecount="0"/>
+        <line num="102" count="1" type="stmt"/>
+        <line num="113" count="7" type="cond" truecount="2" falsecount="0"/>
+        <line num="114" count="1" type="stmt"/>
+        <line num="128" count="6" type="cond" truecount="2" falsecount="0"/>
+        <line num="129" count="5" type="stmt"/>
+        <line num="134" count="0" type="stmt"/>
+        <line num="143" count="1" type="stmt"/>
+        <line num="149" count="0" type="stmt"/>
+        <line num="223" count="5" type="stmt"/>
+      </file>
+    </package>
+    <package name="app.payment">
+      <metrics statements="30" coveredstatements="30" conditionals="8" coveredconditionals="6" methods="10" coveredmethods="10"/>
+      <file name="cancel.tsx" path="/Users/tm/work/AltMe/app/payment/cancel.tsx">
+        <metrics statements="8" coveredstatements="8" conditionals="2" coveredconditionals="1" methods="4" coveredmethods="4"/>
+        <line num="13" count="3" type="stmt"/>
+        <line num="15" count="3" type="stmt"/>
+        <line num="16" count="1" type="stmt"/>
+        <line num="19" count="3" type="stmt"/>
+        <line num="20" count="1" type="stmt"/>
+        <line num="23" count="3" type="stmt"/>
+        <line num="35" count="3" type="cond" truecount="1" falsecount="1"/>
+        <line num="53" count="1" type="stmt"/>
+      </file>
+      <file name="success.tsx" path="/Users/tm/work/AltMe/app/payment/success.tsx">
+        <metrics statements="22" coveredstatements="22" conditionals="6" coveredconditionals="5" methods="6" coveredmethods="6"/>
+        <line num="8" count="1" type="stmt"/>
+        <line num="18" count="10" type="stmt"/>
+        <line num="19" count="10" type="stmt"/>
+        <line num="20" count="10" type="stmt"/>
+        <line num="22" count="10" type="stmt"/>
+        <line num="25" count="10" type="stmt"/>
+        <line num="26" count="10" type="stmt"/>
+        <line num="28" count="10" type="cond" truecount="1" falsecount="1"/>
+        <line num="29" count="10" type="stmt"/>
+        <line num="30" count="8" type="stmt"/>
+        <line num="31" count="8" type="stmt"/>
+        <line num="34" count="2" type="stmt"/>
+        <line num="36" count="10" type="stmt"/>
+        <line num="38" count="10" type="stmt"/>
+        <line num="39" count="2" type="stmt"/>
+        <line num="44" count="10" type="stmt"/>
+        <line num="46" count="10" type="stmt"/>
+        <line num="47" count="10" type="cond" truecount="2" falsecount="0"/>
+        <line num="51" count="10" type="stmt"/>
+        <line num="52" count="1" type="stmt"/>
+        <line num="55" count="10" type="stmt"/>
+        <line num="87" count="1" type="stmt"/>
+      </file>
+    </package>
+    <package name="assets.avatars">
+      <metrics statements="30" coveredstatements="30" conditionals="0" coveredconditionals="0" methods="0" coveredmethods="0"/>
+      <file name="av01-robot.png" path="/Users/tm/work/AltMe/assets/avatars/av01-robot.png">
+        <metrics statements="1" coveredstatements="1" conditionals="0" coveredconditionals="0" methods="0" coveredmethods="0"/>
+        <line num="1" count="4" type="stmt"/>
+      </file>
+      <file name="av02-cat.png" path="/Users/tm/work/AltMe/assets/avatars/av02-cat.png">
+        <metrics statements="1" coveredstatements="1" conditionals="0" coveredconditionals="0" methods="0" coveredmethods="0"/>
+        <line num="1" count="4" type="stmt"/>
+      </file>
+      <file name="av03-bunny.png" path="/Users/tm/work/AltMe/assets/avatars/av03-bunny.png">
+        <metrics statements="1" coveredstatements="1" conditionals="0" coveredconditionals="0" methods="0" coveredmethods="0"/>
+        <line num="1" count="4" type="stmt"/>
+      </file>
+      <file name="av04-star.png" path="/Users/tm/work/AltMe/assets/avatars/av04-star.png">
+        <metrics statements="1" coveredstatements="1" conditionals="0" coveredconditionals="0" methods="0" coveredmethods="0"/>
+        <line num="1" count="4" type="stmt"/>
+      </file>
+      <file name="av05-owl.png" path="/Users/tm/work/AltMe/assets/avatars/av05-owl.png">
+        <metrics statements="1" coveredstatements="1" conditionals="0" coveredconditionals="0" methods="0" coveredmethods="0"/>
+        <line num="1" count="4" type="stmt"/>
+      </file>
+      <file name="av06-fox.png" path="/Users/tm/work/AltMe/assets/avatars/av06-fox.png">
+        <metrics statements="1" coveredstatements="1" conditionals="0" coveredconditionals="0" methods="0" coveredmethods="0"/>
+        <line num="1" count="4" type="stmt"/>
+      </file>
+      <file name="av07-penguin.png" path="/Users/tm/work/AltMe/assets/avatars/av07-penguin.png">
+        <metrics statements="1" coveredstatements="1" conditionals="0" coveredconditionals="0" methods="0" coveredmethods="0"/>
+        <line num="1" count="4" type="stmt"/>
+      </file>
+      <file name="av08-bear.png" path="/Users/tm/work/AltMe/assets/avatars/av08-bear.png">
+        <metrics statements="1" coveredstatements="1" conditionals="0" coveredconditionals="0" methods="0" coveredmethods="0"/>
+        <line num="1" count="4" type="stmt"/>
+      </file>
+      <file name="av09-dragon.png" path="/Users/tm/work/AltMe/assets/avatars/av09-dragon.png">
+        <metrics statements="1" coveredstatements="1" conditionals="0" coveredconditionals="0" methods="0" coveredmethods="0"/>
+        <line num="1" count="4" type="stmt"/>
+      </file>
+      <file name="av10-unicorn.png" path="/Users/tm/work/AltMe/assets/avatars/av10-unicorn.png">
+        <metrics statements="1" coveredstatements="1" conditionals="0" coveredconditionals="0" methods="0" coveredmethods="0"/>
+        <line num="1" count="4" type="stmt"/>
+      </file>
+      <file name="av11-panda.png" path="/Users/tm/work/AltMe/assets/avatars/av11-panda.png">
+        <metrics statements="1" coveredstatements="1" conditionals="0" coveredconditionals="0" methods="0" coveredmethods="0"/>
+        <line num="1" count="4" type="stmt"/>
+      </file>
+      <file name="av12-dolphin.png" path="/Users/tm/work/AltMe/assets/avatars/av12-dolphin.png">
+        <metrics statements="1" coveredstatements="1" conditionals="0" coveredconditionals="0" methods="0" coveredmethods="0"/>
+        <line num="1" count="4" type="stmt"/>
+      </file>
+      <file name="av13-phoenix.png" path="/Users/tm/work/AltMe/assets/avatars/av13-phoenix.png">
+        <metrics statements="1" coveredstatements="1" conditionals="0" coveredconditionals="0" methods="0" coveredmethods="0"/>
+        <line num="1" count="4" type="stmt"/>
+      </file>
+      <file name="av14-deer.png" path="/Users/tm/work/AltMe/assets/avatars/av14-deer.png">
+        <metrics statements="1" coveredstatements="1" conditionals="0" coveredconditionals="0" methods="0" coveredmethods="0"/>
+        <line num="1" count="4" type="stmt"/>
+      </file>
+      <file name="av15-koala.png" path="/Users/tm/work/AltMe/assets/avatars/av15-koala.png">
+        <metrics statements="1" coveredstatements="1" conditionals="0" coveredconditionals="0" methods="0" coveredmethods="0"/>
+        <line num="1" count="4" type="stmt"/>
+      </file>
+      <file name="av16-wolf.png" path="/Users/tm/work/AltMe/assets/avatars/av16-wolf.png">
+        <metrics statements="1" coveredstatements="1" conditionals="0" coveredconditionals="0" methods="0" coveredmethods="0"/>
+        <line num="1" count="4" type="stmt"/>
+      </file>
+      <file name="av17-hamster.png" path="/Users/tm/work/AltMe/assets/avatars/av17-hamster.png">
+        <metrics statements="1" coveredstatements="1" conditionals="0" coveredconditionals="0" methods="0" coveredmethods="0"/>
+        <line num="1" count="4" type="stmt"/>
+      </file>
+      <file name="av18-butterfly.png" path="/Users/tm/work/AltMe/assets/avatars/av18-butterfly.png">
+        <metrics statements="1" coveredstatements="1" conditionals="0" coveredconditionals="0" methods="0" coveredmethods="0"/>
+        <line num="1" count="4" type="stmt"/>
+      </file>
+      <file name="av19-jellyfish.png" path="/Users/tm/work/AltMe/assets/avatars/av19-jellyfish.png">
+        <metrics statements="1" coveredstatements="1" conditionals="0" coveredconditionals="0" methods="0" coveredmethods="0"/>
+        <line num="1" count="4" type="stmt"/>
+      </file>
+      <file name="av20-mushroom.png" path="/Users/tm/work/AltMe/assets/avatars/av20-mushroom.png">
+        <metrics statements="1" coveredstatements="1" conditionals="0" coveredconditionals="0" methods="0" coveredmethods="0"/>
+        <line num="1" count="4" type="stmt"/>
+      </file>
+      <file name="av21-crystal.png" path="/Users/tm/work/AltMe/assets/avatars/av21-crystal.png">
+        <metrics statements="1" coveredstatements="1" conditionals="0" coveredconditionals="0" methods="0" coveredmethods="0"/>
+        <line num="1" count="4" type="stmt"/>
+      </file>
+      <file name="av22-cloud.png" path="/Users/tm/work/AltMe/assets/avatars/av22-cloud.png">
+        <metrics statements="1" coveredstatements="1" conditionals="0" coveredconditionals="0" methods="0" coveredmethods="0"/>
+        <line num="1" count="4" type="stmt"/>
+      </file>
+      <file name="av23-moon.png" path="/Users/tm/work/AltMe/assets/avatars/av23-moon.png">
+        <metrics statements="1" coveredstatements="1" conditionals="0" coveredconditionals="0" methods="0" coveredmethods="0"/>
+        <line num="1" count="4" type="stmt"/>
+      </file>
+      <file name="av24-octopus.png" path="/Users/tm/work/AltMe/assets/avatars/av24-octopus.png">
+        <metrics statements="1" coveredstatements="1" conditionals="0" coveredconditionals="0" methods="0" coveredmethods="0"/>
+        <line num="1" count="4" type="stmt"/>
+      </file>
+      <file name="av25-flower.png" path="/Users/tm/work/AltMe/assets/avatars/av25-flower.png">
+        <metrics statements="1" coveredstatements="1" conditionals="0" coveredconditionals="0" methods="0" coveredmethods="0"/>
+        <line num="1" count="4" type="stmt"/>
+      </file>
+      <file name="av26-ghost.png" path="/Users/tm/work/AltMe/assets/avatars/av26-ghost.png">
+        <metrics statements="1" coveredstatements="1" conditionals="0" coveredconditionals="0" methods="0" coveredmethods="0"/>
+        <line num="1" count="4" type="stmt"/>
+      </file>
+      <file name="av27-slime.png" path="/Users/tm/work/AltMe/assets/avatars/av27-slime.png">
+        <metrics statements="1" coveredstatements="1" conditionals="0" coveredconditionals="0" methods="0" coveredmethods="0"/>
+        <line num="1" count="4" type="stmt"/>
+      </file>
+      <file name="av28-sakura.png" path="/Users/tm/work/AltMe/assets/avatars/av28-sakura.png">
+        <metrics statements="1" coveredstatements="1" conditionals="0" coveredconditionals="0" methods="0" coveredmethods="0"/>
+        <line num="1" count="4" type="stmt"/>
+      </file>
+      <file name="av29-flame.png" path="/Users/tm/work/AltMe/assets/avatars/av29-flame.png">
+        <metrics statements="1" coveredstatements="1" conditionals="0" coveredconditionals="0" methods="0" coveredmethods="0"/>
+        <line num="1" count="4" type="stmt"/>
+      </file>
+      <file name="av30-alien.png" path="/Users/tm/work/AltMe/assets/avatars/av30-alien.png">
+        <metrics statements="1" coveredstatements="1" conditionals="0" coveredconditionals="0" methods="0" coveredmethods="0"/>
+        <line num="1" count="4" type="stmt"/>
+      </file>
+    </package>
+    <package name="assets.images">
+      <metrics statements="2" coveredstatements="2" conditionals="0" coveredconditionals="0" methods="0" coveredmethods="0"/>
+      <file name="cosmic-bg.png" path="/Users/tm/work/AltMe/assets/images/cosmic-bg.png">
+        <metrics statements="1" coveredstatements="1" conditionals="0" coveredconditionals="0" methods="0" coveredmethods="0"/>
+        <line num="1" count="1" type="stmt"/>
+      </file>
+      <file name="google-g-icon.png" path="/Users/tm/work/AltMe/assets/images/google-g-icon.png">
+        <metrics statements="1" coveredstatements="1" conditionals="0" coveredconditionals="0" methods="0" coveredmethods="0"/>
+        <line num="1" count="1" type="stmt"/>
+      </file>
+    </package>
+    <package name="assets.thumbnails">
+      <metrics statements="30" coveredstatements="30" conditionals="0" coveredconditionals="0" methods="0" coveredmethods="0"/>
+      <file name="ct01-music.png" path="/Users/tm/work/AltMe/assets/thumbnails/ct01-music.png">
+        <metrics statements="1" coveredstatements="1" conditionals="0" coveredconditionals="0" methods="0" coveredmethods="0"/>
+        <line num="1" count="4" type="stmt"/>
+      </file>
+      <file name="ct02-movies.png" path="/Users/tm/work/AltMe/assets/thumbnails/ct02-movies.png">
+        <metrics statements="1" coveredstatements="1" conditionals="0" coveredconditionals="0" methods="0" coveredmethods="0"/>
+        <line num="1" count="4" type="stmt"/>
+      </file>
+      <file name="ct03-gaming.png" path="/Users/tm/work/AltMe/assets/thumbnails/ct03-gaming.png">
+        <metrics statements="1" coveredstatements="1" conditionals="0" coveredconditionals="0" methods="0" coveredmethods="0"/>
+        <line num="1" count="4" type="stmt"/>
+      </file>
+      <file name="ct04-books.png" path="/Users/tm/work/AltMe/assets/thumbnails/ct04-books.png">
+        <metrics statements="1" coveredstatements="1" conditionals="0" coveredconditionals="0" methods="0" coveredmethods="0"/>
+        <line num="1" count="4" type="stmt"/>
+      </file>
+      <file name="ct05-cooking.png" path="/Users/tm/work/AltMe/assets/thumbnails/ct05-cooking.png">
+        <metrics statements="1" coveredstatements="1" conditionals="0" coveredconditionals="0" methods="0" coveredmethods="0"/>
+        <line num="1" count="4" type="stmt"/>
+      </file>
+      <file name="ct06-travel.png" path="/Users/tm/work/AltMe/assets/thumbnails/ct06-travel.png">
+        <metrics statements="1" coveredstatements="1" conditionals="0" coveredconditionals="0" methods="0" coveredmethods="0"/>
+        <line num="1" count="4" type="stmt"/>
+      </file>
+      <file name="ct07-fitness.png" path="/Users/tm/work/AltMe/assets/thumbnails/ct07-fitness.png">
+        <metrics statements="1" coveredstatements="1" conditionals="0" coveredconditionals="0" methods="0" coveredmethods="0"/>
+        <line num="1" count="4" type="stmt"/>
+      </file>
+      <file name="ct08-photo.png" path="/Users/tm/work/AltMe/assets/thumbnails/ct08-photo.png">
+        <metrics statements="1" coveredstatements="1" conditionals="0" coveredconditionals="0" methods="0" coveredmethods="0"/>
+        <line num="1" count="4" type="stmt"/>
+      </file>
+      <file name="ct09-art.png" path="/Users/tm/work/AltMe/assets/thumbnails/ct09-art.png">
+        <metrics statements="1" coveredstatements="1" conditionals="0" coveredconditionals="0" methods="0" coveredmethods="0"/>
+        <line num="1" count="4" type="stmt"/>
+      </file>
+      <file name="ct10-tech.png" path="/Users/tm/work/AltMe/assets/thumbnails/ct10-tech.png">
+        <metrics statements="1" coveredstatements="1" conditionals="0" coveredconditionals="0" methods="0" coveredmethods="0"/>
+        <line num="1" count="4" type="stmt"/>
+      </file>
+      <file name="ct11-fashion.png" path="/Users/tm/work/AltMe/assets/thumbnails/ct11-fashion.png">
+        <metrics statements="1" coveredstatements="1" conditionals="0" coveredconditionals="0" methods="0" coveredmethods="0"/>
+        <line num="1" count="4" type="stmt"/>
+      </file>
+      <file name="ct12-pets.png" path="/Users/tm/work/AltMe/assets/thumbnails/ct12-pets.png">
+        <metrics statements="1" coveredstatements="1" conditionals="0" coveredconditionals="0" methods="0" coveredmethods="0"/>
+        <line num="1" count="4" type="stmt"/>
+      </file>
+      <file name="ct13-nature.png" path="/Users/tm/work/AltMe/assets/thumbnails/ct13-nature.png">
+        <metrics statements="1" coveredstatements="1" conditionals="0" coveredconditionals="0" methods="0" coveredmethods="0"/>
+        <line num="1" count="4" type="stmt"/>
+      </file>
+      <file name="ct14-cafe.png" path="/Users/tm/work/AltMe/assets/thumbnails/ct14-cafe.png">
+        <metrics statements="1" coveredstatements="1" conditionals="0" coveredconditionals="0" methods="0" coveredmethods="0"/>
+        <line num="1" count="4" type="stmt"/>
+      </file>
+      <file name="ct15-meditation.png" path="/Users/tm/work/AltMe/assets/thumbnails/ct15-meditation.png">
+        <metrics statements="1" coveredstatements="1" conditionals="0" coveredconditionals="0" methods="0" coveredmethods="0"/>
+        <line num="1" count="4" type="stmt"/>
+      </file>
+      <file name="ct16-anime.png" path="/Users/tm/work/AltMe/assets/thumbnails/ct16-anime.png">
+        <metrics statements="1" coveredstatements="1" conditionals="0" coveredconditionals="0" methods="0" coveredmethods="0"/>
+        <line num="1" count="4" type="stmt"/>
+      </file>
+      <file name="ct17-diy.png" path="/Users/tm/work/AltMe/assets/thumbnails/ct17-diy.png">
+        <metrics statements="1" coveredstatements="1" conditionals="0" coveredconditionals="0" methods="0" coveredmethods="0"/>
+        <line num="1" count="4" type="stmt"/>
+      </file>
+      <file name="ct18-business.png" path="/Users/tm/work/AltMe/assets/thumbnails/ct18-business.png">
+        <metrics statements="1" coveredstatements="1" conditionals="0" coveredconditionals="0" methods="0" coveredmethods="0"/>
+        <line num="1" count="4" type="stmt"/>
+      </file>
+      <file name="ct19-science.png" path="/Users/tm/work/AltMe/assets/thumbnails/ct19-science.png">
+        <metrics statements="1" coveredstatements="1" conditionals="0" coveredconditionals="0" methods="0" coveredmethods="0"/>
+        <line num="1" count="4" type="stmt"/>
+      </file>
+      <file name="ct20-sports.png" path="/Users/tm/work/AltMe/assets/thumbnails/ct20-sports.png">
+        <metrics statements="1" coveredstatements="1" conditionals="0" coveredconditionals="0" methods="0" coveredmethods="0"/>
+        <line num="1" count="4" type="stmt"/>
+      </file>
+      <file name="ct21-dance.png" path="/Users/tm/work/AltMe/assets/thumbnails/ct21-dance.png">
+        <metrics statements="1" coveredstatements="1" conditionals="0" coveredconditionals="0" methods="0" coveredmethods="0"/>
+        <line num="1" count="4" type="stmt"/>
+      </file>
+      <file name="ct22-language.png" path="/Users/tm/work/AltMe/assets/thumbnails/ct22-language.png">
+        <metrics statements="1" coveredstatements="1" conditionals="0" coveredconditionals="0" methods="0" coveredmethods="0"/>
+        <line num="1" count="4" type="stmt"/>
+      </file>
+      <file name="ct23-film.png" path="/Users/tm/work/AltMe/assets/thumbnails/ct23-film.png">
+        <metrics statements="1" coveredstatements="1" conditionals="0" coveredconditionals="0" methods="0" coveredmethods="0"/>
+        <line num="1" count="4" type="stmt"/>
+      </file>
+      <file name="ct24-startup.png" path="/Users/tm/work/AltMe/assets/thumbnails/ct24-startup.png">
+        <metrics statements="1" coveredstatements="1" conditionals="0" coveredconditionals="0" methods="0" coveredmethods="0"/>
+        <line num="1" count="4" type="stmt"/>
+      </file>
+      <file name="ct25-wellness.png" path="/Users/tm/work/AltMe/assets/thumbnails/ct25-wellness.png">
+        <metrics statements="1" coveredstatements="1" conditionals="0" coveredconditionals="0" methods="0" coveredmethods="0"/>
+        <line num="1" count="4" type="stmt"/>
+      </file>
+      <file name="ct26-garden.png" path="/Users/tm/work/AltMe/assets/thumbnails/ct26-garden.png">
+        <metrics statements="1" coveredstatements="1" conditionals="0" coveredconditionals="0" methods="0" coveredmethods="0"/>
+        <line num="1" count="4" type="stmt"/>
+      </file>
+      <file name="ct27-astronomy.png" path="/Users/tm/work/AltMe/assets/thumbnails/ct27-astronomy.png">
+        <metrics statements="1" coveredstatements="1" conditionals="0" coveredconditionals="0" methods="0" coveredmethods="0"/>
+        <line num="1" count="4" type="stmt"/>
+      </file>
+      <file name="ct28-writing.png" path="/Users/tm/work/AltMe/assets/thumbnails/ct28-writing.png">
+        <metrics statements="1" coveredstatements="1" conditionals="0" coveredconditionals="0" methods="0" coveredmethods="0"/>
+        <line num="1" count="4" type="stmt"/>
+      </file>
+      <file name="ct29-study.png" path="/Users/tm/work/AltMe/assets/thumbnails/ct29-study.png">
+        <metrics statements="1" coveredstatements="1" conditionals="0" coveredconditionals="0" methods="0" coveredmethods="0"/>
+        <line num="1" count="4" type="stmt"/>
+      </file>
+      <file name="ct30-random.png" path="/Users/tm/work/AltMe/assets/thumbnails/ct30-random.png">
+        <metrics statements="1" coveredstatements="1" conditionals="0" coveredconditionals="0" methods="0" coveredmethods="0"/>
+        <line num="1" count="4" type="stmt"/>
+      </file>
+    </package>
+    <package name="src.__smoke-tests__">
+      <metrics statements="114" coveredstatements="90" conditionals="32" coveredconditionals="19" methods="106" coveredmethods="80"/>
+      <file name="smoke-setup.ts" path="/Users/tm/work/AltMe/src/__smoke-tests__/smoke-setup.ts">
+        <metrics statements="114" coveredstatements="90" conditionals="32" coveredconditionals="19" methods="106" coveredmethods="80"/>
+        <line num="9" count="9" type="stmt"/>
+        <line num="10" count="55" type="stmt"/>
+        <line num="14" count="0" type="stmt"/>
+        <line num="16" count="3" type="stmt"/>
+        <line num="17" count="7" type="stmt"/>
+        <line num="18" count="1" type="stmt"/>
+        <line num="24" count="6" type="stmt"/>
+        <line num="26" count="27" type="cond" truecount="2" falsecount="0"/>
+        <line num="27" count="206" type="stmt"/>
+        <line num="30" count="2" type="cond" truecount="1" falsecount="1"/>
+        <line num="31" count="8" type="stmt"/>
+        <line num="34" count="7" type="cond" truecount="2" falsecount="0"/>
+        <line num="37" count="9" type="stmt"/>
+        <line num="42" count="9" type="stmt"/>
+        <line num="43" count="16" type="stmt"/>
+        <line num="44" count="0" type="stmt"/>
+        <line num="47" count="9" type="stmt"/>
+        <line num="58" count="9" type="stmt"/>
+        <line num="59" count="13" type="cond" truecount="1" falsecount="1"/>
+        <line num="62" count="9" type="stmt"/>
+        <line num="63" count="0" type="stmt"/>
+        <line num="66" count="9" type="stmt"/>
+        <line num="67" count="96" type="cond" truecount="1" falsecount="1"/>
+        <line num="68" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="69" count="0" type="stmt"/>
+        <line num="72" count="9" type="stmt"/>
+        <line num="74" count="16" type="cond" truecount="1" falsecount="1"/>
+        <line num="77" count="9" type="stmt"/>
+        <line num="80" count="0" type="stmt"/>
+        <line num="82" count="0" type="stmt"/>
+        <line num="83" count="0" type="stmt"/>
+        <line num="84" count="0" type="stmt"/>
+        <line num="85" count="0" type="stmt"/>
+        <line num="93" count="9" type="stmt"/>
+        <line num="94" count="5" type="cond" truecount="2" falsecount="0"/>
+        <line num="95" count="5" type="stmt"/>
+        <line num="104" count="9" type="stmt"/>
+        <line num="105" count="644" type="stmt"/>
+        <line num="106" count="7" type="stmt"/>
+        <line num="109" count="9" type="stmt"/>
+        <line num="110" count="4" type="stmt"/>
+        <line num="111" count="0" type="stmt"/>
+        <line num="114" count="4" type="stmt"/>
+        <line num="117" count="9" type="stmt"/>
+        <line num="118" count="6" type="stmt"/>
+        <line num="119" count="4" type="stmt"/>
+        <line num="122" count="9" type="stmt"/>
+        <line num="123" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="128" count="9" type="stmt"/>
+        <line num="129" count="153" type="stmt"/>
+        <line num="130" count="969" type="stmt"/>
+        <line num="134" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="137" count="9" type="stmt"/>
+        <line num="141" count="9" type="stmt"/>
+        <line num="146" count="1" type="stmt"/>
+        <line num="150" count="9" type="stmt"/>
+        <line num="155" count="9" type="stmt"/>
+        <line num="160" count="9" type="stmt"/>
+        <line num="163" count="5" type="stmt"/>
+        <line num="169" count="9" type="stmt"/>
+        <line num="176" count="9" type="stmt"/>
+        <line num="179" count="61" type="stmt"/>
+        <line num="192" count="61" type="cond" truecount="2" falsecount="0"/>
+        <line num="195" count="0" type="stmt"/>
+        <line num="206" count="9" type="stmt"/>
+        <line num="209" count="86" type="stmt"/>
+        <line num="232" count="86" type="cond" truecount="2" falsecount="0"/>
+        <line num="235" count="0" type="stmt"/>
+        <line num="254" count="9" type="stmt"/>
+        <line num="255" count="4" type="stmt"/>
+        <line num="265" count="9" type="stmt"/>
+        <line num="266" count="4" type="stmt"/>
+        <line num="272" count="9" type="stmt"/>
+        <line num="273" count="12" type="stmt"/>
+        <line num="281" count="9" type="stmt"/>
+        <line num="282" count="4" type="stmt"/>
+        <line num="292" count="9" type="stmt"/>
+        <line num="293" count="8" type="stmt"/>
+        <line num="301" count="9" type="stmt"/>
+        <line num="302" count="4" type="stmt"/>
+        <line num="311" count="9" type="stmt"/>
+        <line num="312" count="0" type="stmt"/>
+        <line num="315" count="9" type="stmt"/>
+        <line num="316" count="0" type="stmt"/>
+        <line num="319" count="9" type="stmt"/>
+        <line num="320" count="0" type="stmt"/>
+        <line num="323" count="9" type="stmt"/>
+        <line num="324" count="0" type="stmt"/>
+        <line num="327" count="9" type="stmt"/>
+        <line num="328" count="0" type="stmt"/>
+        <line num="331" count="9" type="stmt"/>
+        <line num="332" count="0" type="stmt"/>
+        <line num="335" count="9" type="stmt"/>
+        <line num="336" count="0" type="stmt"/>
+        <line num="339" count="9" type="stmt"/>
+        <line num="340" count="1" type="stmt"/>
+        <line num="345" count="9" type="stmt"/>
+        <line num="346" count="140" type="cond" truecount="1" falsecount="1"/>
+        <line num="349" count="9" type="stmt"/>
+        <line num="350" count="10" type="cond" truecount="1" falsecount="1"/>
+        <line num="353" count="9" type="stmt"/>
+        <line num="354" count="43" type="cond" truecount="2" falsecount="0"/>
+        <line num="357" count="9" type="stmt"/>
+        <line num="358" count="8" type="stmt"/>
+        <line num="363" count="9" type="stmt"/>
+        <line num="366" count="33" type="stmt"/>
+        <line num="371" count="33" type="cond" truecount="1" falsecount="1"/>
+        <line num="374" count="0" type="stmt"/>
+        <line num="381" count="9" type="stmt"/>
+        <line num="383" count="8" type="stmt"/>
+        <line num="399" count="0" type="stmt"/>
+        <line num="407" count="38" type="stmt"/>
+        <line num="410" count="9" type="stmt"/>
+        <line num="411" count="4" type="stmt"/>
+      </file>
+    </package>
+    <package name="src.config">
+      <metrics statements="56" coveredstatements="41" conditionals="32" coveredconditionals="16" methods="6" coveredmethods="0"/>
+      <file name="avatar-map.ts" path="/Users/tm/work/AltMe/src/config/avatar-map.ts">
+        <metrics statements="4" coveredstatements="2" conditionals="4" coveredconditionals="0" methods="1" coveredmethods="0"/>
+        <line num="5" count="4" type="stmt"/>
+        <line num="38" count="4" type="stmt"/>
+        <line num="48" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="49" count="0" type="cond" truecount="0" falsecount="2"/>
+      </file>
+      <file name="constants.ts" path="/Users/tm/work/AltMe/src/config/constants.ts">
+        <metrics statements="23" coveredstatements="23" conditionals="0" coveredconditionals="0" methods="0" coveredmethods="0"/>
+        <line num="1" count="16" type="stmt"/>
+        <line num="2" count="16" type="stmt"/>
+        <line num="3" count="16" type="stmt"/>
+        <line num="5" count="16" type="stmt"/>
+        <line num="6" count="16" type="stmt"/>
+        <line num="7" count="16" type="stmt"/>
+        <line num="9" count="16" type="stmt"/>
+        <line num="10" count="16" type="stmt"/>
+        <line num="11" count="16" type="stmt"/>
+        <line num="12" count="16" type="stmt"/>
+        <line num="14" count="16" type="stmt"/>
+        <line num="15" count="16" type="stmt"/>
+        <line num="16" count="16" type="stmt"/>
+        <line num="18" count="16" type="stmt"/>
+        <line num="19" count="16" type="stmt"/>
+        <line num="21" count="16" type="stmt"/>
+        <line num="30" count="16" type="stmt"/>
+        <line num="36" count="16" type="stmt"/>
+        <line num="42" count="16" type="stmt"/>
+        <line num="50" count="16" type="stmt"/>
+        <line num="57" count="16" type="stmt"/>
+        <line num="59" count="16" type="stmt"/>
+        <line num="66" count="16" type="stmt"/>
+      </file>
+      <file name="env.ts" path="/Users/tm/work/AltMe/src/config/env.ts">
+        <metrics statements="1" coveredstatements="1" conditionals="16" coveredconditionals="16" methods="0" coveredmethods="0"/>
+        <line num="1" count="11" type="stmt"/>
+      </file>
+      <file name="feature-flags.ts" path="/Users/tm/work/AltMe/src/config/feature-flags.ts">
+        <metrics statements="14" coveredstatements="4" conditionals="6" coveredconditionals="0" methods="4" coveredmethods="0"/>
+        <line num="9" count="1" type="stmt"/>
+        <line num="39" count="1" type="stmt"/>
+        <line num="40" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="41" count="0" type="stmt"/>
+        <line num="42" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="43" count="0" type="stmt"/>
+        <line num="46" count="1" type="stmt"/>
+        <line num="47" count="0" type="stmt"/>
+        <line num="49" count="0" type="stmt"/>
+        <line num="50" count="0" type="stmt"/>
+        <line num="52" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="56" count="1" type="stmt"/>
+        <line num="57" count="0" type="stmt"/>
+        <line num="58" count="0" type="stmt"/>
+      </file>
+      <file name="theme.ts" path="/Users/tm/work/AltMe/src/config/theme.ts">
+        <metrics statements="9" coveredstatements="9" conditionals="0" coveredconditionals="0" methods="0" coveredmethods="0"/>
+        <line num="2" count="28" type="stmt"/>
+        <line num="33" count="28" type="stmt"/>
+        <line num="42" count="28" type="stmt"/>
+        <line num="50" count="28" type="stmt"/>
+        <line num="60" count="28" type="stmt"/>
+        <line num="69" count="28" type="stmt"/>
+        <line num="75" count="28" type="stmt"/>
+        <line num="81" count="28" type="stmt"/>
+        <line num="88" count="28" type="stmt"/>
+      </file>
+      <file name="thumbnail-map.ts" path="/Users/tm/work/AltMe/src/config/thumbnail-map.ts">
+        <metrics statements="5" coveredstatements="2" conditionals="6" coveredconditionals="0" methods="1" coveredmethods="0"/>
+        <line num="35" count="4" type="stmt"/>
+        <line num="68" count="4" type="stmt"/>
+        <line num="71" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="72" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="73" count="0" type="cond" truecount="0" falsecount="2"/>
+      </file>
+    </package>
+    <package name="src.features.auth.stores">
+      <metrics statements="115" coveredstatements="51" conditionals="79" coveredconditionals="5" methods="16" coveredmethods="7"/>
+      <file name="auth-store.ts" path="/Users/tm/work/AltMe/src/features/auth/stores/auth-store.ts">
+        <metrics statements="115" coveredstatements="51" conditionals="79" coveredconditionals="5" methods="16" coveredmethods="7"/>
+        <line num="35" count="4" type="stmt"/>
+        <line num="37" count="4" type="stmt"/>
+        <line num="38" count="3" type="cond" truecount="2" falsecount="0"/>
+        <line num="39" count="2" type="stmt"/>
+        <line num="40" count="2" type="stmt"/>
+        <line num="42" count="3" type="stmt"/>
+        <line num="43" count="0" type="stmt"/>
+        <line num="48" count="4" type="stmt"/>
+        <line num="50" count="4" type="stmt"/>
+        <line num="57" count="1" type="stmt"/>
+        <line num="58" count="1" type="stmt"/>
+        <line num="61" count="1" type="stmt"/>
+        <line num="64" count="1" type="stmt"/>
+        <line num="66" count="1" type="cond" truecount="1" falsecount="1"/>
+        <line num="67" count="1" type="stmt"/>
+        <line num="69" count="1" type="cond" truecount="1" falsecount="1"/>
+        <line num="70" count="1" type="stmt"/>
+        <line num="73" count="1" type="stmt"/>
+        <line num="74" count="1" type="stmt"/>
+        <line num="75" count="1" type="stmt"/>
+        <line num="78" count="1" type="stmt"/>
+        <line num="80" count="1" type="stmt"/>
+        <line num="82" count="0" type="stmt"/>
+        <line num="85" count="0" type="stmt"/>
+        <line num="86" count="0" type="stmt"/>
+        <line num="87" count="0" type="stmt"/>
+        <line num="91" count="1" type="cond" truecount="1" falsecount="1"/>
+        <line num="92" count="0" type="stmt"/>
+        <line num="94" count="1" type="stmt"/>
+        <line num="95" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="96" count="0" type="stmt"/>
+        <line num="97" count="0" type="stmt"/>
+        <line num="98" count="0" type="stmt"/>
+        <line num="101" count="1" type="stmt"/>
+        <line num="103" count="0" type="stmt"/>
+        <line num="104" count="0" type="stmt"/>
+        <line num="109" count="1" type="stmt"/>
+        <line num="110" count="1" type="stmt"/>
+        <line num="111" count="1" type="stmt"/>
+        <line num="112" count="1" type="stmt"/>
+        <line num="114" count="1" type="stmt"/>
+        <line num="115" count="1" type="stmt"/>
+        <line num="116" count="1" type="stmt"/>
+        <line num="119" count="1" type="stmt"/>
+        <line num="121" count="1" type="stmt"/>
+        <line num="124" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="130" count="0" type="stmt"/>
+        <line num="132" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="133" count="0" type="cond" truecount="0" falsecount="4"/>
+        <line num="134" count="0" type="stmt"/>
+        <line num="135" count="0" type="stmt"/>
+        <line num="137" count="1" type="stmt"/>
+        <line num="142" count="1" type="stmt"/>
+        <line num="143" count="1" type="stmt"/>
+        <line num="144" count="1" type="stmt"/>
+        <line num="145" count="1" type="stmt"/>
+        <line num="147" count="1" type="stmt"/>
+        <line num="148" count="1" type="stmt"/>
+        <line num="149" count="1" type="stmt"/>
+        <line num="152" count="1" type="stmt"/>
+        <line num="154" count="1" type="stmt"/>
+        <line num="157" count="0" type="cond" truecount="0" falsecount="5"/>
+        <line num="158" count="0" type="stmt"/>
+        <line num="159" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="161" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="162" count="0" type="cond" truecount="0" falsecount="4"/>
+        <line num="163" count="0" type="stmt"/>
+        <line num="164" count="0" type="stmt"/>
+        <line num="166" count="1" type="stmt"/>
+        <line num="171" count="1" type="stmt"/>
+        <line num="173" count="1" type="stmt"/>
+        <line num="176" count="1" type="stmt"/>
+        <line num="178" count="0" type="stmt"/>
+        <line num="181" count="1" type="stmt"/>
+        <line num="182" count="1" type="stmt"/>
+        <line num="183" count="1" type="stmt"/>
+        <line num="188" count="0" type="stmt"/>
+        <line num="190" count="0" type="stmt"/>
+        <line num="193" count="0" type="stmt"/>
+        <line num="196" count="0" type="stmt"/>
+        <line num="197" count="0" type="stmt"/>
+        <line num="198" count="0" type="stmt"/>
+        <line num="200" count="0" type="stmt"/>
+        <line num="201" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="202" count="0" type="stmt"/>
+        <line num="207" count="1" type="stmt"/>
+        <line num="211" count="0" type="stmt"/>
+        <line num="212" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="214" count="0" type="stmt"/>
+        <line num="215" count="0" type="stmt"/>
+        <line num="218" count="0" type="stmt"/>
+        <line num="221" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="223" count="0" type="stmt"/>
+        <line num="224" count="0" type="stmt"/>
+        <line num="227" count="0" type="stmt"/>
+        <line num="228" count="0" type="stmt"/>
+        <line num="233" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="235" count="0" type="stmt"/>
+        <line num="239" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="240" count="0" type="stmt"/>
+        <line num="241" count="0" type="stmt"/>
+        <line num="243" count="0" type="stmt"/>
+        <line num="245" count="0" type="stmt"/>
+        <line num="248" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="249" count="0" type="stmt"/>
+        <line num="250" count="0" type="stmt"/>
+        <line num="254" count="0" type="stmt"/>
+        <line num="260" count="0" type="stmt"/>
+        <line num="261" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="262" count="0" type="cond" truecount="0" falsecount="3"/>
+        <line num="263" count="0" type="stmt"/>
+        <line num="281" count="0" type="stmt"/>
+        <line num="282" count="0" type="stmt"/>
+        <line num="290" count="0" type="stmt"/>
+        <line num="291" count="0" type="stmt"/>
+      </file>
+    </package>
+    <package name="src.features.chat.components">
+      <metrics statements="61" coveredstatements="47" conditionals="56" coveredconditionals="36" methods="14" coveredmethods="11"/>
+      <file name="chat-bubble.tsx" path="/Users/tm/work/AltMe/src/features/chat/components/chat-bubble.tsx">
+        <metrics statements="34" coveredstatements="33" conditionals="26" coveredconditionals="21" methods="9" coveredmethods="9"/>
+        <line num="17" count="1" type="stmt"/>
+        <line num="20" count="1" type="stmt"/>
+        <line num="21" count="13" type="stmt"/>
+        <line num="30" count="1" type="stmt"/>
+        <line num="31" count="13" type="stmt"/>
+        <line num="32" count="13" type="stmt"/>
+        <line num="33" count="13" type="stmt"/>
+        <line num="35" count="13" type="stmt"/>
+        <line num="36" count="2" type="cond" truecount="4" falsecount="0"/>
+        <line num="37" count="1" type="stmt"/>
+        <line num="39" count="2" type="stmt"/>
+        <line num="40" count="2" type="cond" truecount="1" falsecount="1"/>
+        <line num="43" count="13" type="cond" truecount="2" falsecount="0"/>
+        <line num="44" count="12" type="stmt"/>
+        <line num="47" count="13" type="cond" truecount="1" falsecount="1"/>
+        <line num="50" count="1" type="stmt"/>
+        <line num="51" count="1" type="cond" truecount="2" falsecount="2"/>
+        <line num="52" count="0" type="stmt"/>
+        <line num="54" count="1" type="stmt"/>
+        <line num="66" count="13" type="stmt"/>
+        <line num="67" count="13" type="stmt"/>
+        <line num="68" count="13" type="stmt"/>
+        <line num="73" count="13" type="stmt"/>
+        <line num="75" count="13" type="stmt"/>
+        <line num="76" count="1" type="stmt"/>
+        <line num="80" count="13" type="cond" truecount="1" falsecount="1"/>
+        <line num="82" count="13" type="stmt"/>
+        <line num="83" count="13" type="stmt"/>
+        <line num="85" count="15" type="cond" truecount="2" falsecount="0"/>
+        <line num="89" count="1" type="stmt"/>
+        <line num="102" count="13" type="cond" truecount="2" falsecount="0"/>
+        <line num="103" count="2" type="stmt"/>
+        <line num="115" count="11" type="stmt"/>
+        <line num="143" count="1" type="stmt"/>
+      </file>
+      <file name="chat-input-web.tsx" path="/Users/tm/work/AltMe/src/features/chat/components/chat-input-web.tsx">
+        <metrics statements="27" coveredstatements="14" conditionals="30" coveredconditionals="15" methods="5" coveredmethods="2"/>
+        <line num="28" count="10" type="stmt"/>
+        <line num="29" count="10" type="stmt"/>
+        <line num="30" count="10" type="stmt"/>
+        <line num="32" count="10" type="cond" truecount="3" falsecount="0"/>
+        <line num="33" count="10" type="stmt"/>
+        <line num="34" count="10" type="stmt"/>
+        <line num="36" count="10" type="stmt"/>
+        <line num="38" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="39" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="41" count="0" type="stmt"/>
+        <line num="42" count="0" type="cond" truecount="0" falsecount="4"/>
+        <line num="44" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="45" count="0" type="stmt"/>
+        <line num="47" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="48" count="0" type="stmt"/>
+        <line num="55" count="10" type="stmt"/>
+        <line num="56" count="0" type="stmt"/>
+        <line num="59" count="10" type="stmt"/>
+        <line num="60" count="0" type="stmt"/>
+        <line num="64" count="10" type="stmt"/>
+        <line num="66" count="18" type="stmt"/>
+        <line num="67" count="18" type="cond" truecount="2" falsecount="2"/>
+        <line num="68" count="0" type="stmt"/>
+        <line num="69" count="0" type="stmt"/>
+        <line num="70" count="0" type="stmt"/>
+        <line num="76" count="10" type="stmt"/>
+        <line num="129" count="5" type="stmt"/>
+      </file>
+    </package>
+    <package name="src.features.chat.hooks">
+      <metrics statements="185" coveredstatements="130" conditionals="108" coveredconditionals="60" methods="30" coveredmethods="20"/>
+      <file name="use-chat.ts" path="/Users/tm/work/AltMe/src/features/chat/hooks/use-chat.ts">
+        <metrics statements="185" coveredstatements="130" conditionals="108" coveredconditionals="60" methods="30" coveredmethods="20"/>
+        <line num="18" count="1" type="stmt"/>
+        <line num="20" count="1" type="stmt"/>
+        <line num="21" count="0" type="stmt"/>
+        <line num="22" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="23" count="0" type="stmt"/>
+        <line num="24" count="0" type="stmt"/>
+        <line num="25" count="0" type="stmt"/>
+        <line num="52" count="274489" type="stmt"/>
+        <line num="53" count="274489" type="stmt"/>
+        <line num="54" count="274489" type="stmt"/>
+        <line num="55" count="274489" type="stmt"/>
+        <line num="56" count="274489" type="stmt"/>
+        <line num="58" count="274489" type="stmt"/>
+        <line num="60" count="274489" type="stmt"/>
+        <line num="61" count="274489" type="stmt"/>
+        <line num="62" count="274489" type="stmt"/>
+        <line num="63" count="274489" type="stmt"/>
+        <line num="64" count="274489" type="stmt"/>
+        <line num="65" count="274489" type="stmt"/>
+        <line num="68" count="274489" type="stmt"/>
+        <line num="69" count="274489" type="stmt"/>
+        <line num="70" count="274489" type="stmt"/>
+        <line num="71" count="274489" type="stmt"/>
+        <line num="72" count="274489" type="stmt"/>
+        <line num="74" count="274489" type="stmt"/>
+        <line num="75" count="21" type="stmt"/>
+        <line num="76" count="21" type="stmt"/>
+        <line num="79" count="274489" type="cond" truecount="2" falsecount="0"/>
+        <line num="82" count="274489" type="stmt"/>
+        <line num="83" count="274488" type="stmt"/>
+        <line num="84" count="274488" type="cond" truecount="2" falsecount="0"/>
+        <line num="85" count="2" type="stmt"/>
+        <line num="86" count="2" type="stmt"/>
+        <line num="88" count="274486" type="stmt"/>
+        <line num="89" count="274486" type="stmt"/>
+        <line num="96" count="274486" type="cond" truecount="4" falsecount="0"/>
+        <line num="97" count="122" type="stmt"/>
+        <line num="103" count="61" type="stmt"/>
+        <line num="105" count="274425" type="cond" truecount="1" falsecount="1"/>
+        <line num="106" count="274425" type="cond" truecount="1" falsecount="1"/>
+        <line num="109" count="274425" type="stmt"/>
+        <line num="118" count="274486" type="cond" truecount="2" falsecount="0"/>
+        <line num="119" count="274390" type="stmt"/>
+        <line num="122" count="274390" type="stmt"/>
+        <line num="128" count="274390" type="cond" truecount="1" falsecount="1"/>
+        <line num="131" count="0" type="stmt"/>
+        <line num="133" count="274486" type="stmt"/>
+        <line num="136" count="274488" type="stmt"/>
+        <line num="140" count="274489" type="stmt"/>
+        <line num="141" count="1" type="stmt"/>
+        <line num="142" count="1" type="stmt"/>
+        <line num="143" count="1" type="cond" truecount="1" falsecount="1"/>
+        <line num="145" count="1" type="cond" truecount="2" falsecount="3"/>
+        <line num="146" count="1" type="stmt"/>
+        <line num="147" count="1" type="stmt"/>
+        <line num="150" count="0" type="stmt"/>
+        <line num="151" count="0" type="cond" truecount="0" falsecount="4"/>
+        <line num="152" count="0" type="stmt"/>
+        <line num="153" count="0" type="stmt"/>
+        <line num="156" count="0" type="stmt"/>
+        <line num="157" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="160" count="0" type="stmt"/>
+        <line num="161" count="0" type="stmt"/>
+        <line num="163" count="0" type="stmt"/>
+        <line num="169" count="0" type="stmt"/>
+        <line num="170" count="0" type="stmt"/>
+        <line num="173" count="0" type="stmt"/>
+        <line num="179" count="0" type="stmt"/>
+        <line num="180" count="0" type="stmt"/>
+        <line num="181" count="0" type="stmt"/>
+        <line num="182" count="0" type="stmt"/>
+        <line num="185" count="0" type="stmt"/>
+        <line num="188" count="0" type="stmt"/>
+        <line num="189" count="0" type="stmt"/>
+        <line num="190" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="191" count="0" type="stmt"/>
+        <line num="195" count="0" type="stmt"/>
+        <line num="196" count="0" type="cond" truecount="0" falsecount="4"/>
+        <line num="197" count="0" type="stmt"/>
+        <line num="202" count="0" type="stmt"/>
+        <line num="203" count="0" type="stmt"/>
+        <line num="204" count="0" type="stmt"/>
+        <line num="206" count="0" type="stmt"/>
+        <line num="207" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="208" count="0" type="stmt"/>
+        <line num="213" count="274489" type="stmt"/>
+        <line num="214" count="21" type="cond" truecount="4" falsecount="0"/>
+        <line num="215" count="20" type="stmt"/>
+        <line num="216" count="20" type="stmt"/>
+        <line num="219" count="1" type="stmt"/>
+        <line num="221" count="1" type="stmt"/>
+        <line num="224" count="1" type="stmt"/>
+        <line num="225" count="0" type="cond" truecount="0" falsecount="5"/>
+        <line num="226" count="0" type="stmt"/>
+        <line num="228" count="0" type="cond" truecount="0" falsecount="5"/>
+        <line num="229" count="0" type="stmt"/>
+        <line num="230" count="0" type="stmt"/>
+        <line num="231" count="0" type="stmt"/>
+        <line num="232" count="0" type="stmt"/>
+        <line num="236" count="1" type="stmt"/>
+        <line num="237" count="1" type="stmt"/>
+        <line num="238" count="1" type="stmt"/>
+        <line num="239" count="1" type="stmt"/>
+        <line num="240" count="1" type="stmt"/>
+        <line num="241" count="1" type="stmt"/>
+        <line num="246" count="274489" type="stmt"/>
+        <line num="247" count="57" type="cond" truecount="4" falsecount="0"/>
+        <line num="248" count="36" type="stmt"/>
+        <line num="253" count="274489" type="stmt"/>
+        <line num="254" count="0" type="stmt"/>
+        <line num="255" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="256" count="0" type="stmt"/>
+        <line num="258" count="0" type="stmt"/>
+        <line num="259" count="0" type="stmt"/>
+        <line num="260" count="0" type="stmt"/>
+        <line num="264" count="274489" type="stmt"/>
+        <line num="265" count="9" type="stmt"/>
+        <line num="266" count="9" type="stmt"/>
+        <line num="267" count="9" type="cond" truecount="2" falsecount="0"/>
+        <line num="268" count="1" type="stmt"/>
+        <line num="271" count="8" type="stmt"/>
+        <line num="283" count="7" type="cond" truecount="2" falsecount="0"/>
+        <line num="284" count="2" type="stmt"/>
+        <line num="285" count="2" type="cond" truecount="2" falsecount="0"/>
+        <line num="286" count="1" type="stmt"/>
+        <line num="287" count="1" type="stmt"/>
+        <line num="289" count="1" type="cond" truecount="1" falsecount="1"/>
+        <line num="290" count="1" type="stmt"/>
+        <line num="296" count="1" type="stmt"/>
+        <line num="298" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="302" count="5" type="stmt"/>
+        <line num="303" count="5" type="cond" truecount="1" falsecount="1"/>
+        <line num="305" count="5" type="stmt"/>
+        <line num="306" count="5" type="stmt"/>
+        <line num="307" count="5" type="stmt"/>
+        <line num="309" count="5" type="stmt"/>
+        <line num="310" count="10" type="stmt"/>
+        <line num="311" count="10" type="cond" truecount="2" falsecount="0"/>
+        <line num="313" count="5" type="stmt"/>
+        <line num="314" count="5" type="stmt"/>
+        <line num="315" count="5" type="cond" truecount="1" falsecount="1"/>
+        <line num="317" count="5" type="stmt"/>
+        <line num="318" count="20" type="cond" truecount="2" falsecount="0"/>
+        <line num="319" count="10" type="stmt"/>
+        <line num="320" count="10" type="cond" truecount="2" falsecount="0"/>
+        <line num="322" count="9" type="stmt"/>
+        <line num="323" count="9" type="stmt"/>
+        <line num="324" count="9" type="cond" truecount="2" falsecount="0"/>
+        <line num="325" count="6" type="stmt"/>
+        <line num="326" count="6" type="stmt"/>
+        <line num="328" count="9" type="cond" truecount="4" falsecount="0"/>
+        <line num="329" count="5" type="stmt"/>
+        <line num="335" count="5" type="stmt"/>
+        <line num="336" count="5" type="stmt"/>
+        <line num="345" count="5" type="cond" truecount="1" falsecount="1"/>
+        <line num="346" count="5" type="stmt"/>
+        <line num="347" count="10" type="cond" truecount="1" falsecount="1"/>
+        <line num="348" count="0" type="stmt"/>
+        <line num="355" count="5" type="stmt"/>
+        <line num="358" count="5" type="cond" truecount="1" falsecount="1"/>
+        <line num="359" count="5" type="stmt"/>
+        <line num="362" count="2" type="stmt"/>
+        <line num="363" count="2" type="stmt"/>
+        <line num="369" count="2" type="stmt"/>
+        <line num="373" count="274489" type="stmt"/>
+        <line num="374" count="12" type="stmt"/>
+        <line num="375" count="12" type="cond" truecount="5" falsecount="0"/>
+        <line num="377" count="11" type="cond" truecount="2" falsecount="0"/>
+        <line num="378" count="1" type="stmt"/>
+        <line num="379" count="1" type="stmt"/>
+        <line num="382" count="10" type="cond" truecount="2" falsecount="0"/>
+        <line num="384" count="9" type="stmt"/>
+        <line num="391" count="9" type="stmt"/>
+        <line num="392" count="9" type="stmt"/>
+        <line num="393" count="9" type="stmt"/>
+        <line num="394" count="9" type="stmt"/>
+        <line num="396" count="9" type="cond" truecount="1" falsecount="1"/>
+        <line num="397" count="0" type="stmt"/>
+        <line num="398" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="400" count="0" type="stmt"/>
+        <line num="401" count="0" type="stmt"/>
+        <line num="405" count="9" type="stmt"/>
+        <line num="406" count="9" type="stmt"/>
+        <line num="411" count="274489" type="cond" truecount="1" falsecount="1"/>
+        <line num="420" count="274489" type="stmt"/>
+      </file>
+    </package>
+    <package name="src.features.community.hooks">
+      <metrics statements="75" coveredstatements="74" conditionals="18" coveredconditionals="12" methods="18" coveredmethods="18"/>
+      <file name="use-communities.ts" path="/Users/tm/work/AltMe/src/features/community/hooks/use-communities.ts">
+        <metrics statements="17" coveredstatements="17" conditionals="2" coveredconditionals="1" methods="5" coveredmethods="5"/>
+        <line num="12" count="13" type="stmt"/>
+        <line num="13" count="13" type="stmt"/>
+        <line num="14" count="13" type="stmt"/>
+        <line num="15" count="13" type="stmt"/>
+        <line num="17" count="13" type="stmt"/>
+        <line num="18" count="7" type="stmt"/>
+        <line num="19" count="7" type="stmt"/>
+        <line num="20" count="6" type="cond" truecount="1" falsecount="1"/>
+        <line num="21" count="6" type="stmt"/>
+        <line num="25" count="13" type="stmt"/>
+        <line num="26" count="6" type="stmt"/>
+        <line num="27" count="6" type="stmt"/>
+        <line num="30" count="13" type="stmt"/>
+        <line num="31" count="1" type="stmt"/>
+        <line num="32" count="1" type="stmt"/>
+        <line num="33" count="1" type="stmt"/>
+        <line num="36" count="13" type="stmt"/>
+      </file>
+      <file name="use-community-detail.ts" path="/Users/tm/work/AltMe/src/features/community/hooks/use-community-detail.ts">
+        <metrics statements="31" coveredstatements="30" conditionals="8" coveredconditionals="5" methods="6" coveredmethods="6"/>
+        <line num="11" count="1" type="stmt"/>
+        <line num="25" count="18" type="stmt"/>
+        <line num="26" count="18" type="stmt"/>
+        <line num="27" count="18" type="stmt"/>
+        <line num="28" count="18" type="stmt"/>
+        <line num="29" count="18" type="stmt"/>
+        <line num="30" count="18" type="stmt"/>
+        <line num="32" count="18" type="stmt"/>
+        <line num="33" count="9" type="stmt"/>
+        <line num="34" count="9" type="stmt"/>
+        <line num="35" count="9" type="stmt"/>
+        <line num="36" count="9" type="stmt"/>
+        <line num="41" count="8" type="stmt"/>
+        <line num="42" count="8" type="stmt"/>
+        <line num="43" count="8" type="stmt"/>
+        <line num="44" count="8" type="stmt"/>
+        <line num="46" count="1" type="cond" truecount="1" falsecount="1"/>
+        <line num="48" count="9" type="stmt"/>
+        <line num="52" count="18" type="stmt"/>
+        <line num="53" count="8" type="stmt"/>
+        <line num="56" count="18" type="stmt"/>
+        <line num="57" count="2" type="cond" truecount="4" falsecount="0"/>
+        <line num="58" count="1" type="stmt"/>
+        <line num="59" count="1" type="stmt"/>
+        <line num="60" count="1" type="stmt"/>
+        <line num="64" count="1" type="stmt"/>
+        <line num="65" count="1" type="stmt"/>
+        <line num="67" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="71" count="18" type="stmt"/>
+        <line num="72" count="1" type="stmt"/>
+        <line num="75" count="18" type="stmt"/>
+      </file>
+      <file name="use-community-membership.ts" path="/Users/tm/work/AltMe/src/features/community/hooks/use-community-membership.ts">
+        <metrics statements="27" coveredstatements="27" conditionals="8" coveredconditionals="6" methods="7" coveredmethods="7"/>
+        <line num="16" count="23" type="stmt"/>
+        <line num="17" count="23" type="stmt"/>
+        <line num="19" count="23" type="stmt"/>
+        <line num="20" count="8" type="stmt"/>
+        <line num="21" count="8" type="stmt"/>
+        <line num="22" count="8" type="stmt"/>
+        <line num="24" count="8" type="cond" truecount="1" falsecount="1"/>
+        <line num="25" count="8" type="stmt"/>
+        <line num="29" count="8" type="cond" truecount="1" falsecount="1"/>
+        <line num="30" count="8" type="stmt"/>
+        <line num="33" count="8" type="stmt"/>
+        <line num="34" count="8" type="stmt"/>
+        <line num="38" count="23" type="stmt"/>
+        <line num="39" count="3" type="stmt"/>
+        <line num="40" count="3" type="stmt"/>
+        <line num="41" count="3" type="stmt"/>
+        <line num="42" count="3" type="cond" truecount="2" falsecount="0"/>
+        <line num="43" count="2" type="stmt"/>
+        <line num="46" count="3" type="stmt"/>
+        <line num="50" count="23" type="stmt"/>
+        <line num="51" count="2" type="stmt"/>
+        <line num="52" count="2" type="stmt"/>
+        <line num="53" count="2" type="stmt"/>
+        <line num="54" count="2" type="cond" truecount="2" falsecount="0"/>
+        <line num="55" count="1" type="stmt"/>
+        <line num="58" count="2" type="stmt"/>
+        <line num="62" count="23" type="stmt"/>
+      </file>
+    </package>
+    <package name="src.features.insights.hooks">
+      <metrics statements="37" coveredstatements="34" conditionals="16" coveredconditionals="12" methods="5" coveredmethods="4"/>
+      <file name="use-twin-data.ts" path="/Users/tm/work/AltMe/src/features/insights/hooks/use-twin-data.ts">
+        <metrics statements="37" coveredstatements="34" conditionals="16" coveredconditionals="12" methods="5" coveredmethods="4"/>
+        <line num="22" count="4" type="stmt"/>
+        <line num="23" count="27" type="stmt"/>
+        <line num="24" count="27" type="stmt"/>
+        <line num="25" count="27" type="stmt"/>
+        <line num="26" count="27" type="stmt"/>
+        <line num="27" count="27" type="stmt"/>
+        <line num="28" count="27" type="stmt"/>
+        <line num="30" count="27" type="stmt"/>
+        <line num="31" count="14" type="stmt"/>
+        <line num="32" count="14" type="cond" truecount="1" falsecount="1"/>
+        <line num="33" count="0" type="stmt"/>
+        <line num="34" count="0" type="stmt"/>
+        <line num="37" count="14" type="stmt"/>
+        <line num="38" count="14" type="stmt"/>
+        <line num="39" count="14" type="stmt"/>
+        <line num="41" count="14" type="stmt"/>
+        <line num="49" count="13" type="stmt"/>
+        <line num="51" count="13" type="cond" truecount="2" falsecount="0"/>
+        <line num="53" count="4" type="cond" truecount="2" falsecount="0"/>
+        <line num="54" count="2" type="stmt"/>
+        <line num="55" count="2" type="stmt"/>
+        <line num="57" count="2" type="stmt"/>
+        <line num="58" count="2" type="stmt"/>
+        <line num="61" count="9" type="cond" truecount="1" falsecount="1"/>
+        <line num="62" count="9" type="stmt"/>
+        <line num="63" count="9" type="stmt"/>
+        <line num="64" count="9" type="stmt"/>
+        <line num="68" count="14" type="stmt"/>
+        <line num="71" count="27" type="stmt"/>
+        <line num="72" count="3" type="stmt"/>
+        <line num="73" count="3" type="cond" truecount="1" falsecount="1"/>
+        <line num="74" count="0" type="stmt"/>
+        <line num="77" count="3" type="stmt"/>
+        <line num="83" count="3" type="cond" truecount="4" falsecount="0"/>
+        <line num="84" count="1" type="stmt"/>
+        <line num="87" count="2" type="cond" truecount="1" falsecount="1"/>
+        <line num="90" count="27" type="stmt"/>
+      </file>
+    </package>
+    <package name="src.features.onboarding.stores">
+      <metrics statements="12" coveredstatements="12" conditionals="0" coveredconditionals="0" methods="13" coveredmethods="13"/>
+      <file name="onboarding-store.ts" path="/Users/tm/work/AltMe/src/features/onboarding/stores/onboarding-store.ts">
+        <metrics statements="12" coveredstatements="12" conditionals="0" coveredconditionals="0" methods="13" coveredmethods="13"/>
+        <line num="16" count="2" type="stmt"/>
+        <line num="100" count="2" type="stmt"/>
+        <line num="109" count="19" type="stmt"/>
+        <line num="110" count="24" type="stmt"/>
+        <line num="111" count="19" type="stmt"/>
+        <line num="114" count="3" type="stmt"/>
+        <line num="116" count="5" type="stmt"/>
+        <line num="118" count="2" type="stmt"/>
+        <line num="120" count="2" type="stmt"/>
+        <line num="123" count="27" type="stmt"/>
+        <line num="128" count="2" type="stmt"/>
+        <line num="133" count="18" type="stmt"/>
+      </file>
+    </package>
+    <package name="src.services.analytics">
+      <metrics statements="81" coveredstatements="75" conditionals="29" coveredconditionals="17" methods="34" coveredmethods="32"/>
+      <file name="tracker.native.ts" path="/Users/tm/work/AltMe/src/services/analytics/tracker.native.ts">
+        <metrics statements="49" coveredstatements="43" conditionals="25" coveredconditionals="14" methods="17" coveredmethods="15"/>
+        <line num="11" count="2" type="stmt"/>
+        <line num="20" count="5" type="cond" truecount="2" falsecount="0"/>
+        <line num="21" count="4" type="stmt"/>
+        <line num="23" count="4" type="cond" truecount="2" falsecount="0"/>
+        <line num="24" count="2" type="stmt"/>
+        <line num="25" count="2" type="stmt"/>
+        <line num="27" count="2" type="stmt"/>
+        <line num="30" count="2" type="stmt"/>
+        <line num="42" count="2" type="stmt"/>
+        <line num="66" count="2" type="stmt"/>
+        <line num="67" count="18" type="cond" truecount="1" falsecount="1"/>
+        <line num="68" count="18" type="cond" truecount="2" falsecount="0"/>
+        <line num="72" count="18" type="cond" truecount="3" falsecount="0"/>
+        <line num="73" count="18" type="cond" truecount="2" falsecount="0"/>
+        <line num="74" count="2" type="cond" truecount="2" falsecount="0"/>
+        <line num="81" count="2" type="stmt"/>
+        <line num="82" count="1" type="stmt"/>
+        <line num="86" count="2" type="stmt"/>
+        <line num="87" count="1" type="stmt"/>
+        <line num="94" count="2" type="stmt"/>
+        <line num="95" count="1" type="stmt"/>
+        <line num="102" count="2" type="stmt"/>
+        <line num="106" count="1" type="stmt"/>
+        <line num="113" count="2" type="stmt"/>
+        <line num="114" count="1" type="stmt"/>
+        <line num="121" count="2" type="stmt"/>
+        <line num="122" count="1" type="stmt"/>
+        <line num="126" count="2" type="stmt"/>
+        <line num="127" count="1" type="stmt"/>
+        <line num="131" count="2" type="stmt"/>
+        <line num="132" count="1" type="stmt"/>
+        <line num="136" count="2" type="stmt"/>
+        <line num="137" count="1" type="stmt"/>
+        <line num="141" count="2" type="stmt"/>
+        <line num="142" count="1" type="stmt"/>
+        <line num="146" count="2" type="stmt"/>
+        <line num="147" count="1" type="stmt"/>
+        <line num="151" count="2" type="stmt"/>
+        <line num="152" count="1" type="stmt"/>
+        <line num="159" count="2" type="stmt"/>
+        <line num="161" count="0" type="cond" truecount="0" falsecount="3"/>
+        <line num="162" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="163" count="0" type="stmt"/>
+        <line num="168" count="2" type="stmt"/>
+        <line num="170" count="0" type="cond" truecount="0" falsecount="3"/>
+        <line num="171" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="172" count="0" type="stmt"/>
+        <line num="177" count="2" type="stmt"/>
+        <line num="178" count="1" type="stmt"/>
+      </file>
+      <file name="tracker.web.ts" path="/Users/tm/work/AltMe/src/services/analytics/tracker.web.ts">
+        <metrics statements="32" coveredstatements="32" conditionals="4" coveredconditionals="3" methods="17" coveredmethods="17"/>
+        <line num="16" count="2" type="stmt"/>
+        <line num="41" count="2" type="stmt"/>
+        <line num="42" count="18" type="cond" truecount="1" falsecount="1"/>
+        <line num="43" count="18" type="cond" truecount="2" falsecount="0"/>
+        <line num="48" count="2" type="stmt"/>
+        <line num="51" count="2" type="stmt"/>
+        <line num="54" count="2" type="stmt"/>
+        <line num="55" count="3" type="stmt"/>
+        <line num="61" count="2" type="stmt"/>
+        <line num="62" count="1" type="stmt"/>
+        <line num="66" count="2" type="stmt"/>
+        <line num="67" count="1" type="stmt"/>
+        <line num="74" count="2" type="stmt"/>
+        <line num="75" count="1" type="stmt"/>
+        <line num="82" count="2" type="stmt"/>
+        <line num="86" count="1" type="stmt"/>
+        <line num="93" count="2" type="stmt"/>
+        <line num="94" count="1" type="stmt"/>
+        <line num="101" count="2" type="stmt"/>
+        <line num="102" count="1" type="stmt"/>
+        <line num="106" count="2" type="stmt"/>
+        <line num="107" count="1" type="stmt"/>
+        <line num="111" count="2" type="stmt"/>
+        <line num="112" count="1" type="stmt"/>
+        <line num="116" count="2" type="stmt"/>
+        <line num="117" count="1" type="stmt"/>
+        <line num="121" count="2" type="stmt"/>
+        <line num="122" count="1" type="stmt"/>
+        <line num="126" count="2" type="stmt"/>
+        <line num="127" count="1" type="stmt"/>
+        <line num="131" count="2" type="stmt"/>
+        <line num="132" count="1" type="stmt"/>
+      </file>
+    </package>
+    <package name="src.services.community">
+      <metrics statements="57" coveredstatements="30" conditionals="46" coveredconditionals="27" methods="12" coveredmethods="7"/>
+      <file name="client.ts" path="/Users/tm/work/AltMe/src/services/community/client.ts">
+        <metrics statements="57" coveredstatements="30" conditionals="46" coveredconditionals="27" methods="12" coveredmethods="7"/>
+        <line num="78" count="3" type="stmt"/>
+        <line num="94" count="2" type="stmt"/>
+        <line num="107" count="0" type="stmt"/>
+        <line num="118" count="2" type="stmt"/>
+        <line num="125" count="2" type="cond" truecount="1" falsecount="1"/>
+        <line num="126" count="0" type="stmt"/>
+        <line num="129" count="2" type="stmt"/>
+        <line num="131" count="2" type="cond" truecount="4" falsecount="0"/>
+        <line num="132" count="1" type="stmt"/>
+        <line num="135" count="1" type="stmt"/>
+        <line num="139" count="0" type="stmt"/>
+        <line num="145" count="0" type="cond" truecount="0" falsecount="4"/>
+        <line num="146" count="0" type="stmt"/>
+        <line num="149" count="0" type="stmt"/>
+        <line num="153" count="0" type="stmt"/>
+        <line num="158" count="0" type="cond" truecount="0" falsecount="4"/>
+        <line num="159" count="0" type="stmt"/>
+        <line num="162" count="0" type="stmt"/>
+        <line num="168" count="0" type="stmt"/>
+        <line num="170" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="172" count="0" type="stmt"/>
+        <line num="179" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="185" count="2" type="stmt"/>
+        <line num="187" count="2" type="cond" truecount="1" falsecount="1"/>
+        <line num="189" count="2" type="stmt"/>
+        <line num="202" count="2" type="cond" truecount="4" falsecount="0"/>
+        <line num="203" count="1" type="stmt"/>
+        <line num="206" count="1" type="stmt"/>
+        <line num="213" count="0" type="stmt"/>
+        <line num="214" count="0" type="stmt"/>
+        <line num="215" count="0" type="stmt"/>
+        <line num="217" count="0" type="stmt"/>
+        <line num="218" count="0" type="stmt"/>
+        <line num="219" count="0" type="stmt"/>
+        <line num="221" count="0" type="stmt"/>
+        <line num="225" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="226" count="0" type="stmt"/>
+        <line num="231" count="0" type="stmt"/>
+        <line num="233" count="0" type="stmt"/>
+        <line num="235" count="0" type="stmt"/>
+        <line num="242" count="2" type="stmt"/>
+        <line num="244" count="2" type="cond" truecount="1" falsecount="1"/>
+        <line num="246" count="2" type="stmt"/>
+        <line num="251" count="2" type="stmt"/>
+        <line num="257" count="1" type="stmt"/>
+        <line num="259" count="1" type="cond" truecount="1" falsecount="1"/>
+        <line num="261" count="1" type="stmt"/>
+        <line num="267" count="1" type="stmt"/>
+        <line num="274" count="2" type="cond" truecount="2" falsecount="0"/>
+        <line num="276" count="2" type="stmt"/>
+        <line num="285" count="2" type="cond" truecount="1" falsecount="1"/>
+        <line num="286" count="0" type="stmt"/>
+        <line num="289" count="2" type="stmt"/>
+        <line num="291" count="2" type="cond" truecount="4" falsecount="0"/>
+        <line num="292" count="1" type="stmt"/>
+        <line num="295" count="1" type="stmt"/>
+        <line num="296" count="1" type="stmt"/>
+      </file>
+    </package>
+    <package name="src.services.notifications">
+      <metrics statements="7" coveredstatements="7" conditionals="0" coveredconditionals="0" methods="7" coveredmethods="7"/>
+      <file name="client.web.ts" path="/Users/tm/work/AltMe/src/services/notifications/client.web.ts">
+        <metrics statements="7" coveredstatements="7" conditionals="0" coveredconditionals="0" methods="7" coveredmethods="7"/>
+        <line num="6" count="1" type="stmt"/>
+        <line num="8" count="2" type="stmt"/>
+        <line num="10" count="1" type="stmt"/>
+        <line num="12" count="1" type="stmt"/>
+        <line num="14" count="1" type="stmt"/>
+        <line num="17" count="3" type="stmt"/>
+        <line num="20" count="2" type="stmt"/>
+      </file>
+    </package>
+    <package name="src.services.openclaw">
+      <metrics statements="136" coveredstatements="126" conditionals="86" coveredconditionals="64" methods="31" coveredmethods="29"/>
+      <file name="client.ts" path="/Users/tm/work/AltMe/src/services/openclaw/client.ts">
+        <metrics statements="37" coveredstatements="32" conditionals="46" coveredconditionals="31" methods="9" coveredmethods="7"/>
+        <line num="9" count="1" type="stmt"/>
+        <line num="10" count="3" type="stmt"/>
+        <line num="11" count="3" type="cond" truecount="2" falsecount="0"/>
+        <line num="13" count="2" type="stmt"/>
+        <line num="19" count="2" type="cond" truecount="1" falsecount="1"/>
+        <line num="20" count="0" type="stmt"/>
+        <line num="21" count="0" type="stmt"/>
+        <line num="24" count="2" type="cond" truecount="2" falsecount="0"/>
+        <line num="26" count="1" type="stmt"/>
+        <line num="33" count="1" type="stmt"/>
+        <line num="34" count="2" type="stmt"/>
+        <line num="36" count="2" type="cond" truecount="2" falsecount="0"/>
+        <line num="37" count="1" type="stmt"/>
+        <line num="38" count="1" type="stmt"/>
+        <line num="41" count="1" type="cond" truecount="1" falsecount="1"/>
+        <line num="47" count="1" type="stmt"/>
+        <line num="48" count="2" type="stmt"/>
+        <line num="50" count="2" type="cond" truecount="2" falsecount="0"/>
+        <line num="51" count="1" type="stmt"/>
+        <line num="54" count="1" type="cond" truecount="1" falsecount="1"/>
+        <line num="60" count="1" type="stmt"/>
+        <line num="61" count="1" type="stmt"/>
+        <line num="63" count="1" type="cond" truecount="1" falsecount="1"/>
+        <line num="64" count="0" type="stmt"/>
+        <line num="67" count="1" type="cond" truecount="1" falsecount="1"/>
+        <line num="73" count="1" type="stmt"/>
+        <line num="77" count="1" type="stmt"/>
+        <line num="88" count="0" type="stmt"/>
+        <line num="93" count="1" type="stmt"/>
+        <line num="94" count="0" type="stmt"/>
+        <line num="102" count="1" type="stmt"/>
+        <line num="103" count="3" type="cond" truecount="2" falsecount="0"/>
+        <line num="104" count="1" type="stmt"/>
+        <line num="107" count="2" type="cond" truecount="2" falsecount="0"/>
+        <line num="108" count="1" type="stmt"/>
+        <line num="110" count="1" type="stmt"/>
+        <line num="114" count="1" type="stmt"/>
+      </file>
+      <file name="connection-manager.ts" path="/Users/tm/work/AltMe/src/services/openclaw/connection-manager.ts">
+        <metrics statements="17" coveredstatements="17" conditionals="6" coveredconditionals="6" methods="5" coveredmethods="5"/>
+        <line num="8" count="1" type="stmt"/>
+        <line num="15" count="1" type="stmt"/>
+        <line num="20" count="3" type="stmt"/>
+        <line num="22" count="3" type="cond" truecount="2" falsecount="0"/>
+        <line num="23" count="3" type="stmt"/>
+        <line num="30" count="2" type="stmt"/>
+        <line num="32" count="1" type="stmt"/>
+        <line num="36" count="1" type="stmt"/>
+        <line num="37" count="12" type="stmt"/>
+        <line num="40" count="1" type="stmt"/>
+        <line num="41" count="3" type="stmt"/>
+        <line num="44" count="1" type="stmt"/>
+        <line num="45" count="2" type="cond" truecount="2" falsecount="0"/>
+        <line num="46" count="1" type="stmt"/>
+        <line num="47" count="1" type="stmt"/>
+        <line num="51" count="1" type="stmt"/>
+        <line num="52" count="2" type="cond" truecount="2" falsecount="0"/>
+      </file>
+      <file name="websocket-client.ts" path="/Users/tm/work/AltMe/src/services/openclaw/websocket-client.ts">
+        <metrics statements="82" coveredstatements="77" conditionals="34" coveredconditionals="27" methods="17" coveredmethods="17"/>
+        <line num="22" count="21" type="stmt"/>
+        <line num="24" count="21" type="stmt"/>
+        <line num="25" count="21" type="stmt"/>
+        <line num="26" count="21" type="stmt"/>
+        <line num="27" count="21" type="stmt"/>
+        <line num="30" count="21" type="stmt"/>
+        <line num="34" count="26" type="cond" truecount="4" falsecount="0"/>
+        <line num="35" count="1" type="stmt"/>
+        <line num="38" count="25" type="stmt"/>
+        <line num="39" count="25" type="stmt"/>
+        <line num="42" count="25" type="stmt"/>
+        <line num="43" count="25" type="stmt"/>
+        <line num="44" count="25" type="stmt"/>
+        <line num="46" count="25" type="stmt"/>
+        <line num="47" count="25" type="stmt"/>
+        <line num="48" count="5" type="cond" truecount="3" falsecount="1"/>
+        <line num="49" count="5" type="stmt"/>
+        <line num="50" count="5" type="stmt"/>
+        <line num="51" count="5" type="stmt"/>
+        <line num="54" count="25" type="stmt"/>
+        <line num="55" count="1" type="cond" truecount="1" falsecount="1"/>
+        <line num="56" count="1" type="stmt"/>
+        <line num="57" count="1" type="stmt"/>
+        <line num="58" count="1" type="stmt"/>
+        <line num="62" count="25" type="stmt"/>
+        <line num="63" count="11" type="stmt"/>
+        <line num="64" count="11" type="stmt"/>
+        <line num="67" count="25" type="stmt"/>
+        <line num="68" count="15" type="stmt"/>
+        <line num="71" count="25" type="stmt"/>
+        <line num="72" count="4" type="stmt"/>
+        <line num="73" count="4" type="stmt"/>
+        <line num="76" count="25" type="stmt"/>
+        <line num="77" count="1" type="stmt"/>
+        <line num="82" count="3" type="stmt"/>
+        <line num="83" count="3" type="stmt"/>
+        <line num="84" count="3" type="stmt"/>
+        <line num="85" count="3" type="stmt"/>
+        <line num="87" count="3" type="cond" truecount="1" falsecount="1"/>
+        <line num="88" count="3" type="stmt"/>
+        <line num="89" count="3" type="stmt"/>
+        <line num="92" count="3" type="stmt"/>
+        <line num="96" count="2" type="cond" truecount="5" falsecount="0"/>
+        <line num="97" count="1" type="stmt"/>
+        <line num="98" count="1" type="stmt"/>
+        <line num="101" count="1" type="stmt"/>
+        <line num="107" count="1" type="stmt"/>
+        <line num="111" count="3" type="cond" truecount="2" falsecount="0"/>
+        <line num="115" count="2" type="stmt"/>
+        <line num="119" count="11" type="stmt"/>
+        <line num="128" count="11" type="stmt"/>
+        <line num="133" count="15" type="stmt"/>
+        <line num="134" count="15" type="stmt"/>
+        <line num="136" count="1" type="stmt"/>
+        <line num="139" count="14" type="cond" truecount="3" falsecount="0"/>
+        <line num="141" count="9" type="stmt"/>
+        <line num="142" count="9" type="stmt"/>
+        <line num="143" count="9" type="stmt"/>
+        <line num="144" count="9" type="stmt"/>
+        <line num="145" count="9" type="stmt"/>
+        <line num="148" count="3" type="cond" truecount="2" falsecount="0"/>
+        <line num="149" count="2" type="stmt"/>
+        <line num="150" count="1" type="cond" truecount="1" falsecount="1"/>
+        <line num="151" count="1" type="stmt"/>
+        <line num="153" count="3" type="stmt"/>
+        <line num="156" count="2" type="stmt"/>
+        <line num="157" count="2" type="cond" truecount="2" falsecount="0"/>
+        <line num="158" count="1" type="stmt"/>
+        <line num="160" count="2" type="stmt"/>
+        <line num="165" count="5" type="cond" truecount="1" falsecount="1"/>
+        <line num="166" count="5" type="cond" truecount="1" falsecount="1"/>
+        <line num="167" count="0" type="stmt"/>
+        <line num="168" count="0" type="stmt"/>
+        <line num="169" count="0" type="stmt"/>
+        <line num="172" count="5" type="stmt"/>
+        <line num="174" count="5" type="stmt"/>
+        <line num="179" count="5" type="stmt"/>
+        <line num="180" count="5" type="stmt"/>
+        <line num="181" count="5" type="stmt"/>
+        <line num="186" count="3" type="cond" truecount="1" falsecount="1"/>
+        <line num="187" count="0" type="stmt"/>
+        <line num="188" count="0" type="stmt"/>
+      </file>
+    </package>
+    <package name="src.services.revenuecat">
+      <metrics statements="98" coveredstatements="47" conditionals="50" coveredconditionals="15" methods="27" coveredmethods="12"/>
+      <file name="client.native.ts" path="/Users/tm/work/AltMe/src/services/revenuecat/client.native.ts">
+        <metrics statements="85" coveredstatements="34" conditionals="50" coveredconditionals="15" methods="16" coveredmethods="1"/>
+        <line num="17" count="1" type="stmt"/>
+        <line num="23" count="1" type="stmt"/>
+        <line num="24" count="0" type="stmt"/>
+        <line num="29" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="30" count="0" type="stmt"/>
+        <line num="31" count="0" type="stmt"/>
+        <line num="34" count="0" type="stmt"/>
+        <line num="35" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="36" count="0" type="stmt"/>
+        <line num="42" count="1" type="stmt"/>
+        <line num="43" count="6" type="stmt"/>
+        <line num="45" count="6" type="cond" truecount="2" falsecount="0"/>
+        <line num="46" count="1" type="stmt"/>
+        <line num="56" count="5" type="stmt"/>
+        <line num="57" count="5" type="stmt"/>
+        <line num="58" count="5" type="stmt"/>
+        <line num="60" count="5" type="cond" truecount="2" falsecount="0"/>
+        <line num="61" count="1" type="stmt"/>
+        <line num="62" count="1" type="cond" truecount="1" falsecount="1"/>
+        <line num="63" count="1" type="stmt"/>
+        <line num="64" count="1" type="stmt"/>
+        <line num="66" count="4" type="cond" truecount="2" falsecount="0"/>
+        <line num="67" count="1" type="stmt"/>
+        <line num="70" count="5" type="stmt"/>
+        <line num="71" count="5" type="stmt"/>
+        <line num="72" count="5" type="cond" truecount="4" falsecount="0"/>
+        <line num="73" count="2" type="cond" truecount="2" falsecount="0"/>
+        <line num="74" count="3" type="cond" truecount="1" falsecount="1"/>
+        <line num="75" count="3" type="stmt"/>
+        <line num="78" count="5" type="cond" truecount="1" falsecount="1"/>
+        <line num="80" count="5" type="stmt"/>
+        <line num="90" count="1" type="stmt"/>
+        <line num="102" count="1" type="stmt"/>
+        <line num="103" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="104" count="0" type="stmt"/>
+        <line num="105" count="0" type="stmt"/>
+        <line num="106" count="0" type="stmt"/>
+        <line num="108" count="0" type="stmt"/>
+        <line num="109" count="0" type="stmt"/>
+        <line num="116" count="1" type="stmt"/>
+        <line num="117" count="0" type="stmt"/>
+        <line num="118" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="120" count="0" type="stmt"/>
+        <line num="124" count="0" type="stmt"/>
+        <line num="125" count="0" type="stmt"/>
+        <line num="126" count="0" type="cond" truecount="0" falsecount="4"/>
+        <line num="127" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="130" count="0" type="stmt"/>
+        <line num="154" count="1" type="stmt"/>
+        <line num="155" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="156" count="0" type="stmt"/>
+        <line num="157" count="0" type="stmt"/>
+        <line num="158" count="0" type="stmt"/>
+        <line num="160" count="0" type="stmt"/>
+        <line num="161" count="0" type="stmt"/>
+        <line num="168" count="1" type="stmt"/>
+        <line num="169" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="171" count="0" type="stmt"/>
+        <line num="172" count="0" type="stmt"/>
+        <line num="173" count="0" type="stmt"/>
+        <line num="175" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="177" count="0" type="stmt"/>
+        <line num="178" count="0" type="stmt"/>
+        <line num="184" count="1" type="stmt"/>
+        <line num="185" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="186" count="0" type="stmt"/>
+        <line num="187" count="0" type="stmt"/>
+        <line num="193" count="1" type="stmt"/>
+        <line num="194" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="195" count="0" type="stmt"/>
+        <line num="201" count="1" type="stmt"/>
+        <line num="202" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="203" count="0" type="stmt"/>
+        <line num="209" count="1" type="stmt"/>
+        <line num="212" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="213" count="0" type="stmt"/>
+        <line num="214" count="0" type="stmt"/>
+        <line num="216" count="0" type="stmt"/>
+        <line num="217" count="0" type="stmt"/>
+        <line num="224" count="1" type="stmt"/>
+        <line num="225" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="226" count="0" type="stmt"/>
+        <line num="227" count="0" type="stmt"/>
+        <line num="228" count="0" type="stmt"/>
+        <line num="230" count="0" type="stmt"/>
+      </file>
+      <file name="client.web.ts" path="/Users/tm/work/AltMe/src/services/revenuecat/client.web.ts">
+        <metrics statements="13" coveredstatements="13" conditionals="0" coveredconditionals="0" methods="11" coveredmethods="11"/>
+        <line num="3" count="1" type="stmt"/>
+        <line num="12" count="1" type="stmt"/>
+        <line num="14" count="1" type="stmt"/>
+        <line num="16" count="1" type="stmt"/>
+        <line num="18" count="1" type="stmt"/>
+        <line num="20" count="1" type="stmt"/>
+        <line num="21" count="2" type="stmt"/>
+        <line num="24" count="1" type="stmt"/>
+        <line num="26" count="1" type="stmt"/>
+        <line num="28" count="1" type="stmt"/>
+        <line num="30" count="1" type="stmt"/>
+        <line num="33" count="3" type="stmt"/>
+        <line num="36" count="1" type="stmt"/>
+      </file>
+    </package>
+    <package name="src.services.stripe">
+      <metrics statements="30" coveredstatements="23" conditionals="24" coveredconditionals="15" methods="4" coveredmethods="2"/>
+      <file name="client.ts" path="/Users/tm/work/AltMe/src/services/stripe/client.ts">
+        <metrics statements="30" coveredstatements="23" conditionals="24" coveredconditionals="15" methods="4" coveredmethods="2"/>
+        <line num="10" count="5" type="stmt"/>
+        <line num="13" count="4" type="stmt"/>
+        <line num="14" count="4" type="cond" truecount="2" falsecount="0"/>
+        <line num="15" count="1" type="stmt"/>
+        <line num="18" count="3" type="stmt"/>
+        <line num="23" count="3" type="cond" truecount="2" falsecount="0"/>
+        <line num="24" count="1" type="cond" truecount="1" falsecount="1"/>
+        <line num="27" count="2" type="cond" truecount="2" falsecount="0"/>
+        <line num="28" count="1" type="stmt"/>
+        <line num="31" count="1" type="stmt"/>
+        <line num="38" count="5" type="stmt"/>
+        <line num="39" count="4" type="stmt"/>
+        <line num="40" count="4" type="cond" truecount="2" falsecount="0"/>
+        <line num="41" count="1" type="stmt"/>
+        <line num="44" count="3" type="stmt"/>
+        <line num="48" count="3" type="cond" truecount="2" falsecount="0"/>
+        <line num="50" count="1" type="cond" truecount="2" falsecount="2"/>
+        <line num="51" count="1" type="stmt"/>
+        <line num="53" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="56" count="2" type="cond" truecount="2" falsecount="0"/>
+        <line num="57" count="1" type="stmt"/>
+        <line num="60" count="1" type="stmt"/>
+        <line num="66" count="5" type="stmt"/>
+        <line num="67" count="0" type="stmt"/>
+        <line num="68" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="69" count="0" type="stmt"/>
+        <line num="76" count="5" type="stmt"/>
+        <line num="77" count="0" type="stmt"/>
+        <line num="78" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="79" count="0" type="stmt"/>
+      </file>
+    </package>
+    <package name="src.services.subscription">
+      <metrics statements="22" coveredstatements="4" conditionals="14" coveredconditionals="0" methods="3" coveredmethods="0"/>
+      <file name="entitlement-poller.ts" path="/Users/tm/work/AltMe/src/services/subscription/entitlement-poller.ts">
+        <metrics statements="22" coveredstatements="4" conditionals="14" coveredconditionals="0" methods="3" coveredmethods="0"/>
+        <line num="15" count="1" type="stmt"/>
+        <line num="17" count="1" type="stmt"/>
+        <line num="19" count="1" type="stmt"/>
+        <line num="24" count="0" type="cond" truecount="0" falsecount="4"/>
+        <line num="26" count="0" type="stmt"/>
+        <line num="28" count="0" type="stmt"/>
+        <line num="29" count="0" type="stmt"/>
+        <line num="30" count="0" type="stmt"/>
+        <line num="31" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="32" count="0" type="stmt"/>
+        <line num="33" count="0" type="stmt"/>
+        <line num="36" count="0" type="stmt"/>
+        <line num="42" count="0" type="cond" truecount="0" falsecount="4"/>
+        <line num="43" count="0" type="stmt"/>
+        <line num="44" count="0" type="stmt"/>
+        <line num="47" count="0" type="stmt"/>
+        <line num="48" count="0" type="stmt"/>
+        <line num="50" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="55" count="1" type="stmt"/>
+        <line num="56" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="57" count="0" type="stmt"/>
+        <line num="58" count="0" type="stmt"/>
+      </file>
+    </package>
+    <package name="src.services.supabase">
+      <metrics statements="135" coveredstatements="65" conditionals="123" coveredconditionals="40" methods="31" coveredmethods="17"/>
+      <file name="auth-shared.ts" path="/Users/tm/work/AltMe/src/services/supabase/auth-shared.ts">
+        <metrics statements="58" coveredstatements="33" conditionals="69" coveredconditionals="26" methods="14" coveredmethods="10"/>
+        <line num="8" count="4" type="stmt"/>
+        <line num="9" count="1" type="stmt"/>
+        <line num="10" count="1" type="stmt"/>
+        <line num="16" count="4" type="stmt"/>
+        <line num="17" count="0" type="stmt"/>
+        <line num="18" count="0" type="stmt"/>
+        <line num="24" count="4" type="stmt"/>
+        <line num="25" count="2" type="stmt"/>
+        <line num="31" count="2" type="cond" truecount="4" falsecount="0"/>
+        <line num="33" count="1" type="stmt"/>
+        <line num="39" count="4" type="stmt"/>
+        <line num="43" count="0" type="stmt"/>
+        <line num="44" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="45" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="46" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="47" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="48" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="49" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="50" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="52" count="0" type="stmt"/>
+        <line num="59" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="60" count="0" type="stmt"/>
+        <line num="67" count="4" type="stmt"/>
+        <line num="68" count="0" type="stmt"/>
+        <line num="69" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="71" count="0" type="stmt"/>
+        <line num="75" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="77" count="0" type="stmt"/>
+        <line num="85" count="4" type="stmt"/>
+        <line num="90" count="0" type="stmt"/>
+        <line num="96" count="0" type="cond" truecount="0" falsecount="4"/>
+        <line num="97" count="0" type="stmt"/>
+        <line num="101" count="0" type="cond" truecount="0" falsecount="4"/>
+        <line num="102" count="0" type="stmt"/>
+        <line num="108" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="111" count="0" type="stmt"/>
+        <line num="114" count="20" type="cond" truecount="2" falsecount="0"/>
+        <line num="115" count="4" type="cond" truecount="2" falsecount="1"/>
+        <line num="117" count="4" type="stmt"/>
+        <line num="118" count="4" type="stmt"/>
+        <line num="119" count="2" type="cond" truecount="2" falsecount="0"/>
+        <line num="121" count="4" type="stmt"/>
+        <line num="129" count="4" type="stmt"/>
+        <line num="132" count="4" type="stmt"/>
+        <line num="133" count="2" type="cond" truecount="2" falsecount="0"/>
+        <line num="134" count="4" type="stmt"/>
+        <line num="135" count="2" type="cond" truecount="1" falsecount="1"/>
+        <line num="136" count="2" type="cond" truecount="1" falsecount="1"/>
+        <line num="137" count="2" type="cond" truecount="1" falsecount="1"/>
+        <line num="140" count="4" type="stmt"/>
+        <line num="142" count="4" type="stmt"/>
+        <line num="145" count="4" type="stmt"/>
+        <line num="146" count="2" type="cond" truecount="2" falsecount="0"/>
+        <line num="147" count="4" type="stmt"/>
+        <line num="148" count="2" type="cond" truecount="1" falsecount="1"/>
+        <line num="149" count="2" type="cond" truecount="1" falsecount="1"/>
+        <line num="150" count="2" type="cond" truecount="1" falsecount="1"/>
+        <line num="153" count="4" type="stmt"/>
+      </file>
+      <file name="auth.native.ts" path="/Users/tm/work/AltMe/src/services/supabase/auth.native.ts">
+        <metrics statements="27" coveredstatements="3" conditionals="24" coveredconditionals="0" methods="3" coveredmethods="0"/>
+        <line num="19" count="2" type="stmt"/>
+        <line num="27" count="2" type="stmt"/>
+        <line num="28" count="0" type="stmt"/>
+        <line num="29" count="0" type="stmt"/>
+        <line num="30" count="0" type="stmt"/>
+        <line num="35" count="0" type="stmt"/>
+        <line num="43" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="44" count="0" type="stmt"/>
+        <line num="47" count="0" type="stmt"/>
+        <line num="53" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="54" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="57" count="0" type="stmt"/>
+        <line num="60" count="0" type="stmt"/>
+        <line num="71" count="2" type="stmt"/>
+        <line num="73" count="0" type="stmt"/>
+        <line num="75" count="0" type="stmt"/>
+        <line num="78" count="0" type="cond" truecount="0" falsecount="4"/>
+        <line num="79" count="0" type="stmt"/>
+        <line num="80" count="0" type="stmt"/>
+        <line num="81" count="0" type="stmt"/>
+        <line num="84" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="85" count="0" type="stmt"/>
+        <line num="88" count="0" type="stmt"/>
+        <line num="93" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="94" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="97" count="0" type="stmt"/>
+        <line num="99" count="0" type="stmt"/>
+      </file>
+      <file name="auth.web.ts" path="/Users/tm/work/AltMe/src/services/supabase/auth.web.ts">
+        <metrics statements="8" coveredstatements="8" conditionals="8" coveredconditionals="5" methods="4" coveredmethods="4"/>
+        <line num="20" count="2" type="stmt"/>
+        <line num="21" count="2" type="stmt"/>
+        <line num="28" count="2" type="cond" truecount="2" falsecount="0"/>
+        <line num="33" count="1" type="stmt"/>
+        <line num="42" count="2" type="stmt"/>
+        <line num="43" count="1" type="stmt"/>
+        <line num="50" count="1" type="cond" truecount="1" falsecount="1"/>
+        <line num="55" count="1" type="stmt"/>
+      </file>
+      <file name="client.native.ts" path="/Users/tm/work/AltMe/src/services/supabase/client.native.ts">
+        <metrics statements="17" coveredstatements="7" conditionals="6" coveredconditionals="2" methods="5" coveredmethods="1"/>
+        <line num="10" count="2" type="stmt"/>
+        <line num="12" count="0" type="stmt"/>
+        <line num="15" count="0" type="stmt"/>
+        <line num="16" count="0" type="stmt"/>
+        <line num="18" count="0" type="stmt"/>
+        <line num="19" count="0" type="stmt"/>
+        <line num="23" count="0" type="stmt"/>
+        <line num="27" count="2" type="stmt"/>
+        <line num="28" count="2" type="cond" truecount="2" falsecount="2"/>
+        <line num="29" count="2" type="stmt"/>
+        <line num="30" count="2" type="stmt"/>
+        <line num="40" count="0" type="stmt"/>
+        <line num="50" count="2" type="stmt"/>
+        <line num="56" count="2" type="stmt"/>
+        <line num="57" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="58" count="0" type="stmt"/>
+        <line num="60" count="0" type="stmt"/>
+      </file>
+      <file name="client.web.ts" path="/Users/tm/work/AltMe/src/services/supabase/client.web.ts">
+        <metrics statements="25" coveredstatements="14" conditionals="16" coveredconditionals="7" methods="5" coveredmethods="2"/>
+        <line num="8" count="4" type="stmt"/>
+        <line num="11" count="4" type="stmt"/>
+        <line num="17" count="4" type="stmt"/>
+        <line num="19" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="20" count="0" type="stmt"/>
+        <line num="22" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="25" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="26" count="0" type="stmt"/>
+        <line num="28" count="0" type="stmt"/>
+        <line num="30" count="0" type="stmt"/>
+        <line num="33" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="34" count="0" type="stmt"/>
+        <line num="36" count="0" type="stmt"/>
+        <line num="38" count="0" type="stmt"/>
+        <line num="42" count="4" type="stmt"/>
+        <line num="43" count="4" type="cond" truecount="4" falsecount="0"/>
+        <line num="44" count="3" type="stmt"/>
+        <line num="45" count="3" type="stmt"/>
+        <line num="55" count="1" type="stmt"/>
+        <line num="65" count="4" type="stmt"/>
+        <line num="71" count="4" type="cond" truecount="1" falsecount="1"/>
+        <line num="72" count="4" type="stmt"/>
+        <line num="73" count="2" type="cond" truecount="2" falsecount="0"/>
+        <line num="74" count="1" type="stmt"/>
+        <line num="76" count="1" type="stmt"/>
+      </file>
+    </package>
+    <package name="src.shared.components">
+      <metrics statements="185" coveredstatements="132" conditionals="177" coveredconditionals="127" methods="41" coveredmethods="30"/>
+      <file name="cosmic-background.tsx" path="/Users/tm/work/AltMe/src/shared/components/cosmic-background.tsx">
+        <metrics statements="3" coveredstatements="3" conditionals="1" coveredconditionals="1" methods="1" coveredmethods="1"/>
+        <line num="10" count="1" type="stmt"/>
+        <line num="15" count="3" type="stmt"/>
+        <line num="27" count="1" type="stmt"/>
+      </file>
+      <file name="error-boundary.tsx" path="/Users/tm/work/AltMe/src/shared/components/error-boundary.tsx">
+        <metrics statements="10" coveredstatements="10" conditionals="4" coveredconditionals="4" methods="4" coveredmethods="4"/>
+        <line num="15" count="10" type="stmt"/>
+        <line num="18" count="8" type="stmt"/>
+        <line num="22" count="4" type="stmt"/>
+        <line num="26" count="10" type="stmt"/>
+        <line num="27" count="1" type="stmt"/>
+        <line num="31" count="19" type="cond" truecount="2" falsecount="0"/>
+        <line num="32" count="8" type="cond" truecount="2" falsecount="0"/>
+        <line num="33" count="6" type="stmt"/>
+        <line num="43" count="11" type="stmt"/>
+        <line num="47" count="2" type="stmt"/>
+      </file>
+      <file name="file-drop-zone.tsx" path="/Users/tm/work/AltMe/src/shared/components/file-drop-zone.tsx">
+        <metrics statements="63" coveredstatements="20" conditionals="36" coveredconditionals="10" methods="11" coveredmethods="3"/>
+        <line num="15" count="1" type="stmt"/>
+        <line num="16" count="1" type="stmt"/>
+        <line num="18" count="1" type="stmt"/>
+        <line num="21" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="22" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="23" count="0" type="stmt"/>
+        <line num="26" count="1" type="stmt"/>
+        <line num="27" count="0" type="cond" truecount="0" falsecount="4"/>
+        <line num="28" count="0" type="stmt"/>
+        <line num="29" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="30" count="0" type="stmt"/>
+        <line num="32" count="0" type="stmt"/>
+        <line num="46" count="5" type="cond" truecount="2" falsecount="0"/>
+        <line num="47" count="1" type="stmt"/>
+        <line num="50" count="4" type="stmt"/>
+        <line num="77" count="4" type="stmt"/>
+        <line num="78" count="4" type="stmt"/>
+        <line num="79" count="4" type="stmt"/>
+        <line num="81" count="4" type="stmt"/>
+        <line num="82" count="0" type="stmt"/>
+        <line num="83" count="0" type="stmt"/>
+        <line num="84" count="0" type="stmt"/>
+        <line num="85" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="86" count="0" type="stmt"/>
+        <line num="90" count="4" type="stmt"/>
+        <line num="91" count="0" type="stmt"/>
+        <line num="92" count="0" type="stmt"/>
+        <line num="93" count="0" type="stmt"/>
+        <line num="94" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="95" count="0" type="stmt"/>
+        <line num="99" count="4" type="stmt"/>
+        <line num="100" count="0" type="stmt"/>
+        <line num="101" count="0" type="stmt"/>
+        <line num="104" count="4" type="stmt"/>
+        <line num="106" count="0" type="stmt"/>
+        <line num="107" count="0" type="stmt"/>
+        <line num="108" count="0" type="stmt"/>
+        <line num="109" count="0" type="stmt"/>
+        <line num="111" count="0" type="stmt"/>
+        <line num="112" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="114" count="0" type="stmt"/>
+        <line num="115" count="0" type="stmt"/>
+        <line num="117" count="0" type="stmt"/>
+        <line num="118" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="119" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="121" count="0" type="stmt"/>
+        <line num="130" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="131" count="0" type="stmt"/>
+        <line num="137" count="4" type="stmt"/>
+        <line num="139" count="4" type="stmt"/>
+        <line num="143" count="4" type="cond" truecount="2" falsecount="0"/>
+        <line num="145" count="4" type="cond" truecount="1" falsecount="1"/>
+        <line num="147" count="0" type="stmt"/>
+        <line num="148" count="0" type="stmt"/>
+        <line num="149" count="0" type="stmt"/>
+        <line num="150" count="0" type="stmt"/>
+        <line num="152" count="0" type="stmt"/>
+        <line num="153" count="0" type="stmt"/>
+        <line num="154" count="0" type="stmt"/>
+        <line num="155" count="0" type="stmt"/>
+        <line num="156" count="0" type="stmt"/>
+        <line num="160" count="4" type="stmt"/>
+        <line num="181" count="1" type="stmt"/>
+      </file>
+      <file name="glass-card.native.tsx" path="/Users/tm/work/AltMe/src/shared/components/glass-card.native.tsx">
+        <metrics statements="4" coveredstatements="4" conditionals="3" coveredconditionals="3" methods="1" coveredmethods="1"/>
+        <line num="16" count="3" type="stmt"/>
+        <line num="24" count="20" type="stmt"/>
+        <line num="26" count="20" type="stmt"/>
+        <line num="39" count="3" type="stmt"/>
+      </file>
+      <file name="glass-card.web.tsx" path="/Users/tm/work/AltMe/src/shared/components/glass-card.web.tsx">
+        <metrics statements="5" coveredstatements="5" conditionals="1" coveredconditionals="1" methods="1" coveredmethods="1"/>
+        <line num="15" count="1" type="stmt"/>
+        <line num="23" count="18" type="stmt"/>
+        <line num="25" count="18" type="stmt"/>
+        <line num="32" count="18" type="stmt"/>
+        <line num="42" count="1" type="stmt"/>
+      </file>
+      <file name="gold-button.tsx" path="/Users/tm/work/AltMe/src/shared/components/gold-button.tsx">
+        <metrics statements="3" coveredstatements="3" conditionals="11" coveredconditionals="9" methods="2" coveredmethods="2"/>
+        <line num="17" count="7" type="stmt"/>
+        <line num="22" count="7" type="stmt"/>
+        <line num="46" count="2" type="stmt"/>
+      </file>
+      <file name="media-picker.native.tsx" path="/Users/tm/work/AltMe/src/shared/components/media-picker.native.tsx">
+        <metrics statements="17" coveredstatements="15" conditionals="29" coveredconditionals="23" methods="3" coveredmethods="3"/>
+        <line num="14" count="2" type="stmt"/>
+        <line num="16" count="2" type="stmt"/>
+        <line num="19" count="10" type="cond" truecount="2" falsecount="0"/>
+        <line num="20" count="4" type="cond" truecount="1" falsecount="1"/>
+        <line num="21" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="22" count="0" type="stmt"/>
+        <line num="32" count="16" type="stmt"/>
+        <line num="34" count="12" type="stmt"/>
+        <line num="35" count="12" type="cond" truecount="2" falsecount="0"/>
+        <line num="37" count="10" type="stmt"/>
+        <line num="42" count="10" type="cond" truecount="4" falsecount="0"/>
+        <line num="44" count="6" type="stmt"/>
+        <line num="45" count="6" type="cond" truecount="4" falsecount="0"/>
+        <line num="47" count="4" type="stmt"/>
+        <line num="57" count="4" type="stmt"/>
+        <line num="60" count="16" type="stmt"/>
+        <line num="71" count="2" type="stmt"/>
+      </file>
+      <file name="media-picker.web.tsx" path="/Users/tm/work/AltMe/src/shared/components/media-picker.web.tsx">
+        <metrics statements="12" coveredstatements="5" conditionals="14" coveredconditionals="4" methods="3" coveredmethods="1"/>
+        <line num="13" count="1" type="stmt"/>
+        <line num="22" count="6" type="stmt"/>
+        <line num="24" count="6" type="stmt"/>
+        <line num="25" count="0" type="stmt"/>
+        <line num="26" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="27" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="29" count="0" type="stmt"/>
+        <line num="40" count="0" type="stmt"/>
+        <line num="43" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="46" count="6" type="stmt"/>
+        <line num="49" count="0" type="stmt"/>
+        <line num="65" count="1" type="stmt"/>
+      </file>
+      <file name="mobile-bottom-tabs.tsx" path="/Users/tm/work/AltMe/src/shared/components/mobile-bottom-tabs.tsx">
+        <metrics statements="14" coveredstatements="13" conditionals="9" coveredconditionals="9" methods="4" coveredmethods="3"/>
+        <line num="16" count="2" type="stmt"/>
+        <line num="23" count="2" type="stmt"/>
+        <line num="24" count="8" type="cond" truecount="2" falsecount="0"/>
+        <line num="25" count="2" type="cond" truecount="3" falsecount="0"/>
+        <line num="27" count="6" type="stmt"/>
+        <line num="30" count="2" type="stmt"/>
+        <line num="31" count="2" type="stmt"/>
+        <line num="32" count="2" type="stmt"/>
+        <line num="33" count="2" type="stmt"/>
+        <line num="35" count="2" type="stmt"/>
+        <line num="38" count="8" type="stmt"/>
+        <line num="39" count="8" type="stmt"/>
+        <line num="43" count="0" type="stmt"/>
+        <line num="69" count="2" type="stmt"/>
+      </file>
+      <file name="responsive-container.tsx" path="/Users/tm/work/AltMe/src/shared/components/responsive-container.tsx">
+        <metrics statements="5" coveredstatements="5" conditionals="13" coveredconditionals="12" methods="1" coveredmethods="1"/>
+        <line num="15" count="5" type="stmt"/>
+        <line num="17" count="5" type="cond" truecount="6" falsecount="0"/>
+        <line num="19" count="5" type="cond" truecount="1" falsecount="1"/>
+        <line num="21" count="5" type="stmt"/>
+        <line num="34" count="2" type="stmt"/>
+      </file>
+      <file name="web-head.tsx" path="/Users/tm/work/AltMe/src/shared/components/web-head.tsx">
+        <metrics statements="25" coveredstatements="25" conditionals="19" coveredconditionals="14" methods="4" coveredmethods="4"/>
+        <line num="10" count="1" type="cond" truecount="1" falsecount="0"/>
+        <line num="11" count="1" type="cond" truecount="1" falsecount="1"/>
+        <line num="13" count="1" type="stmt"/>
+        <line num="14" count="1" type="cond" truecount="1" falsecount="1"/>
+        <line num="15" count="1" type="stmt"/>
+        <line num="16" count="1" type="stmt"/>
+        <line num="17" count="1" type="stmt"/>
+        <line num="19" count="1" type="stmt"/>
+        <line num="22" count="1" type="stmt"/>
+        <line num="23" count="1" type="cond" truecount="1" falsecount="1"/>
+        <line num="25" count="1" type="stmt"/>
+        <line num="26" count="1" type="cond" truecount="1" falsecount="1"/>
+        <line num="27" count="1" type="stmt"/>
+        <line num="28" count="1" type="stmt"/>
+        <line num="29" count="1" type="stmt"/>
+        <line num="31" count="1" type="stmt"/>
+        <line num="35" count="3" type="stmt"/>
+        <line num="36" count="3" type="cond" truecount="3" falsecount="1"/>
+        <line num="38" count="3" type="cond" truecount="2" falsecount="0"/>
+        <line num="39" count="1" type="stmt"/>
+        <line num="42" count="3" type="cond" truecount="2" falsecount="0"/>
+        <line num="43" count="1" type="stmt"/>
+        <line num="46" count="3" type="cond" truecount="2" falsecount="0"/>
+        <line num="47" count="1" type="stmt"/>
+        <line num="51" count="3" type="stmt"/>
+      </file>
+      <file name="web-sidebar.tsx" path="/Users/tm/work/AltMe/src/shared/components/web-sidebar.tsx">
+        <metrics statements="24" coveredstatements="24" conditionals="37" coveredconditionals="37" methods="6" coveredmethods="6"/>
+        <line num="19" count="3" type="stmt"/>
+        <line num="30" count="3" type="stmt"/>
+        <line num="32" count="80" type="cond" truecount="2" falsecount="0"/>
+        <line num="33" count="20" type="cond" truecount="3" falsecount="0"/>
+        <line num="35" count="60" type="stmt"/>
+        <line num="38" count="3" type="stmt"/>
+        <line num="39" count="20" type="stmt"/>
+        <line num="40" count="20" type="stmt"/>
+        <line num="41" count="20" type="stmt"/>
+        <line num="42" count="20" type="stmt"/>
+        <line num="43" count="20" type="stmt"/>
+        <line num="44" count="20" type="stmt"/>
+        <line num="47" count="20" type="cond" truecount="2" falsecount="0"/>
+        <line num="48" count="20" type="cond" truecount="3" falsecount="0"/>
+        <line num="50" count="20" type="stmt"/>
+        <line num="51" count="4" type="stmt"/>
+        <line num="54" count="20" type="cond" truecount="3" falsecount="0"/>
+        <line num="56" count="20" type="stmt"/>
+        <line num="72" count="80" type="stmt"/>
+        <line num="73" count="80" type="stmt"/>
+        <line num="81" count="4" type="stmt"/>
+        <line num="126" count="3" type="stmt"/>
+        <line num="127" count="3" type="stmt"/>
+        <line num="131" count="3" type="stmt"/>
+      </file>
+    </package>
+    <package name="src.shared.hooks">
+      <metrics statements="352" coveredstatements="280" conditionals="159" coveredconditionals="114" methods="111" coveredmethods="84"/>
+      <file name="use-clipboard-paste.ts" path="/Users/tm/work/AltMe/src/shared/hooks/use-clipboard-paste.ts">
+        <metrics statements="16" coveredstatements="16" conditionals="10" coveredconditionals="7" methods="4" coveredmethods="4"/>
+        <line num="11" count="1" type="stmt"/>
+        <line num="12" count="3" type="stmt"/>
+        <line num="14" count="2" type="stmt"/>
+        <line num="15" count="2" type="cond" truecount="1" falsecount="1"/>
+        <line num="17" count="2" type="stmt"/>
+        <line num="18" count="2" type="stmt"/>
+        <line num="19" count="2" type="cond" truecount="2" falsecount="0"/>
+        <line num="21" count="1" type="stmt"/>
+        <line num="22" count="1" type="cond" truecount="1" falsecount="1"/>
+        <line num="24" count="1" type="stmt"/>
+        <line num="31" count="1" type="stmt"/>
+        <line num="32" count="1" type="stmt"/>
+        <line num="38" count="3" type="stmt"/>
+        <line num="39" count="3" type="cond" truecount="2" falsecount="0"/>
+        <line num="41" count="2" type="stmt"/>
+        <line num="42" count="2" type="stmt"/>
+      </file>
+      <file name="use-keyboard-shortcuts.ts" path="/Users/tm/work/AltMe/src/shared/hooks/use-keyboard-shortcuts.ts">
+        <metrics statements="15" coveredstatements="15" conditionals="22" coveredconditionals="19" methods="4" coveredmethods="4"/>
+        <line num="10" count="1" type="stmt"/>
+        <line num="11" count="5" type="stmt"/>
+        <line num="12" count="5" type="cond" truecount="1" falsecount="1"/>
+        <line num="14" count="5" type="stmt"/>
+        <line num="16" count="6" type="cond" truecount="4" falsecount="0"/>
+        <line num="18" count="5" type="stmt"/>
+        <line num="19" count="5" type="cond" truecount="2" falsecount="0"/>
+        <line num="22" count="5" type="cond" truecount="1" falsecount="1"/>
+        <line num="25" count="5" type="cond" truecount="1" falsecount="1"/>
+        <line num="27" count="5" type="cond" truecount="2" falsecount="0"/>
+        <line num="33" count="3" type="stmt"/>
+        <line num="34" count="3" type="stmt"/>
+        <line num="35" count="3" type="stmt"/>
+        <line num="40" count="5" type="stmt"/>
+        <line num="41" count="5" type="stmt"/>
+      </file>
+      <file name="use-network.native.ts" path="/Users/tm/work/AltMe/src/shared/hooks/use-network.native.ts">
+        <metrics statements="34" coveredstatements="34" conditionals="19" coveredconditionals="12" methods="6" coveredmethods="6"/>
+        <line num="11" count="2" type="stmt"/>
+        <line num="12" count="20" type="cond" truecount="5" falsecount="0"/>
+        <line num="14" count="10" type="stmt"/>
+        <line num="16" count="2" type="stmt"/>
+        <line num="18" count="2" type="stmt"/>
+        <line num="20" count="4" type="stmt"/>
+        <line num="22" count="2" type="stmt"/>
+        <line num="26" count="2" type="stmt"/>
+        <line num="27" count="40" type="stmt"/>
+        <line num="28" count="40" type="stmt"/>
+        <line num="29" count="40" type="stmt"/>
+        <line num="35" count="40" type="stmt"/>
+        <line num="36" count="18" type="stmt"/>
+        <line num="38" count="18" type="stmt"/>
+        <line num="39" count="18" type="stmt"/>
+        <line num="40" count="18" type="stmt"/>
+        <line num="41" count="16" type="cond" truecount="1" falsecount="1"/>
+        <line num="42" count="16" type="cond" truecount="1" falsecount="1"/>
+        <line num="43" count="16" type="stmt"/>
+        <line num="44" count="16" type="stmt"/>
+        <line num="49" count="16" type="stmt"/>
+        <line num="52" count="2" type="cond" truecount="1" falsecount="1"/>
+        <line num="53" count="2" type="stmt"/>
+        <line num="54" count="2" type="stmt"/>
+        <line num="59" count="18" type="stmt"/>
+        <line num="61" count="18" type="stmt"/>
+        <line num="62" count="4" type="cond" truecount="1" falsecount="1"/>
+        <line num="63" count="4" type="cond" truecount="1" falsecount="1"/>
+        <line num="64" count="4" type="stmt"/>
+        <line num="65" count="4" type="stmt"/>
+        <line num="73" count="18" type="stmt"/>
+        <line num="74" count="18" type="stmt"/>
+        <line num="75" count="18" type="stmt"/>
+        <line num="79" count="40" type="stmt"/>
+      </file>
+      <file name="use-network.web.ts" path="/Users/tm/work/AltMe/src/shared/hooks/use-network.web.ts">
+        <metrics statements="15" coveredstatements="15" conditionals="4" coveredconditionals="3" methods="6" coveredmethods="6"/>
+        <line num="10" count="1" type="stmt"/>
+        <line num="11" count="9" type="stmt"/>
+        <line num="12" count="7" type="cond" truecount="1" falsecount="1"/>
+        <line num="14" count="9" type="stmt"/>
+        <line num="16" count="9" type="stmt"/>
+        <line num="17" count="9" type="stmt"/>
+        <line num="19" count="9" type="stmt"/>
+        <line num="20" count="7" type="stmt"/>
+        <line num="21" count="7" type="stmt"/>
+        <line num="24" count="7" type="stmt"/>
+        <line num="26" count="7" type="stmt"/>
+        <line num="27" count="7" type="stmt"/>
+        <line num="28" count="7" type="stmt"/>
+        <line num="32" count="9" type="stmt"/>
+        <line num="38" count="9" type="stmt"/>
+      </file>
+      <file name="use-page-title.ts" path="/Users/tm/work/AltMe/src/shared/hooks/use-page-title.ts">
+        <metrics statements="5" coveredstatements="5" conditionals="6" coveredconditionals="6" methods="2" coveredmethods="2"/>
+        <line num="4" count="7" type="stmt"/>
+        <line num="6" count="7" type="stmt"/>
+        <line num="7" count="41" type="stmt"/>
+        <line num="8" count="41" type="cond" truecount="4" falsecount="0"/>
+        <line num="10" count="33" type="cond" truecount="2" falsecount="0"/>
+      </file>
+      <file name="use-platform-subscription.native.ts" path="/Users/tm/work/AltMe/src/shared/hooks/use-platform-subscription.native.ts">
+        <metrics statements="53" coveredstatements="31" conditionals="8" coveredconditionals="4" methods="18" coveredmethods="9"/>
+        <line num="34" count="2" type="stmt"/>
+        <line num="43" count="2" type="stmt"/>
+        <line num="49" count="2" type="stmt"/>
+        <line num="52" count="2" type="stmt"/>
+        <line num="53" count="2" type="stmt"/>
+        <line num="56" count="6" type="stmt"/>
+        <line num="57" count="6" type="stmt"/>
+        <line num="58" count="4" type="stmt"/>
+        <line num="60" count="2" type="stmt"/>
+        <line num="61" count="2" type="stmt"/>
+        <line num="66" count="4" type="stmt"/>
+        <line num="67" count="4" type="stmt"/>
+        <line num="68" count="2" type="stmt"/>
+        <line num="69" count="2" type="stmt"/>
+        <line num="71" count="2" type="stmt"/>
+        <line num="72" count="2" type="stmt"/>
+        <line num="77" count="6" type="stmt"/>
+        <line num="78" count="6" type="stmt"/>
+        <line num="79" count="2" type="stmt"/>
+        <line num="80" count="2" type="stmt"/>
+        <line num="82" count="4" type="cond" truecount="4" falsecount="0"/>
+        <line num="83" count="2" type="stmt"/>
+        <line num="85" count="2" type="stmt"/>
+        <line num="90" count="6" type="stmt"/>
+        <line num="91" count="6" type="stmt"/>
+        <line num="92" count="4" type="stmt"/>
+        <line num="93" count="4" type="stmt"/>
+        <line num="95" count="2" type="stmt"/>
+        <line num="96" count="2" type="stmt"/>
+        <line num="101" count="2" type="stmt"/>
+        <line num="102" count="0" type="stmt"/>
+        <line num="104" count="0" type="stmt"/>
+        <line num="105" count="0" type="stmt"/>
+        <line num="106" count="0" type="stmt"/>
+        <line num="109" count="0" type="stmt"/>
+        <line num="110" count="0" type="stmt"/>
+        <line num="113" count="0" type="stmt"/>
+        <line num="116" count="0" type="stmt"/>
+        <line num="117" count="0" type="stmt"/>
+        <line num="118" count="0" type="stmt"/>
+        <line num="119" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="120" count="0" type="stmt"/>
+        <line num="123" count="0" type="stmt"/>
+        <line num="124" count="0" type="stmt"/>
+        <line num="127" count="0" type="stmt"/>
+        <line num="130" count="0" type="stmt"/>
+        <line num="131" count="0" type="stmt"/>
+        <line num="132" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="133" count="0" type="stmt"/>
+        <line num="135" count="0" type="stmt"/>
+        <line num="139" count="0" type="stmt"/>
+        <line num="153" count="2" type="stmt"/>
+        <line num="154" count="0" type="stmt"/>
+      </file>
+      <file name="use-platform-subscription.web.ts" path="/Users/tm/work/AltMe/src/shared/hooks/use-platform-subscription.web.ts">
+        <metrics statements="98" coveredstatements="60" conditionals="40" coveredconditionals="23" methods="30" coveredmethods="17"/>
+        <line num="36" count="2" type="stmt"/>
+        <line num="45" count="2" type="stmt"/>
+        <line num="51" count="4" type="stmt"/>
+        <line num="52" count="4" type="stmt"/>
+        <line num="53" count="4" type="cond" truecount="3" falsecount="0"/>
+        <line num="54" count="4" type="stmt"/>
+        <line num="56" count="4" type="stmt"/>
+        <line num="57" count="4" type="cond" truecount="4" falsecount="0"/>
+        <line num="58" count="1" type="stmt"/>
+        <line num="59" count="1" type="stmt"/>
+        <line num="60" count="1" type="stmt"/>
+        <line num="63" count="4" type="stmt"/>
+        <line num="73" count="3" type="stmt"/>
+        <line num="111" count="2" type="stmt"/>
+        <line num="112" count="2" type="stmt"/>
+        <line num="113" count="2" type="stmt"/>
+        <line num="115" count="2" type="stmt"/>
+        <line num="119" count="8" type="stmt"/>
+        <line num="120" count="8" type="stmt"/>
+        <line num="121" count="8" type="stmt"/>
+        <line num="123" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="124" count="0" type="stmt"/>
+        <line num="127" count="0" type="stmt"/>
+        <line num="130" count="2" type="stmt"/>
+        <line num="131" count="7" type="stmt"/>
+        <line num="132" count="7" type="cond" truecount="2" falsecount="0"/>
+        <line num="134" count="6" type="stmt"/>
+        <line num="140" count="6" type="cond" truecount="4" falsecount="0"/>
+        <line num="141" count="4" type="stmt"/>
+        <line num="144" count="2" type="stmt"/>
+        <line num="150" count="3" type="stmt"/>
+        <line num="153" count="1" type="stmt"/>
+        <line num="154" count="1" type="stmt"/>
+        <line num="157" count="5" type="stmt"/>
+        <line num="158" count="5" type="stmt"/>
+        <line num="159" count="5" type="stmt"/>
+        <line num="161" count="0" type="stmt"/>
+        <line num="162" count="0" type="stmt"/>
+        <line num="167" count="3" type="stmt"/>
+        <line num="168" count="3" type="stmt"/>
+        <line num="169" count="3" type="stmt"/>
+        <line num="173" count="2" type="cond" truecount="1" falsecount="1"/>
+        <line num="174" count="0" type="stmt"/>
+        <line num="177" count="2" type="stmt"/>
+        <line num="178" count="2" type="cond" truecount="2" falsecount="0"/>
+        <line num="180" count="1" type="stmt"/>
+        <line num="181" count="1" type="stmt"/>
+        <line num="194" count="1" type="cond" truecount="1" falsecount="1"/>
+        <line num="195" count="0" type="stmt"/>
+        <line num="196" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="199" count="1" type="stmt"/>
+        <line num="202" count="1" type="cond" truecount="1" falsecount="1"/>
+        <line num="203" count="1" type="stmt"/>
+        <line num="205" count="1" type="stmt"/>
+        <line num="209" count="2" type="stmt"/>
+        <line num="210" count="2" type="stmt"/>
+        <line num="211" count="2" type="stmt"/>
+        <line num="212" count="2" type="stmt"/>
+        <line num="214" count="0" type="stmt"/>
+        <line num="215" count="0" type="stmt"/>
+        <line num="220" count="2" type="stmt"/>
+        <line num="221" count="2" type="cond" truecount="2" falsecount="0"/>
+        <line num="223" count="1" type="stmt"/>
+        <line num="234" count="1" type="cond" truecount="1" falsecount="1"/>
+        <line num="235" count="0" type="stmt"/>
+        <line num="236" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="239" count="1" type="stmt"/>
+        <line num="240" count="1" type="cond" truecount="1" falsecount="1"/>
+        <line num="241" count="1" type="stmt"/>
+        <line num="246" count="2" type="stmt"/>
+        <line num="247" count="0" type="stmt"/>
+        <line num="248" count="0" type="stmt"/>
+        <line num="250" count="0" type="stmt"/>
+        <line num="251" count="0" type="stmt"/>
+        <line num="252" count="0" type="stmt"/>
+        <line num="256" count="0" type="stmt"/>
+        <line num="257" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="258" count="0" type="stmt"/>
+        <line num="260" count="0" type="stmt"/>
+        <line num="264" count="0" type="stmt"/>
+        <line num="265" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="266" count="0" type="stmt"/>
+        <line num="270" count="0" type="stmt"/>
+        <line num="275" count="0" type="stmt"/>
+        <line num="276" count="0" type="stmt"/>
+        <line num="277" count="0" type="stmt"/>
+        <line num="281" count="0" type="stmt"/>
+        <line num="282" count="0" type="stmt"/>
+        <line num="283" count="0" type="stmt"/>
+        <line num="284" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="285" count="0" type="stmt"/>
+        <line num="288" count="0" type="stmt"/>
+        <line num="289" count="0" type="stmt"/>
+        <line num="292" count="0" type="stmt"/>
+        <line num="293" count="0" type="stmt"/>
+        <line num="296" count="0" type="stmt"/>
+        <line num="310" count="2" type="stmt"/>
+        <line num="311" count="3" type="stmt"/>
+      </file>
+      <file name="use-reduced-motion.native.ts" path="/Users/tm/work/AltMe/src/shared/hooks/use-reduced-motion.native.ts">
+        <metrics statements="11" coveredstatements="11" conditionals="0" coveredconditionals="0" methods="5" coveredmethods="5"/>
+        <line num="4" count="2" type="stmt"/>
+        <line num="5" count="14" type="stmt"/>
+        <line num="7" count="14" type="stmt"/>
+        <line num="8" count="10" type="stmt"/>
+        <line num="9" count="10" type="stmt"/>
+        <line num="10" count="10" type="stmt"/>
+        <line num="13" count="10" type="stmt"/>
+        <line num="15" count="10" type="stmt"/>
+        <line num="17" count="2" type="stmt"/>
+        <line num="20" count="10" type="stmt"/>
+        <line num="23" count="14" type="stmt"/>
+      </file>
+      <file name="use-reduced-motion.web.ts" path="/Users/tm/work/AltMe/src/shared/hooks/use-reduced-motion.web.ts">
+        <metrics statements="11" coveredstatements="11" conditionals="2" coveredconditionals="1" methods="5" coveredmethods="5"/>
+        <line num="3" count="1" type="stmt"/>
+        <line num="4" count="5" type="stmt"/>
+        <line num="5" count="4" type="cond" truecount="1" falsecount="1"/>
+        <line num="6" count="4" type="stmt"/>
+        <line num="9" count="5" type="stmt"/>
+        <line num="10" count="4" type="stmt"/>
+        <line num="12" count="4" type="stmt"/>
+        <line num="13" count="1" type="stmt"/>
+        <line num="16" count="4" type="stmt"/>
+        <line num="17" count="4" type="stmt"/>
+        <line num="20" count="5" type="stmt"/>
+      </file>
+      <file name="use-responsive.ts" path="/Users/tm/work/AltMe/src/shared/hooks/use-responsive.ts">
+        <metrics statements="23" coveredstatements="23" conditionals="12" coveredconditionals="10" methods="7" coveredmethods="7"/>
+        <line num="5" count="5" type="stmt"/>
+        <line num="11" count="5" type="stmt"/>
+        <line num="12" count="59" type="cond" truecount="2" falsecount="0"/>
+        <line num="13" count="53" type="cond" truecount="2" falsecount="0"/>
+        <line num="14" count="34" type="cond" truecount="2" falsecount="0"/>
+        <line num="15" count="28" type="stmt"/>
+        <line num="18" count="5" type="stmt"/>
+        <line num="19" count="41" type="stmt"/>
+        <line num="20" count="41" type="stmt"/>
+        <line num="31" count="5" type="stmt"/>
+        <line num="33" count="42" type="cond" truecount="2" falsecount="0"/>
+        <line num="34" count="22" type="stmt"/>
+        <line num="35" count="22" type="stmt"/>
+        <line num="39" count="20" type="stmt"/>
+        <line num="41" count="18" type="cond" truecount="1" falsecount="1"/>
+        <line num="42" count="18" type="cond" truecount="1" falsecount="1"/>
+        <line num="43" count="18" type="stmt"/>
+        <line num="47" count="20" type="stmt"/>
+        <line num="48" count="18" type="stmt"/>
+        <line num="49" count="1" type="stmt"/>
+        <line num="52" count="18" type="stmt"/>
+        <line num="53" count="18" type="stmt"/>
+        <line num="56" count="20" type="stmt"/>
+      </file>
+      <file name="use-subscription.native.ts" path="/Users/tm/work/AltMe/src/shared/hooks/use-subscription.native.ts">
+        <metrics statements="0" coveredstatements="0" conditionals="0" coveredconditionals="0" methods="0" coveredmethods="0"/>
+      </file>
+      <file name="use-subscription.web.ts" path="/Users/tm/work/AltMe/src/shared/hooks/use-subscription.web.ts">
+        <metrics statements="66" coveredstatements="55" conditionals="34" coveredconditionals="27" methods="18" coveredmethods="14"/>
+        <line num="30" count="1" type="stmt"/>
+        <line num="39" count="1" type="stmt"/>
+        <line num="45" count="4" type="stmt"/>
+        <line num="46" count="4" type="stmt"/>
+        <line num="47" count="4" type="cond" truecount="3" falsecount="0"/>
+        <line num="48" count="4" type="stmt"/>
+        <line num="50" count="4" type="stmt"/>
+        <line num="51" count="4" type="cond" truecount="4" falsecount="0"/>
+        <line num="52" count="1" type="stmt"/>
+        <line num="53" count="1" type="stmt"/>
+        <line num="54" count="1" type="stmt"/>
+        <line num="57" count="4" type="stmt"/>
+        <line num="67" count="2" type="stmt"/>
+        <line num="105" count="1" type="stmt"/>
+        <line num="106" count="1" type="stmt"/>
+        <line num="108" count="1" type="stmt"/>
+        <line num="112" count="6" type="stmt"/>
+        <line num="113" count="6" type="stmt"/>
+        <line num="114" count="6" type="stmt"/>
+        <line num="116" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="117" count="0" type="stmt"/>
+        <line num="120" count="0" type="stmt"/>
+        <line num="123" count="1" type="stmt"/>
+        <line num="129" count="2" type="stmt"/>
+        <line num="132" count="1" type="stmt"/>
+        <line num="133" count="16" type="stmt"/>
+        <line num="136" count="5" type="stmt"/>
+        <line num="137" count="5" type="stmt"/>
+        <line num="138" count="5" type="stmt"/>
+        <line num="139" count="5" type="cond" truecount="2" falsecount="0"/>
+        <line num="141" count="4" type="stmt"/>
+        <line num="147" count="4" type="cond" truecount="4" falsecount="0"/>
+        <line num="148" count="3" type="stmt"/>
+        <line num="150" count="5" type="stmt"/>
+        <line num="152" count="0" type="stmt"/>
+        <line num="153" count="0" type="stmt"/>
+        <line num="158" count="2" type="stmt"/>
+        <line num="159" count="2" type="stmt"/>
+        <line num="160" count="2" type="stmt"/>
+        <line num="164" count="2" type="stmt"/>
+        <line num="165" count="2" type="stmt"/>
+        <line num="166" count="2" type="cond" truecount="2" falsecount="0"/>
+        <line num="168" count="1" type="stmt"/>
+        <line num="169" count="1" type="stmt"/>
+        <line num="182" count="1" type="cond" truecount="1" falsecount="1"/>
+        <line num="183" count="0" type="stmt"/>
+        <line num="184" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="187" count="1" type="stmt"/>
+        <line num="191" count="1" type="cond" truecount="1" falsecount="1"/>
+        <line num="192" count="1" type="stmt"/>
+        <line num="194" count="1" type="stmt"/>
+        <line num="196" count="1" type="cond" truecount="3" falsecount="1"/>
+        <line num="197" count="0" type="stmt"/>
+        <line num="199" count="1" type="stmt"/>
+        <line num="205" count="3" type="stmt"/>
+        <line num="206" count="3" type="stmt"/>
+        <line num="207" count="3" type="cond" truecount="2" falsecount="0"/>
+        <line num="209" count="2" type="stmt"/>
+        <line num="215" count="2" type="cond" truecount="4" falsecount="0"/>
+        <line num="217" count="1" type="stmt"/>
+        <line num="218" count="1" type="stmt"/>
+        <line num="219" count="1" type="stmt"/>
+        <line num="221" count="0" type="stmt"/>
+        <line num="222" count="0" type="stmt"/>
+        <line num="227" count="1" type="stmt"/>
+        <line num="228" count="0" type="stmt"/>
+      </file>
+      <file name="use-user.ts" path="/Users/tm/work/AltMe/src/shared/hooks/use-user.ts">
+        <metrics statements="5" coveredstatements="4" conditionals="2" coveredconditionals="2" methods="6" coveredmethods="5"/>
+        <line num="15" count="4" type="stmt"/>
+        <line num="19" count="5" type="stmt"/>
+        <line num="20" count="0" type="stmt"/>
+        <line num="22" count="2" type="stmt"/>
+        <line num="25" count="7" type="stmt"/>
+      </file>
+    </package>
+  </project>
+</coverage>

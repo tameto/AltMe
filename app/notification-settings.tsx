@@ -9,6 +9,7 @@ import {
   Linking,
   Alert,
   ScrollView,
+  Platform,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
@@ -122,7 +123,9 @@ export default function NotificationSettingsModal() {
   );
 
   const handleOpenSettings = useCallback(() => {
-    Linking.openSettings();
+    if (Platform.OS !== 'web') {
+      Linking.openSettings();
+    }
   }, []);
 
   return (
@@ -141,8 +144,18 @@ export default function NotificationSettingsModal() {
           contentInsetAdjustmentBehavior="automatic"
           showsVerticalScrollIndicator={false}
         >
+          {/* Web: プッシュ通知は将来対応 */}
+          {Platform.OS === 'web' ? (
+            <View testID="web-notification-notice" style={styles.webNoticeBanner}>
+              <Feather name="info" size={16} color={colors.primary} />
+              <Text style={styles.webNoticeText}>
+                {t('settings.notifications.webNotice')}
+              </Text>
+            </View>
+          ) : null}
+
           {/* デバイス通知OFFバナー */}
-          {!isSystemEnabled ? (
+          {!isSystemEnabled && Platform.OS !== 'web' ? (
             <Pressable style={styles.systemDisabledBanner} onPress={handleOpenSettings}>
               <Feather name="alert-triangle" size={16} color={colors.warning} />
               <Text style={styles.systemDisabledText}>
@@ -353,5 +366,22 @@ const styles = StyleSheet.create({
   rowDescription: {
     fontSize: fontSize.sm,
     color: colors.textSecondary,
+  },
+  webNoticeBanner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#7DD3FC14',
+    borderRadius: borderRadius.md,
+    borderWidth: 1,
+    borderColor: '#7DD3FC30',
+    padding: spacing.md,
+    marginBottom: spacing.md,
+    gap: spacing.sm,
+  },
+  webNoticeText: {
+    flex: 1,
+    fontSize: fontSize.sm,
+    color: colors.primary,
+    fontFamily: fontFamily.medium,
   },
 });

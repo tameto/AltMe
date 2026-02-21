@@ -13,6 +13,7 @@ import { colors, spacing, borderRadius, fontSize, fontFamily } from '@/src/confi
 import { useIsPro } from '@/src/shared/hooks/use-subscription';
 import { useUser } from '@/src/shared/hooks/use-user';
 import { useAuthStore } from '@/src/features/auth/stores/auth-store';
+import { usePageTitle } from '@/src/shared/hooks/use-page-title';
 import { supabase } from '@/src/services/supabase/client';
 import {
   getMyInstance,
@@ -135,6 +136,7 @@ function GuestSettingsScreen() {
 
 export default function SettingsScreen() {
   const { t } = useTranslation();
+  usePageTitle(t('tabs.settings'));
   const router = useRouter();
   const isPro = useIsPro();
   const user = useUser((s) => s.user);

@@ -20,15 +20,16 @@
 
 | レイヤー | 技術 | バージョン | 備考 |
 |---------|------|----------|------|
-| フロントエンド | React Native (Expo) | SDK 54 | Expo Router |
+| フロントエンド | React Native (Expo) + Web | SDK 54 | Expo Router（クロスプラットフォーム対応） |
 | 状態管理 | Zustand | 5.x | persist middleware使用 |
 | バックエンド | Supabase | - | PostgreSQL + Auth + Edge Functions |
-| 認証 | Supabase Auth | - | Apple / Google Sign-In |
+| 認証 | Supabase Auth | - | Apple / Google Sign-In（Web/Native共通） |
 | AI基盤 | OpenClaw | - | ユーザーごとにDigitalOcean Dropletへデプロイ |
 | インフラ | DigitalOcean | - | Droplet自動プロビジョニング |
 | 課金（モバイル） | RevenueCat | SDK 8.x | Paywalls SDK含む |
 | 課金（Web） | Stripe | Checkout + Webhook | RevenueCat Stripe Provider統合 |
-| 通知 | Expo Notifications | - | ローカル + プッシュ |
+| 通知 | Expo Notifications（Native）/ Web Push（計画中） | - | ローカル + プッシュ |
+| Web プラットフォーム | `.web.ts` / `.native.ts` 分離 | Metro resolution | 単一コードベース |
 
 ---
 
@@ -73,33 +74,39 @@
 
 ```
 1. 認証フロー:
-   App → Supabase Auth → JWT Token → App State
+   App/Web → Supabase Auth → JWT Token → App State
 
 2. OpenClawプロビジョニングフロー（課金後）:
-   App → Supabase Edge Function → DigitalOcean API
+   App/Web → Supabase Edge Function → DigitalOcean API
      → Droplet作成 → OpenClaw Docker起動 → SOUL.md設定
      → Gateway URL をDB保存
 
 3. AIチャットフロー（Proユーザー）:
-   App → WebSocket (wss://{ip}:18789) → ユーザー専用OpenClaw Gateway
+   App/Web → WebSocket (wss://{ip}:18789) → ユーザー専用OpenClaw Gateway
      → Response → App State → DB保存
 
 4. AIチャットフロー（無料ユーザー）:
-   App → Supabase Edge Function → OpenAI API → Response（初回10Kトークン制限）
+   App/Web → Supabase Edge Function → OpenAI API → Response（初回10Kトークン制限）
 
-5. 課金フロー:
+5. モバイル課金フロー:
    App → RevenueCat SDK → App Store / Google Play → Webhook → Supabase DB
 
-6. 通知フロー:
-   Supabase Edge Function (cron) → Expo Push API → Device
-
-7. Web課金フロー:
+6. Web課金フロー:
    Web App → Edge Function (create-checkout-session) → Stripe Checkout
-     → Webhook (webhook-stripe) → Supabase DB + RevenueCat同期
+     → Webhook (webhook-stripe) → Supabase DB + RevenueCat Stripe Provider 同期
+     → Edge Function (provision-openclaw) → OpenClaw インスタンス作成
+
+7. 通知フロー:
+   Supabase Edge Function (cron) → Expo Push API / Web Push → Device
 
 8. ゲストブラウズフロー:
    未認証ユーザー → コミュニティ一覧/詳細（閲覧のみ）
      → チャット/ツイン情報/設定はログイン促進UI表示
+
+9. プラットフォーム分離フロー（内部）:
+   [共有ビジネスロジック] → Metro resolver
+     → iOS/Android: native.ts の実装
+     → Web: web.ts の実装
 ```
 
 ### OpenClaw Gateway通信仕様
@@ -145,8 +152,74 @@
 - 音声チャット（Phase 2以降）
 - ユーザー同士のDM・フォロー（コミュニティはツイン交流のみ）
 - マルチエージェント（1ユーザー1インスタンス）
-- Web版フルアプリ（課金のみWeb対応、アプリ本体はモバイルのみ）
+- PWA（Progressive Web App）対応（Phase 2以降）
 - 多言語対応（Phase 2以降、MVP時点では日本語+英語）
+
+---
+
+## Web 対応実装（2026-02-21 完了）
+
+### Web プラットフォーム
+- **対応ブラウザ**: Chrome 90+, Firefox 90+, Safari 15+, Edge 90+
+- **アーキテクチャ**: `.web.ts` / `.native.ts` プラットフォーム分離（Metro auto-resolution）
+- **レスポンシブ**: モバイル < 768px / タブレット 768-1023px / デスクトップ >= 1024px / ワイド >= 1440px
+- **ナビゲーション**: Web はサイドバー固定（240px）、モバイルはボトムタブ
+
+### Web 機能一覧
+| 機能 | Web実装 | 備考 |
+|------|--------|------|
+| 認証 | ✅ | Google / Apple / devLogin（OAuth redirect フロー） |
+| チャット | ✅ | WebSocket (Pro) + SSE (Free)、キーボードショートカット |
+| メディアアップロード | ✅ | ファイル選択 + ドラッグ&ドロップ |
+| オンボーディング | ✅ | 6画面のステップフォーム |
+| コミュニティ | ✅ | レスポンシブグリッドレイアウト |
+| ツイン情報 | ✅ | ダッシュボードスタイル |
+| 設定 | ✅ | Stripe Customer Portal 統合 |
+| 課金（Stripe） | ✅ | Checkout → Webhook → DB同期 + RevenueCat同期 |
+
+### テスト環境
+
+#### Jest マルチプロジェクト設定（jest.config.ts）
+```bash
+# 共通テスト（全プラットフォーム対応）
+npx jest --selectProjects shared
+
+# Web 専用テスト
+npx jest --selectProjects web
+
+# ネイティブテスト
+npx jest --selectProjects ios,android
+```
+
+- **Projects**: `shared` / `web` / `ios` / `android`
+- **共有テスト**: プラットフォーム依存コードを除く
+- **プラットフォーム特定テスト**: `.web.test.ts` / `.native.test.ts` パターン
+- **カバレッジ目標**: 行カバレッジ 80% 以上（branches/functions/statements 含む）
+- **テスト環境**:
+  - `shared/ios/android`: `preset: 'jest-expo/*'` + `testEnvironment: 'node'`
+  - `web`: `preset: 'jest-expo/web'` + `testEnvironment: 'jsdom'`
+
+#### Playwright E2E テスト（e2e/）
+```bash
+# 全ブラウザで E2E テスト実行
+npx playwright test
+
+# 特定ブラウザのみ実行
+npx playwright test --project=chromium
+npx playwright test --project=firefox
+npx playwright test --project=webkit
+```
+
+- **5ブラウザプロジェクト**: Chrome, Firefox, Safari, Edge, WebKit
+- **テストスイート**: 認証、チャット、課金フロー（Web専用）
+- **CI 統合**: GitHub Actions で全ブラウザ並列実行
+
+### 主要な Edge Functions（Stripe 連携）
+- `create-checkout-session` — Stripe Checkout セッション作成（JWT認証、planType or priceId パラメータ）
+- `create-portal-session` — Stripe Customer Portal セッション作成（既存顧客のサブスク管理）
+- `webhook-stripe` — Stripe Webhook 処理（署名検証、冪等性チェック、DB更新）
+- `reconcile-stripe` — セッション有効期限チェック（期限切れセッション検出・キャンセル）
+- 全 Edge Functions CORS 対応（`getCorsHeaders(origin)` 使用、ワイルドカード禁止）
 
 ---
 
@@ -314,16 +387,32 @@ altme/
 │   │   └── types/                # 型定義（Agent間の契約）
 │   ├── services/                 # 外部サービス連携
 │   │   ├── supabase/
-│   │   │   ├── client.ts
-│   │   │   ├── auth.ts
+│   │   │   ├── client.web.ts
+│   │   │   ├── client.native.ts
+│   │   │   ├── auth.web.ts
+│   │   │   ├── auth.native.ts
+│   │   │   ├── auth-shared.ts
 │   │   │   └── database.ts
+│   │   ├── stripe/
+│   │   │   ├── client.ts         # Stripe API クライアント（Web課金）
+│   │   │   └── __tests__/
 │   │   ├── revenuecat/
-│   │   │   ├── client.ts
-│   │   │   └── offerings.ts
+│   │   │   ├── client.web.ts
+│   │   │   ├── client.native.ts
+│   │   │   ├── offerings.ts
+│   │   │   └── __tests__/
 │   │   ├── openclaw/
 │   │   │   └── client.ts         # OpenClawインスタンス管理
-│   │   └── digitalocean/
-│   │       └── client.ts         # Dropletプロビジョニング
+│   │   ├── digitalocean/
+│   │   │   └── client.ts         # Dropletプロビジョニング
+│   │   ├── notifications/
+│   │   │   ├── client.web.ts
+│   │   │   ├── client.native.ts
+│   │   │   └── __tests__/
+│   │   └── analytics/
+│   │       ├── tracker.web.ts
+│   │       ├── tracker.native.ts
+│   │       └── __tests__/
 │   └── config/
 │       ├── env.ts                # 環境変数
 │       ├── constants.ts          # 定数
@@ -331,18 +420,32 @@ altme/
 ├── supabase/                     # Supabase設定
 │   ├── migrations/               # DBマイグレーション
 │   └── functions/                # Edge Functions
+│       ├── _shared/              # 共有ユーティリティ
+│       │   ├── cors.ts           # CORS ヘッダ処理
+│       │   ├── supabase.ts       # Supabase クライアント（anon/service role）
+│       │   └── webhook-utils.ts  # Webhook イベント冪等性管理
 │       ├── chat/                 # 無料ユーザー用AIチャット
 │       ├── provision-openclaw/   # OpenClawプロビジョニング
+│       ├── destroy-openclaw/     # OpenClaw インスタンス削除
 │       ├── personality-analyze/  # パーソナリティ分析
-│       ├── webhook-revenuecat/   # RevenueCat Webhook
-│       ├── create-checkout-session/  # Stripe Checkout Session作成
-│       └── webhook-stripe/       # Stripe Webhook
+│       ├── webhook-revenuecat/   # RevenueCat Webhook（モバイル課金）
+│       ├── create-checkout-session/   # Stripe Checkout Session作成
+│       ├── create-portal-session/     # Stripe Customer Portal Session作成
+│       ├── webhook-stripe/            # Stripe Webhook（Web課金）
+│       └── reconcile-stripe/          # Stripe セッション有効期限チェック
 ├── specs/                        # 仕様書（本ドキュメント）
 │   └── overview.md
 ├── docs/                         # その他ドキュメント
+├── e2e/                          # Playwright E2E テスト（Web専用）
+│   ├── auth.spec.ts
+│   ├── chat.spec.ts
+│   ├── subscription.spec.ts
+│   └── playwright.config.ts
 ├── CLAUDE.md
 ├── .env.example
 ├── app.json
+├── jest.config.ts                # Jest マルチプロジェクト設定
+├── jest.setup.ts
 ├── package.json
 └── tsconfig.json
 ```
@@ -492,3 +595,4 @@ fontFamily: {
 | 2026-02-15 | オンボーディング: 4画面→6画面に変更<br>新画面追加: choose-avatar.tsx (4), choose-tone.tsx (5)<br>画面一覧更新<br>ディレクトリ構成にchoose-avatar.tsx, choose-tone.tsx追記 | V3 Liquid Glass: AIアイコン・口調カスタマイズ機能追加 | — |
 | 2026-02-15 | ゲストブラウズモード追加<br>Web版課金（Stripe）追加<br>トークン管理追加<br>API Key保護原則追加<br>Googleロゴ規約準拠追加<br>「やらないこと」からWeb版を変更（課金のみWeb対応） | 7新要件の反映 | — |
 | 2026-02-16 | デザインシステムセクション追加（V4 Dark Premium）<br>カラートークン・glassmorphism・goldGradient・sendGradient・tabBarColors・fontFamily追記<br>新規共通コンポーネント（CosmicBackground/GlassCard/GoldButton）追記<br>追加パッケージ（expo-blur/expo-linear-gradient/@expo-google-fonts/outfit）追記<br>タイポグラフィスケール追記 | Reconcile: V4 Dark Premium UI 実装完了後の仕様書同期 | — |
+| 2026-02-21 | 技術スタックに Web プラットフォーム対応を追記<br>「やらないこと」に PWA 対応を追加<br>新規「Web 対応実装」セクション追加（アーキテクチャ、機能一覧、テスト環境、Edge Functions）<br>データフロー図に Web課金・プラットフォーム分離フロー追加<br>ディレクトリ構成：stripe/, e2e/, supabase/functions/_shared/ 追加<br>Edge Functions 詳細化（_shared/, destroy-openclaw, create-portal-session, reconcile-stripe）<br>jest.config.ts + e2e/ テスト構成追記 | Reconcile: Web 版フル実装完了（Stripe決済、プラットフォーム分離、E2Eテスト）の仕様書同期 | 20260221-web-full-impl |

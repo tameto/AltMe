@@ -8,8 +8,7 @@ import {
   updateProfile as authUpdateProfile,
   deleteAccount as authDeleteAccount,
 } from '@/src/services/supabase/auth';
-import { statusCodes as GoogleStatusCodes } from '@react-native-google-signin/google-signin';
-import { initializeRevenueCat, checkSubscriptionStatus, addCustomerInfoListener } from '@/src/services/revenuecat/client';
+import { initializeRevenueCat, addCustomerInfoListener } from '@/src/services/revenuecat/client';
 import { disconnectOpenClaw } from '@/src/services/openclaw/connection-manager';
 import { useUser } from '@/src/shared/hooks/use-user';
 import { useSubscription } from '@/src/shared/hooks/use-subscription';
@@ -71,11 +70,10 @@ export const useAuthStore = create<AuthStore>((set) => ({
           useUser.getState().setUser(profile);
 
           // Check subscription status
-          const entitlement = await checkSubscriptionStatus();
-          useSubscription.getState().setEntitlement(entitlement);
-          useSubscription.getState().setLoading(false);
+          // refreshStatus は Web では DB ポーリング、Native では RevenueCat を使用
+          await useSubscription.getState().refreshStatus();
 
-          // Listen for subscription updates (deduplicated)
+          // Listen for subscription updates (deduplicated, Native only)
           bindRcListener();
 
           set({ isAuthenticated: true, isLoading: false });
@@ -112,11 +110,10 @@ export const useAuthStore = create<AuthStore>((set) => ({
       const profile = await authSignInWithApple();
       useUser.getState().setUser(profile);
 
-      const entitlement = await checkSubscriptionStatus();
-      useSubscription.getState().setEntitlement(entitlement);
-      useSubscription.getState().setLoading(false);
+      // refreshStatus は Web では DB ポーリング、Native では RevenueCat を使用
+      await useSubscription.getState().refreshStatus();
 
-      // Listen for subscription updates (deduplicated)
+      // Listen for subscription updates (deduplicated, Native only)
       bindRcListener();
 
       set({ isAuthenticated: true, isGuest: false });
@@ -145,23 +142,18 @@ export const useAuthStore = create<AuthStore>((set) => ({
       const profile = await authSignInWithGoogle();
       useUser.getState().setUser(profile);
 
-      const entitlement = await checkSubscriptionStatus();
-      useSubscription.getState().setEntitlement(entitlement);
-      useSubscription.getState().setLoading(false);
+      // refreshStatus は Web では DB ポーリング、Native では RevenueCat を使用
+      await useSubscription.getState().refreshStatus();
 
-      // Listen for subscription updates (deduplicated)
+      // Listen for subscription updates (deduplicated, Native only)
       bindRcListener();
 
       set({ isAuthenticated: true, isGuest: false });
     } catch (error: unknown) {
-      // Silent handling for user cancellation (Native SDK status codes)
-      if (
-        error != null &&
-        typeof error === 'object' &&
-        'code' in error &&
-        (error as { code: string }).code === GoogleStatusCodes.SIGN_IN_CANCELLED
-      ) {
-        return;
+      // Silent handling for user cancellation (works across native SDK and OAuth redirect)
+      if (error != null && typeof error === 'object' && 'code' in error) {
+        const code = (error as { code: string }).code;
+        if (code === 'SIGN_IN_CANCELLED') return;
       }
       const message = error instanceof Error ? error.message : 'ログインに失敗しました';
       if (message.includes('cancelled') || message.includes('ERR_CANCELED')) return;

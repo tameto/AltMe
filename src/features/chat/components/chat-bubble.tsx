@@ -1,5 +1,5 @@
-import React from 'react';
-import { View, Text, Pressable, StyleSheet } from 'react-native';
+import React, { useMemo, useCallback } from 'react';
+import { View, Text, Pressable, StyleSheet, Platform, Linking } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
 import { spacing, fontFamily } from '@/src/config/theme';
@@ -11,6 +11,48 @@ type ChatBubbleProps = {
   twinName: string;
   isStreaming?: boolean;
   onTranslatePress?: () => void;
+};
+
+// URL detection regex
+const URL_REGEX = /https?:\/\/[^\s<>"{}|\\^`[\]]+/g;
+
+// XSS sanitization: strip HTML tags and dangerous patterns
+const sanitizeContent = (text: string): string =>
+  text
+    .replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '')
+    .replace(/<[^>]*>/g, '')
+    .replace(/javascript:/gi, '')
+    .replace(/on\w+\s*=/gi, '');
+
+// Parse content into text and link segments
+type ContentSegment = { type: 'text'; value: string } | { type: 'link'; value: string };
+
+const parseContent = (text: string): ContentSegment[] => {
+  const sanitized = sanitizeContent(text);
+  const segments: ContentSegment[] = [];
+  let lastIndex = 0;
+
+  for (const match of sanitized.matchAll(URL_REGEX)) {
+    if (match.index !== undefined && match.index > lastIndex) {
+      segments.push({ type: 'text', value: sanitized.slice(lastIndex, match.index) });
+    }
+    segments.push({ type: 'link', value: match[0] });
+    lastIndex = (match.index ?? 0) + match[0].length;
+  }
+
+  if (lastIndex < sanitized.length) {
+    segments.push({ type: 'text', value: sanitized.slice(lastIndex) });
+  }
+
+  return segments.length > 0 ? segments : [{ type: 'text', value: sanitized }];
+};
+
+const openLink = (url: string) => {
+  if (Platform.OS === 'web' && typeof window !== 'undefined') {
+    window.open(url, '_blank', 'noopener,noreferrer');
+  } else {
+    Linking.openURL(url);
+  }
 };
 
 export function ChatBubble({
@@ -28,12 +70,41 @@ export function ChatBubble({
     minute: '2-digit',
   });
 
+  const segments = useMemo(() => parseContent(content), [content]);
+
+  const handleLinkPress = useCallback((url: string) => {
+    openLink(url);
+  }, []);
+
+  // Web: allow text selection via userSelect style
+  const selectableStyle = Platform.OS === 'web' ? { userSelect: 'text' as const } : {};
+
+  const renderContent = () => (
+    <Text style={[styles.messageText, selectableStyle]} testID="chat-bubble-content">
+      {segments.map((seg, i) =>
+        seg.type === 'link' ? (
+          <Text
+            key={i}
+            style={styles.linkText}
+            onPress={() => handleLinkPress(seg.value)}
+            accessibilityRole="link"
+          >
+            {seg.value}
+          </Text>
+        ) : (
+          <Text key={i}>{seg.value}</Text>
+        ),
+      )}
+      {isStreaming === true ? <Text style={styles.cursor}>{'|'}</Text> : null}
+    </Text>
+  );
+
   if (isUser) {
     return (
-      <View style={styles.wrapper}>
+      <View style={styles.wrapper} testID="chat-bubble-user">
         <View style={styles.userRow}>
           <View style={styles.userContent}>
-            <Text style={styles.messageText}>{content}</Text>
+            {renderContent()}
             <Text style={styles.timestamp}>{time}</Text>
           </View>
         </View>
@@ -42,7 +113,7 @@ export function ChatBubble({
   }
 
   return (
-    <View style={styles.wrapper}>
+    <View style={styles.wrapper} testID="chat-bubble-assistant">
       {/* AI header: avatar + name + time */}
       <View style={styles.aiHeader}>
         <View style={styles.aiAvatar}>
@@ -55,10 +126,7 @@ export function ChatBubble({
       {/* AI bubble */}
       <View style={styles.aiRow}>
         <View style={styles.aiContent}>
-          <Text style={styles.messageText}>
-            {content}
-            {isStreaming === true ? <Text style={styles.cursor}>{'|'}</Text> : null}
-          </Text>
+          {renderContent()}
         </View>
       </View>
 
@@ -157,6 +225,10 @@ const styles = StyleSheet.create({
     fontFamily: fontFamily.regular,
     color: '#FFFFFF40',
     alignSelf: 'flex-end',
+  },
+  linkText: {
+    color: '#7DD3FC',
+    textDecorationLine: 'underline' as const,
   },
   cursor: {
     color: '#7DD3FC',

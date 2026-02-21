@@ -1,4 +1,4 @@
-import { corsHeaders } from '../_shared/cors.ts';
+import { getCorsHeaders, handleCorsPreflightRequest } from '../_shared/cors.ts';
 import { createSupabaseClient } from '../_shared/supabase.ts';
 import { chatCompletion } from '../_shared/openai.ts';
 
@@ -46,20 +46,20 @@ const getDominantMood = (moods: { mood: string }[]): MoodType | null => {
   return dominant as MoodType;
 };
 
-/**
- * JSON レスポンスを生成するヘルパー
- */
-const jsonResponse = (body: Record<string, unknown>, status: number) =>
-  new Response(JSON.stringify(body), {
-    status,
-    headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-  });
-
 Deno.serve(async (req: Request) => {
-  // CORS プリフライト対応
-  if (req.method === 'OPTIONS') {
-    return new Response('ok', { headers: corsHeaders });
-  }
+  const preflightResponse = handleCorsPreflightRequest(req);
+  if (preflightResponse) return preflightResponse;
+
+  const corsHeaders = getCorsHeaders(req.headers.get('origin'));
+
+  /**
+   * JSON レスポンスを生成するヘルパー
+   */
+  const jsonResponse = (body: Record<string, unknown>, status: number) =>
+    new Response(JSON.stringify(body), {
+      status,
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+    });
 
   try {
     const supabase = createSupabaseClient(req);

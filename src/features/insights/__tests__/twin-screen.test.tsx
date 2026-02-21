@@ -60,7 +60,27 @@ jest.mock('@expo/vector-icons/Feather', () => 'Feather');
 // Module mocks (must be before imports that use them)
 jest.mock('@/src/features/auth/stores/auth-store');
 jest.mock('@/src/shared/hooks/use-user');
-jest.mock('@/src/shared/hooks/use-subscription');
+jest.mock('@/src/shared/hooks/use-subscription', () => ({
+  useIsPro: jest.fn().mockReturnValue(false),
+  useSubscription: jest.fn().mockReturnValue({
+    entitlement: { isPro: false },
+  }),
+}));
+const mockResponsiveValues = {
+  isMobile: true,
+  isTablet: false,
+  isDesktop: false,
+  isWide: false,
+  width: 375,
+  height: 812,
+  breakpoint: 'mobile' as 'mobile' | 'tablet' | 'desktop',
+};
+jest.mock('@/src/shared/hooks/use-responsive', () => ({
+  useResponsive: () => mockResponsiveValues,
+}));
+jest.mock('@/src/shared/hooks/use-page-title', () => ({
+  usePageTitle: jest.fn(),
+}));
 jest.mock('@/src/features/insights/hooks/use-twin-data');
 jest.mock('expo-router', () => ({
   useRouter: jest.fn(() => ({ push: jest.fn(), replace: jest.fn() })),
@@ -193,12 +213,12 @@ describe('TwinScreen', () => {
       setupAuthenticatedUser();
       render(<TwinScreen />);
 
-      // 各トレイトの値が表示される（0-100のパーセンテージ）
-      expect(screen.getByText('75%')).toBeTruthy(); // openness
-      expect(screen.getByText('82%')).toBeTruthy(); // conscientiousness
-      expect(screen.getByText('45%')).toBeTruthy(); // extraversion
-      expect(screen.getByText('68%')).toBeTruthy(); // agreeableness
-      expect(screen.getByText('35%')).toBeTruthy(); // neuroticism
+      // 各トレイトの値が `label X%` 形式で表示される
+      expect(screen.getByText(/75%/)).toBeTruthy(); // openness
+      expect(screen.getByText(/82%/)).toBeTruthy(); // conscientiousness
+      expect(screen.getByText(/45%/)).toBeTruthy(); // extraversion
+      expect(screen.getByText(/68%/)).toBeTruthy(); // agreeableness
+      expect(screen.getByText(/35%/)).toBeTruthy(); // neuroticism
     });
 
     it('SOUL.md閲覧ボタンが表示されること', () => {
@@ -274,6 +294,100 @@ describe('TwinScreen', () => {
       render(<TwinScreen />);
 
       expect(screen.getByTestId('no-data-message')).toBeTruthy();
+    });
+  });
+
+  describe('Web Desktop レイアウト (M126)', () => {
+    beforeEach(() => {
+      // Desktop breakpoint に切り替え
+      mockResponsiveValues.isMobile = false;
+      mockResponsiveValues.isDesktop = true;
+      mockResponsiveValues.width = 1280;
+      mockResponsiveValues.breakpoint = 'desktop' as const;
+    });
+
+    afterEach(() => {
+      // モバイルにリセット
+      mockResponsiveValues.isMobile = true;
+      mockResponsiveValues.isDesktop = false;
+      mockResponsiveValues.width = 375;
+      mockResponsiveValues.breakpoint = 'mobile' as const;
+    });
+
+    it('Desktop時にBig Five 5トレイトが全て表示されること', () => {
+      setupAuthenticatedUser();
+      render(<TwinScreen />);
+
+      const progressBars = screen.getAllByTestId('trait-progress-bar');
+      expect(progressBars).toHaveLength(5);
+    });
+
+    it('Desktop時にアバターとツイン名が表示されること', () => {
+      setupAuthenticatedUser({ twinName: 'デスクトップツイン' });
+      render(<TwinScreen />);
+
+      expect(screen.getByTestId('twin-avatar')).toBeTruthy();
+      expect(screen.getByText('デスクトップツイン')).toBeTruthy();
+    });
+
+    it('Desktop時にMBTIバッジが表示されること', () => {
+      setupAuthenticatedUser({ mbtiType: 'ENFP' });
+      render(<TwinScreen />);
+
+      expect(screen.getByTestId('mbti-badge')).toBeTruthy();
+      expect(screen.getByText('ENFP')).toBeTruthy();
+    });
+
+    it('Desktop時にSOUL.mdボタンが表示されること', () => {
+      setupAuthenticatedUser();
+      render(<TwinScreen />);
+
+      expect(screen.getByTestId('view-soul-md-button')).toBeTruthy();
+    });
+
+    it('Desktop時にローディング表示が正常に動作すること', () => {
+      setupAuthenticatedUser();
+      mockUseTwinData.mockReturnValue({
+        ...defaultTwinDataReturn,
+        isLoading: true,
+        personalityTraits: null,
+        hasData: false,
+      });
+
+      render(<TwinScreen />);
+
+      expect(screen.getByTestId('loading-indicator')).toBeTruthy();
+    });
+
+    it('Desktop時に各トレイトのパーセンテージが表示されること', () => {
+      setupAuthenticatedUser();
+      render(<TwinScreen />);
+
+      expect(screen.getByText(/75%/)).toBeTruthy();
+      expect(screen.getByText(/82%/)).toBeTruthy();
+      expect(screen.getByText(/45%/)).toBeTruthy();
+      expect(screen.getByText(/68%/)).toBeTruthy();
+      expect(screen.getByText(/35%/)).toBeTruthy();
+    });
+  });
+
+  describe('Pro/Free 表示分岐', () => {
+    it('Free ユーザーはSOUL.mdボタンが非表示であること', () => {
+      setupAuthenticatedUser();
+      mockUseIsPro.mockReturnValue(false);
+
+      render(<TwinScreen />);
+
+      expect(screen.queryByTestId('view-soul-md-button')).toBeNull();
+    });
+
+    it('Pro ユーザーはSOUL.mdボタンが表示されること', () => {
+      setupAuthenticatedUser();
+      mockUseIsPro.mockReturnValue(true);
+
+      render(<TwinScreen />);
+
+      expect(screen.getByTestId('view-soul-md-button')).toBeTruthy();
     });
   });
 });
