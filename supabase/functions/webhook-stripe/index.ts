@@ -1,6 +1,6 @@
 import Stripe from 'npm:stripe';
 import { createServiceClient } from '../_shared/supabase.ts';
-import { checkIdempotency, markEventProcessed } from '../_shared/webhook-utils.ts';
+import { claimWebhookEvent, markEventProcessed } from '../_shared/webhook-utils.ts';
 
 const stripe = new Stripe(Deno.env.get('STRIPE_SECRET_KEY') ?? '', {
   apiVersion: '2024-06-20',
@@ -40,10 +40,10 @@ Deno.serve(async (req: Request) => {
 
   const supabase = createServiceClient();
 
-  // 2. 冪等性チェック（二重課金防止）
-  const { isProcessed } = await checkIdempotency(supabase, event.id, 'stripe');
-  if (isProcessed) {
-    return new Response(JSON.stringify({ message: 'Already processed' }), { status: 200 });
+  // 2. 原子的冪等性チェック（UNIQUE 制約で二重処理を防止）
+  const { claimed } = await claimWebhookEvent(supabase, event.id, 'stripe', event.type);
+  if (!claimed) {
+    return new Response(JSON.stringify({ message: 'Already claimed' }), { status: 200 });
   }
 
   console.log(`Stripe webhook: ${event.type} (${event.id})`);

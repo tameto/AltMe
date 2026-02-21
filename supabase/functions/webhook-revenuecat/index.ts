@@ -1,12 +1,13 @@
-import { corsHeaders } from '../_shared/cors.ts';
 import { createServiceClient } from '../_shared/supabase.ts';
-import { checkIdempotency, markEventProcessed } from '../_shared/webhook-utils.ts';
+import { claimWebhookEvent, markEventProcessed } from '../_shared/webhook-utils.ts';
 
 const WEBHOOK_SECRET = Deno.env.get('REVENUECAT_WEBHOOK_SECRET');
 
+// webhook はサーバー→サーバー通信なので CORS 不要
+
 Deno.serve(async (req: Request) => {
-  if (req.method === 'OPTIONS') {
-    return new Response('ok', { headers: corsHeaders });
+  if (req.method !== 'POST') {
+    return new Response(JSON.stringify({ error: 'method_not_allowed' }), { status: 405 });
   }
 
   // Webhook secret 未設定時は安全に拒否（fail-closed）
@@ -14,7 +15,7 @@ Deno.serve(async (req: Request) => {
     console.error('REVENUECAT_WEBHOOK_SECRET is not configured');
     return new Response(
       JSON.stringify({ error: 'server_misconfiguration' }),
-      { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
+      { status: 500, headers: { 'Content-Type': 'application/json' } },
     );
   }
 
@@ -24,24 +25,25 @@ Deno.serve(async (req: Request) => {
     if (authHeader !== `Bearer ${WEBHOOK_SECRET}`) {
       return new Response(
         JSON.stringify({ error: 'unauthorized' }),
-        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
+        { status: 401, headers: { 'Content-Type': 'application/json' } },
       );
     }
 
     const event = await req.json();
     const supabase = createServiceClient();
 
-    // 冪等性チェック: 同一イベントの二重処理を防ぐ
-    const { isProcessed } = await checkIdempotency(supabase, event.id, 'revenuecat');
-    if (isProcessed) {
+    const eventType = event.type;
+
+    // 原子的冪等性チェック（UNIQUE 制約で二重処理を防止）
+    const { claimed } = await claimWebhookEvent(supabase, event.id, 'revenuecat', eventType);
+    if (!claimed) {
       return new Response(
-        JSON.stringify({ message: 'Already processed' }),
-        { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
+        JSON.stringify({ message: 'Already claimed' }),
+        { status: 200, headers: { 'Content-Type': 'application/json' } },
       );
     }
 
     const appUserId = event.app_user_id;
-    const eventType = event.type;
 
     console.log(`RevenueCat webhook: ${eventType} for user ${appUserId}`);
 
@@ -154,13 +156,13 @@ Deno.serve(async (req: Request) => {
 
     return new Response(
       JSON.stringify({ success: true }),
-      { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
+      { status: 200, headers: { 'Content-Type': 'application/json' } },
     );
   } catch (error) {
     console.error('Webhook error:', error);
     return new Response(
       JSON.stringify({ error: 'internal_error' }),
-      { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
+      { status: 500, headers: { 'Content-Type': 'application/json' } },
     );
   }
 });

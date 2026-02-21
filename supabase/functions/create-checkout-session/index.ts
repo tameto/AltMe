@@ -7,8 +7,13 @@ const stripe = new Stripe(Deno.env.get('STRIPE_SECRET_KEY') ?? '', {
   httpClient: Stripe.createFetchHttpClient(),
 });
 
-const MONTHLY_PRICE_ID = Deno.env.get('STRIPE_MONTHLY_PRICE_ID') ?? '';
-const YEARLY_PRICE_ID = Deno.env.get('STRIPE_YEARLY_PRICE_ID') ?? '';
+const MONTHLY_PRICE_ID = Deno.env.get('STRIPE_MONTHLY_PRICE_ID');
+const YEARLY_PRICE_ID = Deno.env.get('STRIPE_YEARLY_PRICE_ID');
+
+if (!MONTHLY_PRICE_ID || !YEARLY_PRICE_ID) {
+  console.error('STRIPE_MONTHLY_PRICE_ID and STRIPE_YEARLY_PRICE_ID must be configured');
+  Deno.exit(1);
+}
 
 /** planType → Stripe priceId マッピング */
 const PLAN_TO_PRICE: Record<string, string> = {
