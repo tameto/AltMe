@@ -7,6 +7,9 @@ import {
   TextInput,
   ScrollView,
   Alert,
+  FlatList,
+  Image,
+  Dimensions,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
@@ -17,12 +20,18 @@ import { CosmicBackground } from '@/src/shared/components/cosmic-background';
 import { GoldButton } from '@/src/shared/components/gold-button';
 import { spacing, borderRadius, fontSize, fontFamily } from '@/src/config/theme';
 import { createCommunity } from '@/src/services/community/client';
+import { THUMBNAIL_SOURCES, THUMBNAIL_KEYS, type ThumbnailKey } from '@/src/config/thumbnail-map';
+
+const SCREEN_WIDTH = Dimensions.get('window').width;
+const THUMBNAIL_GRID_PADDING = spacing.md * 2;
+const THUMBNAIL_COLUMNS = 5;
+const THUMBNAIL_ITEM_SIZE = (SCREEN_WIDTH - THUMBNAIL_GRID_PADDING) / THUMBNAIL_COLUMNS;
 
 type LanguageCode = 'ja' | 'en' | 'ko';
-type CategoryKey = 'info' | 'business' | 'hobby' | 'casual' | 'other';
+type CategoryKey = 'entertainment' | 'lifestyle' | 'technology' | 'other';
 
 const LANGUAGES: LanguageCode[] = ['ja', 'en', 'ko'];
-const CATEGORIES: CategoryKey[] = ['info', 'business', 'hobby', 'casual', 'other'];
+const CATEGORIES: CategoryKey[] = ['entertainment', 'lifestyle', 'technology', 'other'];
 
 export default function CommunityCreateScreen() {
   const router = useRouter();
@@ -32,6 +41,8 @@ export default function CommunityCreateScreen() {
   const [description, setDescription] = useState('');
   const [selectedLanguage, setSelectedLanguage] = useState<LanguageCode>('ja');
   const [selectedCategory, setSelectedCategory] = useState<CategoryKey | null>(null);
+  const [selectedThumbnail, setSelectedThumbnail] = useState<ThumbnailKey | null>(null);
+  const [showThumbnailPicker, setShowThumbnailPicker] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
   const isValid = channelName.trim().length > 0;
@@ -46,6 +57,7 @@ export default function CommunityCreateScreen() {
         description: description.trim(),
         language: selectedLanguage,
         category: selectedCategory ?? 'other',
+        thumbnailUrl: selectedThumbnail ?? undefined,
       });
 
       if (result) {
@@ -76,10 +88,48 @@ export default function CommunityCreateScreen() {
         <ScrollView contentContainerStyle={styles.content}>
           {/* Thumbnail Picker */}
           <View style={styles.thumbnailSection}>
-            <Pressable style={styles.thumbnailPicker}>
-              <Feather name="camera" size={32} color="rgba(255,255,255,0.25)" />
-              <Text style={styles.thumbnailLabel}>{t('community.create.thumbnail')}</Text>
+            <Pressable
+              style={styles.thumbnailPicker}
+              onPress={() => setShowThumbnailPicker(!showThumbnailPicker)}
+            >
+              {selectedThumbnail !== null ? (
+                <Image
+                  source={THUMBNAIL_SOURCES[selectedThumbnail]}
+                  style={styles.thumbnailPreview}
+                />
+              ) : (
+                <>
+                  <Feather name="camera" size={32} color="rgba(255,255,255,0.25)" />
+                  <Text style={styles.thumbnailLabel}>{t('community.create.thumbnail')}</Text>
+                </>
+              )}
             </Pressable>
+
+            {showThumbnailPicker ? (
+              <FlatList
+                data={THUMBNAIL_KEYS}
+                keyExtractor={(item) => item}
+                numColumns={THUMBNAIL_COLUMNS}
+                scrollEnabled={false}
+                style={styles.thumbnailGrid}
+                renderItem={({ item }) => (
+                  <Pressable
+                    style={[
+                      styles.thumbnailGridItem,
+                      selectedThumbnail === item
+                        ? styles.thumbnailGridItemSelected
+                        : styles.thumbnailGridItemUnselected,
+                    ]}
+                    onPress={() => setSelectedThumbnail(item)}
+                  >
+                    <Image
+                      source={THUMBNAIL_SOURCES[item]}
+                      style={styles.thumbnailGridImage}
+                    />
+                  </Pressable>
+                )}
+              />
+            ) : null}
           </View>
 
           {/* Channel Name */}
@@ -204,7 +254,7 @@ const styles = StyleSheet.create({
   },
   thumbnailPicker: {
     width: 120,
-    height: 120,
+    height: 80,
     borderRadius: 16,
     borderWidth: 1,
     borderColor: 'rgba(255,255,255,0.13)',
@@ -212,11 +262,42 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 8,
     backgroundColor: 'rgba(255,255,255,0.03)',
+    overflow: 'hidden',
+  },
+  thumbnailPreview: {
+    width: 120,
+    height: 80,
+    borderRadius: 16,
   },
   thumbnailLabel: {
     fontSize: 11,
     fontFamily: fontFamily.regular,
     color: 'rgba(255,255,255,0.25)',
+  },
+  thumbnailGrid: {
+    marginTop: spacing.sm,
+    width: SCREEN_WIDTH - THUMBNAIL_GRID_PADDING,
+  },
+  thumbnailGridItem: {
+    width: THUMBNAIL_ITEM_SIZE,
+    height: THUMBNAIL_ITEM_SIZE * (2 / 3),
+    borderRadius: 12,
+    borderWidth: 1.5,
+    overflow: 'hidden',
+    marginBottom: 4,
+  },
+  thumbnailGridItemSelected: {
+    borderColor: 'rgba(125,211,252,0.31)',
+    backgroundColor: 'rgba(125,211,252,0.08)',
+  },
+  thumbnailGridItemUnselected: {
+    borderColor: '#FFFFFF20',
+    backgroundColor: 'transparent',
+  },
+  thumbnailGridImage: {
+    width: '100%',
+    height: '100%',
+    borderRadius: 12,
   },
   fieldSection: {
     marginBottom: spacing.lg,
