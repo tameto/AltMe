@@ -18,7 +18,7 @@ import { CosmicBackground } from '@/src/shared/components/cosmic-background';
 import { GoldButton } from '@/src/shared/components/gold-button';
 import { spacing, fontFamily, borderRadius, glassmorphism } from '@/src/config/theme';
 import { useOnboardingStore } from '@/src/features/onboarding/stores/onboarding-store';
-import type { AvatarIcon, SpeechTone } from '@/src/shared/types/user';
+import type { SpeechTone } from '@/src/shared/types/user';
 import { useAuthStore } from '@/src/features/auth/stores/auth-store';
 import { useIsPro } from '@/src/shared/hooks/use-subscription';
 import { supabase } from '@/src/services/supabase/client';
@@ -34,7 +34,7 @@ type ChatMessage = {
 export default function MeetTwinScreen() {
   const { t } = useTranslation();
   const personalityResult = useOnboardingStore((s) => s.personalityResult);
-  const avatarStyle = useOnboardingStore((s) => s.avatarStyle);
+  const avatarIcon = useOnboardingStore((s) => s.avatarIcon);
   const toneStyle = useOnboardingStore((s) => s.toneStyle);
   const updateProfile = useAuthStore((s) => s.updateProfile);
   const isPro = useIsPro();
@@ -52,15 +52,12 @@ export default function MeetTwinScreen() {
     if (isPro && chatEnded) {
       const completeOnboarding = async () => {
         try {
-          const avatarMap: Record<string, AvatarIcon> = {
-            geometric: 'geometric', cosmic: 'cosmic', organic: 'organic', techno: 'tech', zen: 'zen',
-          };
           const toneMap: Record<string, SpeechTone> = {
             polite: 'polite', casual: 'friendly', intellectual: 'intellectual', mentor: 'mentor', tsundere: 'tsundere',
           };
           await updateProfile({
             onboardingCompleted: true,
-            ...(avatarStyle ? { avatarIcon: avatarMap[avatarStyle] ?? 'default' } : {}),
+            ...(avatarIcon ? { avatarIcon: avatarIcon } : {}),
             ...(toneStyle ? { speechTone: toneMap[toneStyle] ?? 'friendly' } : {}),
           });
         } catch (err) {
@@ -70,7 +67,7 @@ export default function MeetTwinScreen() {
       };
       completeOnboarding();
     }
-  }, [isPro, chatEnded, updateProfile, avatarStyle, toneStyle]);
+  }, [isPro, chatEnded, updateProfile, avatarIcon, toneStyle]);
 
   useEffect(() => {
     const introMessage = generateIntroMessage();

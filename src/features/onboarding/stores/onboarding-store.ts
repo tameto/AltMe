@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import type { PersonalityResult } from '@/src/shared/types/user';
+import type { PersonalityResult, AvatarIcon } from '@/src/shared/types/user';
 
 export type QuestionOption = {
   label: string;
@@ -76,7 +76,6 @@ type Answer = {
   answer: string;
 };
 
-export type AvatarStyle = 'geometric' | 'cosmic' | 'organic' | 'techno' | 'zen';
 export type ToneStyle = 'polite' | 'casual' | 'intellectual' | 'mentor' | 'tsundere';
 
 type OnboardingStore = {
@@ -84,14 +83,14 @@ type OnboardingStore = {
   answers: Answer[];
   personalityResult: PersonalityResult | null;
   isAnalyzing: boolean;
-  avatarStyle: AvatarStyle | null;
+  avatarIcon: AvatarIcon | null;
   toneStyle: ToneStyle | null;
 
   // Actions
   addAnswer: (questionId: string, answer: string) => void;
   setResult: (result: PersonalityResult) => void;
   setAnalyzing: (analyzing: boolean) => void;
-  setAvatarStyle: (style: AvatarStyle) => void;
+  setAvatarIcon: (icon: AvatarIcon) => void;
   setToneStyle: (style: ToneStyle) => void;
   goNext: () => void;
   goPrev: () => void;
@@ -103,7 +102,7 @@ export const useOnboardingStore = create<OnboardingStore>((set) => ({
   answers: [],
   personalityResult: null,
   isAnalyzing: false,
-  avatarStyle: null,
+  avatarIcon: null,
   toneStyle: null,
 
   addAnswer: (questionId, answer) =>
@@ -116,7 +115,7 @@ export const useOnboardingStore = create<OnboardingStore>((set) => ({
 
   setAnalyzing: (analyzing) => set({ isAnalyzing: analyzing }),
 
-  setAvatarStyle: (style) => set({ avatarStyle: style }),
+  setAvatarIcon: (icon) => set({ avatarIcon: icon }),
 
   setToneStyle: (style) => set({ toneStyle: style }),
 
@@ -136,7 +135,7 @@ export const useOnboardingStore = create<OnboardingStore>((set) => ({
       answers: [],
       personalityResult: null,
       isAnalyzing: false,
-      avatarStyle: null,
+      avatarIcon: null,
       toneStyle: null,
     }),
 }));

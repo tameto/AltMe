@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useCallback } from 'react';
 import {
   View,
   Text,
@@ -19,6 +19,7 @@ import { colors, spacing, fontSize, fontFamily, borderRadius } from '@/src/confi
 import { useAuthStore } from '@/src/features/auth/stores/auth-store';
 import { useIsPro } from '@/src/shared/hooks/use-subscription';
 import { useCommunities } from '@/src/features/community/hooks/use-communities';
+import { CommunityCard } from '@/src/features/community/components/community-card';
 import type { Community } from '@/src/services/community/client';
 
 type Language = 'jp' | 'en';
@@ -30,24 +31,28 @@ export default function CommunityScreen() {
   const isPro = useIsPro();
   const [language, setLanguage] = useState<Language>('jp');
 
-  const { communities, isLoading, isRefreshing, refresh } = useCommunities();
+  const languageForQuery = language === 'jp' ? 'ja' : 'en';
+  const { communities, isLoading, isRefreshing, refresh } = useCommunities(languageForQuery);
 
   const handleUpgradeToPro = () => {
     router.push('/(paywall)' as Href);
   };
 
-  const renderCommunity = ({ item }: { item: Community }) => (
-    <Pressable style={styles.communityCard} onPress={() => router.push(`/community/${item.id}` as Href)}>
-      <View style={styles.communityThumbnail}>
-        <Feather name="users" size={28} color={colors.textSecondary} />
-      </View>
-      <View style={styles.communityInfo}>
-        <Text style={styles.communityName}>{item.name}</Text>
-        <Text style={styles.communityStatText}>{'👥 '}{item.memberCount}{t('community.memberCount')}</Text>
-      </View>
-      <Feather name="chevron-right" size={20} color="#7DD3FC60" />
-    </Pressable>
+  const handleCommunityPress = useCallback(
+    (id: string) => {
+      router.push(`/community/${id}` as Href);
+    },
+    [router],
   );
+
+  const renderCommunity = useCallback(
+    ({ item }: { item: Community }) => (
+      <CommunityCard community={item} onPress={handleCommunityPress} />
+    ),
+    [handleCommunityPress],
+  );
+
+  const keyExtractor = useCallback((item: Community) => item.id, []);
 
   const ListHeader = (
     <>
@@ -117,7 +122,7 @@ export default function CommunityScreen() {
       <SafeAreaView style={styles.container} edges={['top']}>
         <FlatList
           data={communities}
-          keyExtractor={(item) => item.id}
+          keyExtractor={keyExtractor}
           renderItem={renderCommunity}
           contentContainerStyle={styles.content}
           contentInsetAdjustmentBehavior="automatic"
@@ -202,38 +207,6 @@ const styles = StyleSheet.create({
   },
   loader: {
     marginVertical: spacing.lg,
-  },
-  communityCard: {
-    backgroundColor: '#FFFFFF08',
-    borderColor: '#7DD3FC40',
-    borderWidth: 1,
-    borderRadius: 16,
-    paddingVertical: 12,
-    paddingHorizontal: 14,
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 14,
-  },
-  communityThumbnail: {
-    width: 64,
-    height: 64,
-    borderRadius: 12,
-    backgroundColor: '#FFFFFF15',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  communityInfo: {
-    flex: 1,
-    gap: 4,
-  },
-  communityName: {
-    fontSize: 16,
-    fontFamily: fontFamily.semiBold,
-    color: colors.text,
-  },
-  communityStatText: {
-    fontSize: 12,
-    color: '#94A3B8',
   },
   proUpgradeBanner: {
     backgroundColor: '#FFFFFF08',
