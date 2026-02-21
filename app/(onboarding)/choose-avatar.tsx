@@ -59,6 +59,7 @@ export default function ChooseAvatarScreen() {
   const Wrapper = Platform.OS === 'web' ? View : SafeAreaView;
   const numColumns = isMobile ? 5 : 6;
 
+
   return (
     <CosmicBackground>
       <Wrapper style={styles.container}>
